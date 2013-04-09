@@ -16,19 +16,20 @@ function log(str) {
   $("pre").append(str+"\n");
 }
 
-$.xdomain({
-  proxyPath: '/xdomain/example/eg1-proxy.html'
-});
-
 log("making request to: ...");
 
-$.xdomain.ajax({
-  url: 'http://xyz.example.com:3000/xdomain/example/eg1-data.json',
-  type: 'GET'
-}).done(function(result) {
-  log("got result:");
-  log(result);
+$(function() {
+
+  $.xdomain.ajax({
+    url: 'http://xyz.example.com:3000/xdomain/example/eg1-data.json',
+    type: 'GET'
+  }).done(function(result) {
+    log("got result:");
+    log(result);
+  });
+
 });
+
 
 </script>
 
