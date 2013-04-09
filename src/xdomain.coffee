@@ -1,37 +1,42 @@
 'use strict'
 
-
 log = (msg) ->
   return unless console and console['log']
   console.log 'xdomain', window.location.host, ': ', msg
 
-log "init"
+log "init client"
 
 #plugin
-frames  = {}
-proxies = {}
+windows  = {}
 
-makeProxy = (returnProxy, remoteProxy, origin) ->
-  return proxies[origin] if proxies[origin]
+makeIFrame = (origin, remoteProxy, returnProxy) ->
+  return windows[origin] if windows[origin]
 
   frame = document.createElement "iframe"
   id = guid()
   frame.id = id
   frame.name = id
   remote = origin + remoteProxy
-  #load remote proxy    and..            tell remote proxy where our local proxy is
-  local = if returnProxy then window.location.origin + returnProxy else ''
-
-  frame.src = remote + "#" + local
-  frames[origin] = frame
+  frame.src = remote
+  
+  win = frame.contentWindow
   $("body").append frame
 
+  windows[origin] = win
+  return win
 
+#responder
+$(window).on 'message', (event) ->
+  xdomain = event.data
+  id = xdomain.id
+  req = $.ajax xdomain.ajax
+  req.always ->
+    result =
+      id: id
+      args: arguments
+    event.source.postMessage(result, e.origin);
 
-
-  proxies[origin] = proxy
-  return proxy
-
+#caller
 class AjaxCall
 
   frames: {}
@@ -53,49 +58,40 @@ class AjaxCall
     unless @origin
       throw "invalid url"
 
-
     #check xdomain opts
     @opts = inherit @defaults, xOpts
 
-    #generate id
-
     #check frame exists
-    @proxy = makeProxy @opts.localProxy, @opts.remoteProxy, @origin
+    @proxy = makeIFrame @opts.localProxy, @opts.remoteProxy, @origin
     
-
-    @run()
-
-
-    setTimeout =>
-      log "fire!"
-      @proxy.post "test"
-    , 2000
-
-  run: ->
     #create promise
     d = $.Deferred()
 
+    id = guid()
+
+    #fire
+    t = setInterval ->
+      try 
+        @proxy.postMessage {
+          id: id
+          ajax: @ajaxOpts
+        }
+      catch e
+        return
+      clearInterval t
+    , 50
+
+
+    gotResult = (e) ->
+      log "got result"
+      d.resolve()
+      $(window).off 'message', gotResult
+
+    #wait for response
+    $(window).on 'message', gotResult
+
     #expose promise
     @d = d.promise()
-
-#init methods
-
-$(document).ready ->
-
-  Porthole.WindowProxyDispatcher.start();
-
-  #start listener
-  hash = window.location.hash.substr 1
-  return unless hash
-  {origin,path} = parseUrl hash
-  proxy = makeProxy null, path, origin
-  proxy.addEventListener (a,b,c,d) ->
-    console.log arguments
-
-  setTimeout ->
-    log "fire!"
-    proxy.post "test"
-  , 2000
 
 
 #public methods

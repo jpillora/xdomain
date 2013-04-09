@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var AjaxCall, frames, guid, inherit, log, makeProxy, parseUrl, proxies;
+  var AjaxCall, guid, inherit, log, makeIFrame, parseUrl, windows;
 
   log = function(msg) {
     if (!(console && console['log'])) {
@@ -16,29 +16,41 @@
     return console.log('xdomain', window.location.host, ': ', msg);
   };
 
-  log("init");
+  log("init client");
 
-  frames = {};
+  windows = {};
 
-  proxies = {};
-
-  makeProxy = function(returnProxy, remoteProxy, origin) {
-    var frame, id, local, remote;
-    if (proxies[origin]) {
-      return proxies[origin];
+  makeIFrame = function(origin, remoteProxy, returnProxy) {
+    var frame, id, remote, win;
+    if (windows[origin]) {
+      return windows[origin];
     }
     frame = document.createElement("iframe");
     id = guid();
     frame.id = id;
     frame.name = id;
     remote = origin + remoteProxy;
-    local = returnProxy ? window.location.origin + returnProxy : '';
-    frame.src = remote + "#" + local;
-    frames[origin] = frame;
+    frame.src = remote;
+    win = frame.contentWindow;
     $("body").append(frame);
-    proxies[origin] = proxy;
-    return proxy;
+    windows[origin] = win;
+    return win;
   };
+
+  $(window).on('message', function(event) {
+    var id, req, xdomain;
+    xdomain = event.data;
+    id = xdomain.id;
+    req = $.ajax(xdomain.ajax);
+    return req.always(function() {
+      var result;
+      result = {
+        id: id,
+        args: arguments
+      };
+      return event.source.postMessage(result, e.origin);
+    });
+  });
 
   AjaxCall = (function() {
 
@@ -52,7 +64,7 @@
     };
 
     function AjaxCall(ajaxOpts, xOpts) {
-      var _this = this;
+      var d, gotResult, id, t;
       this.ajaxOpts = ajaxOpts;
       if (xOpts == null) {
         xOpts = {};
@@ -69,41 +81,32 @@
         throw "invalid url";
       }
       this.opts = inherit(this.defaults, xOpts);
-      this.proxy = makeProxy(this.opts.localProxy, this.opts.remoteProxy, this.origin);
-      this.run();
-      setTimeout(function() {
-        log("fire!");
-        return _this.proxy.post("test");
-      }, 2000);
-    }
-
-    AjaxCall.prototype.run = function() {
-      var d;
+      this.proxy = makeIFrame(this.opts.localProxy, this.opts.remoteProxy, this.origin);
       d = $.Deferred();
-      return this.d = d.promise();
-    };
+      id = guid();
+      t = setInterval(function() {
+        try {
+          this.proxy.postMessage({
+            id: id,
+            ajax: this.ajaxOpts
+          });
+        } catch (e) {
+          return;
+        }
+        return clearInterval(t);
+      }, 50);
+      gotResult = function(e) {
+        log("got result");
+        d.resolve();
+        return $(window).off('message', gotResult);
+      };
+      $(window).on('message', gotResult);
+      this.d = d.promise();
+    }
 
     return AjaxCall;
 
   })();
-
-  $(document).ready(function() {
-    var hash, origin, path, proxy, _ref;
-    Porthole.WindowProxyDispatcher.start();
-    hash = window.location.hash.substr(1);
-    if (!hash) {
-      return;
-    }
-    _ref = parseUrl(hash), origin = _ref.origin, path = _ref.path;
-    proxy = makeProxy(null, path, origin);
-    proxy.addEventListener(function(a, b, c, d) {
-      return console.log(arguments);
-    });
-    return setTimeout(function() {
-      log("fire!");
-      return proxy.post("test");
-    }, 2000);
-  });
 
   $.xdomain = function(xOpts) {
     return $.extend(AjaxCall.prototype.defaults, xOpts);

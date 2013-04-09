@@ -1,0 +1,48 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <h3>SOURCE</h3>
+
+  <script type="text/javascript">
+
+    var win;
+
+    function send(str) {
+      if(!win) {
+        var frame = document.createElement("iframe");
+        frame.src = "http://xyz.example.com:3000/xdomain/example/post/dst.html"
+
+        document.getElementsByTagName("body")[0].appendChild(frame);
+
+        win = frame.contentWindow
+      
+        var t = setInterval(function() {
+          try {
+            win.postMessage(str, 'http://xyz.example.com:3000')
+          } catch(e) {
+            return;
+          }
+          clearInterval(t);
+        }, 50)
+      } else {
+        sendNow(str);
+      }
+    }
+
+    function sendNow(str) {
+      win.postMessage(str, 'http://xyz.example.com:3000')
+    }
+
+    window.onmessage = function(e) {
+      console.log(location.host, e.data)
+    }
+
+    send('test')
+
+  </script>
+
+</body>
+</html>
