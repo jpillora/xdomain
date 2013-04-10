@@ -16,22 +16,20 @@
 
     if(location.origin === 'http://abc.example.com:3000') {
       origin = 'http://xyz.example.com:3000';
-      path = '/xdomain'
     } else if(location.origin === 'http://xdomain.jpillora.com') {
-      origin = 'http://jpillora.github.io';
-      path = '/xdomain'
+      origin = 'http://jpillora.com';
     }
 
     if(!origin) return;
 
     var slaves = {};
-    slaves[origin] = path + '/example/proxy.html'
+    slaves[origin] = '/xdomain/example/proxy.html'
 
     $.xdomain({
       slaves: slaves
     });
 
-    $.get(origin + path +'/example/data.json').always(function() {
+    $.get(origin + '/xdomain/example/data.json').always(function() {
       console.log("got result:", arguments);
     });
 
