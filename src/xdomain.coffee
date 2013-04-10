@@ -10,10 +10,12 @@ slave = window.top isnt window
 
 $window = $(window)
 
+realAjax = $.ajax
+
 PING = '__xdomain_PING'
 PONG = '__xdomain_PONG'
 
-origins = {}
+origins = { masters: {}, slaves: {}}
 frames  = {}
 
 #listeners
@@ -41,44 +43,55 @@ inherit = (parent, obj) ->
 
 #message helpers
 setMessage = (obj) ->
-  # JSON.stringify
-  obj
+  JSON.stringify obj
 
 getMessage = (obj) ->
-  # JSON.parse
-  obj
-
+  JSON.parse obj
 
 if slave
   recieveMessage = (jq) ->
     event = jq.originalEvent
-    message = getMessage event.data
-    console.log "slave", message
+    console.log "slave", event.data
+    origin = event.origin
 
-    if message is PING
-      event.source.postMessage PONG, event.origin
+    #ping only
+    if event.data is PING
+      event.source.postMessage PONG, origin 
       return
 
-    id = message.id
+    message = getMessage event.data
+
+    #security checks
+    paths = origins.masters[origin]
+
+    unless paths
+      throw "Origin not allowed: " + origin
+
+    # url = parseUrl message.payload.url
+
     #proxy ajax
-    $.ajax(message.payload).always (data, result, xhr) ->
-      #respond back
-      args = {data, result}
-      event.source.postMessage {id,args}, event.origin
+    realAjax(message.payload).always ->
+
+      args = Array.prototype.slice.call(arguments)
+
+      m = setMessage({id: message.id,args})
+      event.source.postMessage m, event.origin
 else
   recieveMessage = (jq) ->
     event = jq.originalEvent
-    message = getMessage event.data
-    console.log "master", message
+    console.log "master", event.data
 
-    if message is PONG
+    #pong only
+    if event.data is PONG
       frames[event.origin].ready = true
       return
 
-    id = message.id
+    message = getMessage event.data
     #response
-    callback = listeners[id]
-    return unless callback
+    callback = listeners[message.id]
+    unless callback
+      console.warn "missing id", message.id
+      return 
     callback message.args
 
 #responder
@@ -109,7 +122,7 @@ class Frame
         unlisten id
         callback data
 
-      @win.postMessage {id,payload}, @origin
+      @win.postMessage setMessage({id,payload}), @origin
 
   check: (callback) ->
     return callback() if @ready
@@ -132,45 +145,47 @@ class Frame
 #caller
 class AjaxCall
 
-  frames: {}
-  proxies: {}
-
-  constructor: (@ajaxOpts, xOpts = {})->
+  constructor: (@origin, @url, @opts)->
     #check ajax opts
-    unless ajaxOpts
-      throw "ajax options required"
-    unless ajaxOpts.url
-      throw "url required"
-
-    @url = ajaxOpts.url
-    { @origin } = parseUrl @url
-    unless @origin
-      throw "invalid url"
-
-    proxyPath = origins[@origin]
+    proxyPath = origins.slaves[@origin]
 
     unless proxyPath
-      throw "missing origin: " + @origin 
-
-    #check xdomain opts
-    @opts = inherit @defaults, xOpts
+      throw "Missing slave origin: " + @origin
 
     #check frame exists
     @frame = new Frame @origin, proxyPath 
     
     #create promise
-
     @d = $.Deferred()
-
-    @frame.send @ajaxOpts, (result) =>
-      @d.resolve result
-
+    @frame.send @opts, $.proxy @handleResponse, @
     @d.promise()
+
+  handleResponse: (args) ->
+    if args[1] is 'success'
+      @d.resolve.apply @d, args
+    else if args[1] is 'error'
+      @d.reject.apply @d, args
+    #unknown reponse...
 
 #public methods
 $.xdomain = (o) ->
   $.extend origins, o
 
-$.xdomain.ajax = (ajaxOpts, xOpts) ->
-  ajax = new AjaxCall ajaxOpts, xOpts
-  ajax.d
+$.ajax = (url, opts = {}) ->
+  if typeof url is 'string'
+    opts.url = url
+  else
+    opts = url
+    url = opts.url
+
+  throw "url required" unless url
+
+  console.log '$.ajax', url
+
+  p = parseUrl url
+  if p and p.origin
+    ajax = new AjaxCall p.origin, url, opts
+    return ajax.d
+
+  return realAjax.call $, url, opts
+

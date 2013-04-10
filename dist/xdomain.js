@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var $window, AjaxCall, Frame, PING, PONG, frames, getMessage, guid, inherit, listen, listeners, log, origins, parseUrl, recieveMessage, setMessage, slave, unlisten;
+  var $window, AjaxCall, Frame, PING, PONG, frames, getMessage, guid, inherit, listen, listeners, log, origins, parseUrl, realAjax, recieveMessage, setMessage, slave, unlisten;
 
   log = function(msg) {
     if (!(console && console['log'])) {
@@ -22,11 +22,16 @@
 
   $window = $(window);
 
+  realAjax = $.ajax;
+
   PING = '__xdomain_PING';
 
   PONG = '__xdomain_PONG';
 
-  origins = {};
+  origins = {
+    masters: {},
+    slaves: {}
+  };
 
   frames = {};
 
@@ -64,49 +69,51 @@
   };
 
   setMessage = function(obj) {
-    return obj;
+    return JSON.stringify(obj);
   };
 
   getMessage = function(obj) {
-    return obj;
+    return JSON.parse(obj);
   };
 
   if (slave) {
     recieveMessage = function(jq) {
-      var event, id, message;
+      var event, message, origin, paths;
       event = jq.originalEvent;
-      message = getMessage(event.data);
-      console.log("slave", message);
-      if (message === PING) {
-        event.source.postMessage(PONG, event.origin);
+      console.log("slave", event.data);
+      origin = event.origin;
+      if (event.data === PING) {
+        event.source.postMessage(PONG, origin);
         return;
       }
-      id = message.id;
-      return $.ajax(message.payload).always(function(data, result, xhr) {
-        var args;
-        args = {
-          data: data,
-          result: result
-        };
-        return event.source.postMessage({
-          id: id,
+      message = getMessage(event.data);
+      paths = origins.masters[origin];
+      if (!paths) {
+        throw "Origin not allowed: " + origin;
+      }
+      return realAjax(message.payload).always(function() {
+        var args, m;
+        args = Array.prototype.slice.call(arguments);
+        m = setMessage({
+          id: message.id,
           args: args
-        }, event.origin);
+        });
+        return event.source.postMessage(m, event.origin);
       });
     };
   } else {
     recieveMessage = function(jq) {
-      var callback, event, id, message;
+      var callback, event, message;
       event = jq.originalEvent;
-      message = getMessage(event.data);
-      console.log("master", message);
-      if (message === PONG) {
+      console.log("master", event.data);
+      if (event.data === PONG) {
         frames[event.origin].ready = true;
         return;
       }
-      id = message.id;
-      callback = listeners[id];
+      message = getMessage(event.data);
+      callback = listeners[message.id];
       if (!callback) {
+        console.warn("missing id", message.id);
         return;
       }
       return callback(message.args);
@@ -144,10 +151,10 @@
           unlisten(id);
           return callback(data);
         });
-        return _this.win.postMessage({
+        return _this.win.postMessage(setMessage({
           id: id,
           payload: payload
-        }, _this.origin);
+        }), _this.origin);
       });
     };
 
@@ -183,40 +190,28 @@
 
   AjaxCall = (function() {
 
-    AjaxCall.prototype.frames = {};
-
-    AjaxCall.prototype.proxies = {};
-
-    function AjaxCall(ajaxOpts, xOpts) {
-      var proxyPath,
-        _this = this;
-      this.ajaxOpts = ajaxOpts;
-      if (xOpts == null) {
-        xOpts = {};
-      }
-      if (!ajaxOpts) {
-        throw "ajax options required";
-      }
-      if (!ajaxOpts.url) {
-        throw "url required";
-      }
-      this.url = ajaxOpts.url;
-      this.origin = parseUrl(this.url).origin;
-      if (!this.origin) {
-        throw "invalid url";
-      }
-      proxyPath = origins[this.origin];
+    function AjaxCall(origin, url, opts) {
+      var proxyPath;
+      this.origin = origin;
+      this.url = url;
+      this.opts = opts;
+      proxyPath = origins.slaves[this.origin];
       if (!proxyPath) {
-        throw "missing origin: " + this.origin;
+        throw "Missing slave origin: " + this.origin;
       }
-      this.opts = inherit(this.defaults, xOpts);
       this.frame = new Frame(this.origin, proxyPath);
       this.d = $.Deferred();
-      this.frame.send(this.ajaxOpts, function(result) {
-        return _this.d.resolve(result);
-      });
+      this.frame.send(this.opts, $.proxy(this.handleResponse, this));
       this.d.promise();
     }
+
+    AjaxCall.prototype.handleResponse = function(args) {
+      if (args[1] === 'success') {
+        return this.d.resolve.apply(this.d, args);
+      } else if (args[1] === 'error') {
+        return this.d.reject.apply(this.d, args);
+      }
+    };
 
     return AjaxCall;
 
@@ -226,10 +221,27 @@
     return $.extend(origins, o);
   };
 
-  $.xdomain.ajax = function(ajaxOpts, xOpts) {
-    var ajax;
-    ajax = new AjaxCall(ajaxOpts, xOpts);
-    return ajax.d;
+  $.ajax = function(url, opts) {
+    var ajax, p;
+    if (opts == null) {
+      opts = {};
+    }
+    if (typeof url === 'string') {
+      opts.url = url;
+    } else {
+      opts = url;
+      url = opts.url;
+    }
+    if (!url) {
+      throw "url required";
+    }
+    console.log('$.ajax', url);
+    p = parseUrl(url);
+    if (p && p.origin) {
+      ajax = new AjaxCall(p.origin, url, opts);
+      return ajax.d;
+    }
+    return realAjax.call($, url, opts);
   };
 
 }).call(this);

@@ -6,40 +6,24 @@
 </script>
 
 <!-- jQuery -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
 <!-- XDomain -->
 <script src="dist/xdomain.js"></script>
 <!-- Demo -->
 <script type="text/javascript">
 
-function log(str) {
-  $("pre").append(str+"\n");
-}
-
-log("making request to: ...");
-
-
 $.xdomain({
-  'http://xyz.example.com:3000': '/xdomain/example/proxy.html'
+  slaves: {
+    'http://xyz.example.com:3000': '/xdomain/example/proxy.html'
+  }
 });
 
 $(function() {
 
-  $.xdomain.ajax({
-    url: 'http://xyz.example.com:3000/xdomain/example/data.json',
-    type: 'GET'
-  }).done(function(result) {
-    log("got result:");
-    log(JSON.stringify(result));
+  $.get('http://xyz.example.com:3000/xdomain/example/data.json').done(function() {
+    console.log("got result:", arguments);
   });
 
 });
 
-
 </script>
-
-<h5>Results:</h5>
-<pre>
-
-
-</pre>
