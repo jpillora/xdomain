@@ -8,7 +8,7 @@
 
   <script type="text/javascript">
 
-    var win;
+    var win, isReady = false;
 
     function send(str) {
       if(!win) {
@@ -21,12 +21,11 @@
       
         var t = setInterval(function() {
           try {
-            win.postMessage(str, 'http://xyz.example.com:3000')
-          } catch(e) {
-            return;
-          }
-          clearInterval(t);
+            win.postMessage('ping', 'http://xyz.example.com:3000')
+          } catch(e) {}
+          if(isReady) clearInterval(t);
         }, 50)
+
       } else {
         sendNow(str);
       }
@@ -37,7 +36,11 @@
     }
 
     window.onmessage = function(e) {
+
       console.log(location.host, e.data)
+    
+      if(e.data === 'pong')
+        isReady = true;
     }
 
     send('test')

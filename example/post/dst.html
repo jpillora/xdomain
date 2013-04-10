@@ -3,16 +3,22 @@
   <title></title>
 </head>
 <body>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <h3>DEST</h3>
 
   <script type="text/javascript">
 
-    window.onmessage = function(e) {
+    $(window).one('message', function(jq) {
+      var e = jq.originalEvent;
+
       console.log(location.host, e.data)
+
+      if (e.data === 'ping')
+        return e.source.postMessage('pong', 'http://abc.example.com:3000')
 
       e.source.postMessage(e.data + ' too', 'http://abc.example.com:3000')
 
-    }
+    });
 
   </script>
 </body>

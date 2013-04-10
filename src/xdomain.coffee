@@ -6,101 +6,25 @@ log = (msg) ->
 
 log "init client"
 
-#plugin
-windows  = {}
+slave = window.top isnt window
 
-makeIFrame = (origin, remoteProxy, returnProxy) ->
-  return windows[origin] if windows[origin]
+$window = $(window)
 
-  frame = document.createElement "iframe"
-  id = guid()
-  frame.id = id
-  frame.name = id
-  remote = origin + remoteProxy
-  frame.src = remote
-  
-  win = frame.contentWindow
-  $("body").append frame
+PING = '__xdomain_PING'
+PONG = '__xdomain_PONG'
 
-  windows[origin] = win
-  return win
+origins = {}
+frames  = {}
 
-#responder
-$(window).on 'message', (event) ->
-  xdomain = event.data
-  id = xdomain.id
-  req = $.ajax xdomain.ajax
-  req.always ->
-    result =
-      id: id
-      args: arguments
-    event.source.postMessage(result, e.origin);
+#listeners
+listeners = {}
+listen = (id, callback) ->
+  if listeners[id]
+    throw "already listening for: " + id
+  listeners[id] = callback
 
-#caller
-class AjaxCall
-
-  frames: {}
-  proxies: {}
-
-  defaults:
-    localProxy: '/xdomain/example/proxy.html'
-    remoteProxy: '/xdomain/example/proxy.html'
-
-  constructor: (@ajaxOpts, xOpts = {})->
-    #check ajax opts
-    unless ajaxOpts
-      throw "ajax options required"
-    unless ajaxOpts.url
-      throw "url required"
-
-    @url = ajaxOpts.url
-    { @origin } = parseUrl @url
-    unless @origin
-      throw "invalid url"
-
-    #check xdomain opts
-    @opts = inherit @defaults, xOpts
-
-    #check frame exists
-    @proxy = makeIFrame @opts.localProxy, @opts.remoteProxy, @origin
-    
-    #create promise
-    d = $.Deferred()
-
-    id = guid()
-
-    #fire
-    t = setInterval ->
-      try 
-        @proxy.postMessage {
-          id: id
-          ajax: @ajaxOpts
-        }
-      catch e
-        return
-      clearInterval t
-    , 50
-
-
-    gotResult = (e) ->
-      log "got result"
-      d.resolve()
-      $(window).off 'message', gotResult
-
-    #wait for response
-    $(window).on 'message', gotResult
-
-    #expose promise
-    @d = d.promise()
-
-
-#public methods
-$.xdomain = (xOpts) ->
-  $.extend AjaxCall::defaults, xOpts
-
-$.xdomain.ajax = (ajaxOpts, xOpts) ->
-  x = new AjaxCall ajaxOpts, xOpts
-  x.d
+unlisten = (id) ->
+  delete listeners[id]
 
 #helpers
 guid = -> 
@@ -114,3 +38,139 @@ inherit = (parent, obj) ->
   F = ->
   F.prototype = parent
   $.extend true, new F(), obj
+
+#message helpers
+setMessage = (obj) ->
+  # JSON.stringify
+  obj
+
+getMessage = (obj) ->
+  # JSON.parse
+  obj
+
+
+if slave
+  recieveMessage = (jq) ->
+    event = jq.originalEvent
+    message = getMessage event.data
+    console.log "slave", message
+
+    if message is PING
+      event.source.postMessage PONG, event.origin
+      return
+
+    id = message.id
+    #proxy ajax
+    $.ajax(message.payload).always (data, result, xhr) ->
+      #respond back
+      args = {data, result}
+      event.source.postMessage {id,args}, event.origin
+else
+  recieveMessage = (jq) ->
+    event = jq.originalEvent
+    message = getMessage event.data
+    console.log "master", message
+
+    if message is PONG
+      frames[event.origin].ready = true
+      return
+
+    id = message.id
+    #response
+    callback = listeners[id]
+    return unless callback
+    callback message.args
+
+#responder
+$window.on 'message', recieveMessage
+
+#frame
+class Frame
+
+  constructor: (@origin, path) ->
+    return frames[@origin] if frames[@origin]
+    @id = guid()
+    @frame = document.createElement "iframe"
+    @frame.id = @id
+    @frame.name = @id
+    @frame.src = @origin + path
+    $("body").append $(@frame).hide()
+    @win = @frame.contentWindow
+    frames[@origin] = @
+    @ready = false
+    `undefined`
+
+  send: (payload, callback) ->
+    @check =>
+
+      id = guid()
+
+      listen id, (data) ->
+        unlisten id
+        callback data
+
+      @win.postMessage {id,payload}, @origin
+
+  check: (callback) ->
+    return callback() if @ready
+    cur = 0
+    max = 3
+    t = setInterval =>
+      if @ready
+        clearInterval t
+        callback()
+        return
+      try
+        @win.postMessage PING, @origin
+      catch e
+        if cur++ >= max
+          clearInterval t
+          throw "timeout"
+        console.log e.toString()
+    , 500
+
+#caller
+class AjaxCall
+
+  frames: {}
+  proxies: {}
+
+  constructor: (@ajaxOpts, xOpts = {})->
+    #check ajax opts
+    unless ajaxOpts
+      throw "ajax options required"
+    unless ajaxOpts.url
+      throw "url required"
+
+    @url = ajaxOpts.url
+    { @origin } = parseUrl @url
+    unless @origin
+      throw "invalid url"
+
+    proxyPath = origins[@origin]
+
+    unless proxyPath
+      throw "missing origin: " + @origin 
+
+    #check xdomain opts
+    @opts = inherit @defaults, xOpts
+
+    #check frame exists
+    @frame = new Frame @origin, proxyPath 
+    
+    #create promise
+
+    @d = $.Deferred()
+
+    @frame.send @ajaxOpts, (result) =>
+      @d.resolve result
+
+    @d.promise()
+
+#public methods
+$.xdomain = (o) ->
+  $.extend origins, o
+
+$.xdomain.ajax = (ajaxOpts, xOpts) ->
+  ajax = new AjaxCall ajaxOpts, xOpts
+  ajax.d

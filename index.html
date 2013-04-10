@@ -18,14 +18,19 @@ function log(str) {
 
 log("making request to: ...");
 
+
+$.xdomain({
+  'http://xyz.example.com:3000': '/xdomain/example/proxy.html'
+});
+
 $(function() {
 
   $.xdomain.ajax({
-    url: 'http://xyz.example.com:3000/xdomain/example/eg1-data.json',
+    url: 'http://xyz.example.com:3000/xdomain/example/data.json',
     type: 'GET'
   }).done(function(result) {
     log("got result:");
-    log(result);
+    log(JSON.stringify(result));
   });
 
 });
