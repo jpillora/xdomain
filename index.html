@@ -30,7 +30,7 @@
     });
 
     $.get(origin + '/xdomain/example/data.json').always(function() {
-      console.log("got result:", arguments);
+      console.log("got result from '",origin,"':", arguments);
     });
 
   }();
