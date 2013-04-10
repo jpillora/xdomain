@@ -1,10 +1,5 @@
 'use strict'
 
-log = (msg) ->
-  return unless console and console['log']
-  console.log 'xdomain', window.location.host, ': ', msg
-
-log "init client"
 
 slave = window.top isnt window
 
@@ -51,7 +46,7 @@ getMessage = (obj) ->
 if slave
   recieveMessage = (jq) ->
     event = jq.originalEvent
-    console.log "slave", event.data
+    # console.log "slave", event.data
     origin = event.origin
 
     #ping only
@@ -67,6 +62,8 @@ if slave
     unless paths
       throw "Origin not allowed: " + origin
 
+    if paths isnt '*'
+      throw "Path checks not implemented"
     # url = parseUrl message.payload.url
 
     #proxy ajax
@@ -76,10 +73,11 @@ if slave
 
       m = setMessage({id: message.id,args})
       event.source.postMessage m, event.origin
+
 else
   recieveMessage = (jq) ->
     event = jq.originalEvent
-    console.log "master", event.data
+    # console.log "master", event.data
 
     #pong only
     if event.data is PONG
@@ -107,8 +105,11 @@ class Frame
     @frame.id = @id
     @frame.name = @id
     @frame.src = @origin + path
-    $("body").append $(@frame).hide()
-    @win = @frame.contentWindow
+
+    $ =>
+      $("body").append $(@frame).hide()
+      @win = @frame.contentWindow
+
     frames[@origin] = @
     @ready = false
     `undefined`
@@ -139,7 +140,6 @@ class Frame
         if cur++ >= max
           clearInterval t
           throw "timeout"
-        console.log e.toString()
     , 500
 
 #caller
@@ -179,8 +179,6 @@ $.ajax = (url, opts = {}) ->
     url = opts.url
 
   throw "url required" unless url
-
-  console.log '$.ajax', url
 
   p = parseUrl url
   if p and p.origin

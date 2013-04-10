@@ -1,29 +1,55 @@
 
-<h3>XDomain Demo</h3>
-<h5 id="host"></h5>
-<script type="text/javascript">
-  document.getElementById('host').innerHTML = window.location.origin;
-</script>
+<html>
+<head>
+  <title></title>
 
-<!-- jQuery -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
-<!-- XDomain -->
-<script src="dist/xdomain.js"></script>
-<!-- Demo -->
-<script type="text/javascript">
+  <!-- jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <!-- XDomain -->
+  <script src="dist/xdomain.js"></script>
+  <!-- Demo -->
+  <script type="text/javascript">
 
-$.xdomain({
-  slaves: {
-    'http://xyz.example.com:3000': '/xdomain/example/proxy.html'
-  }
-});
+  !function() {
 
-$(function() {
+    var origin, path;
 
-  $.get('http://xyz.example.com:3000/xdomain/example/data.json').done(function() {
-    console.log("got result:", arguments);
-  });
+    if(location.origin === 'http://abc.example.com:3000') {
+      origin = 'http://xyz.example.com:3000';
+      path = '/xdomain'
+    } else if(location.origin === 'http://xdomain.jpillora.com') {
+      origin = 'http://jpillora.github.io/xdomain';
+      path = ''
+    }
 
-});
+    if(!origin) return;
 
-</script>
+    var slaves = {};
+    slaves[origin] = path + '/example/proxy.html'
+
+    $.xdomain({
+      slaves: slaves
+    });
+
+    $.get(origin + path +'/example/data.json').always(function() {
+      console.log("got result:", arguments);
+    });
+
+  }();
+  </script>
+</head>
+<body>
+
+  <h3>XDomain Demo</h3>
+
+  <h4 id="host"></h4>
+  <script type="text/javascript">
+    document.getElementById('host').innerHTML = window.location.origin;
+  </script>
+
+  <h4>Check your console</h4>
+
+</body>
+</html>
+
+

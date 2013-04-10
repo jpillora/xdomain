@@ -2,11 +2,12 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <!-- XDomain -->
 <script src="../dist/xdomain.js"></script>
-
+<!-- XDomain Whitelist -->
 <script type="text/javascript">
 $.xdomain({
   masters: {
-    'http://abc.example.com:3000': '*'
+    'http://abc.example.com:3000': '*',
+    'http://xdomain.jpillora.com': '*'
   }
 });
 </script>

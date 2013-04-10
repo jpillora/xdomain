@@ -7,16 +7,7 @@
 (function() {
   'use strict';
 
-  var $window, AjaxCall, Frame, PING, PONG, frames, getMessage, guid, inherit, listen, listeners, log, origins, parseUrl, realAjax, recieveMessage, setMessage, slave, unlisten;
-
-  log = function(msg) {
-    if (!(console && console['log'])) {
-      return;
-    }
-    return console.log('xdomain', window.location.host, ': ', msg);
-  };
-
-  log("init client");
+  var $window, AjaxCall, Frame, PING, PONG, frames, getMessage, guid, inherit, listen, listeners, origins, parseUrl, realAjax, recieveMessage, setMessage, slave, unlisten;
 
   slave = window.top !== window;
 
@@ -80,7 +71,6 @@
     recieveMessage = function(jq) {
       var event, message, origin, paths;
       event = jq.originalEvent;
-      console.log("slave", event.data);
       origin = event.origin;
       if (event.data === PING) {
         event.source.postMessage(PONG, origin);
@@ -90,6 +80,9 @@
       paths = origins.masters[origin];
       if (!paths) {
         throw "Origin not allowed: " + origin;
+      }
+      if (paths !== '*') {
+        throw "Path checks not implemented";
       }
       return realAjax(message.payload).always(function() {
         var args, m;
@@ -105,7 +98,6 @@
     recieveMessage = function(jq) {
       var callback, event, message;
       event = jq.originalEvent;
-      console.log("master", event.data);
       if (event.data === PONG) {
         frames[event.origin].ready = true;
         return;
@@ -125,6 +117,7 @@
   Frame = (function() {
 
     function Frame(origin, path) {
+      var _this = this;
       this.origin = origin;
       if (frames[this.origin]) {
         return frames[this.origin];
@@ -134,8 +127,10 @@
       this.frame.id = this.id;
       this.frame.name = this.id;
       this.frame.src = this.origin + path;
-      $("body").append($(this.frame).hide());
-      this.win = this.frame.contentWindow;
+      $(function() {
+        $("body").append($(_this.frame).hide());
+        return _this.win = _this.frame.contentWindow;
+      });
       frames[this.origin] = this;
       this.ready = false;
       undefined;
@@ -179,7 +174,6 @@
             clearInterval(t);
             throw "timeout";
           }
-          return console.log(e.toString());
         }
       }, 500);
     };
@@ -235,7 +229,6 @@
     if (!url) {
       throw "url required";
     }
-    console.log('$.ajax', url);
     p = parseUrl(url);
     if (p && p.origin) {
       ajax = new AjaxCall(p.origin, url, opts);
