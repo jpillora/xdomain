@@ -168,13 +168,14 @@
           return;
         }
         try {
-          return _this.win.postMessage(PING, _this.origin);
+          _this.win.postMessage(PING, _this.origin);
         } catch (e) {
           if (cur++ >= max) {
             clearInterval(t);
             throw "timeout";
           }
         }
+        return undefined;
       }, 500);
     };
 

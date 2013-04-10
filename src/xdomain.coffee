@@ -140,6 +140,7 @@ class Frame
         if cur++ >= max
           clearInterval t
           throw "timeout"
+      `undefined`
     , 500
 
 #caller
