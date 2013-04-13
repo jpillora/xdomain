@@ -1,0 +1,45 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body id='body'>
+
+
+  <h3>Home</h3>
+
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script type="text/javascript">
+    // window.postMessage = null;
+  </script>
+  <script src="porthole.js"></script>
+
+
+  <script type="text/javascript">
+
+    var target = 'http://b.example.com:8888'
+    var path = '/xdomain/labs/porthole/guest_proxy.html'
+
+    $(function(){ 
+
+      var frame = document.createElement('iframe');
+      frame.id = frame.name = 'guestFrame';
+      frame.src = target+path+'#'+encodeURIComponent(location.origin)+path
+
+      document.getElementById('body').appendChild(frame);
+
+      console.log('home', location.origin);
+      // Create a proxy window to send to and receive 
+      // messages from the iFrame
+      window.windowProxy = new Porthole.WindowProxy(target+path, 'guestFrame');
+
+      // Register an event handler to receive messages;
+      windowProxy.addEventListener(function(e) {
+
+        console.log(e.origin, '=>', location.origin, e.data);
+
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script type="text/javascript" src="jquery.postmessage.js"></script>
+
+  <script type="text/javascript">
+    $(function(){
+
+      
+      // And for good measure, let's listen for a toggle_content message from the parent.
+      $.receiveMessage(function(e){
+
+        console.log(e.origin, '=>', location.origin, e.data);
+
+      });
+
+
+    });
+  </script>
+
+</body>
+</html>

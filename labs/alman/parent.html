@@ -1,0 +1,46 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script type="text/javascript" src="jquery.postmessage.js"></script>
+
+  <script type="text/javascript">
+
+  $(function(){
+    
+    // Keep track of the iframe height.
+    var if_height,
+    
+      // Pass the parent page URL into the Iframe in a meaningful way (this URL could be
+      // passed via query string or hard coded into the child page, it depends on your needs).
+      src = 'http://b.example.com:8888/xdomain/example/alman/child.html#' + encodeURIComponent( document.location.href ),
+      
+      // Append the Iframe into the DOM.
+      iframe = $( '<iframe " src="' + src + '" width="300" height="100" scrolling="no" frameborder="1"><\/iframe>' )
+        .appendTo( 'body' );
+    
+    // Setup a callback to handle the dispatched MessageEvent event. In cases where
+    // window.postMessage is supported, the passed event will have .data, .origin and
+    // .source properties. Otherwise, this will only have the .data property.
+    $.receiveMessage(function(e){
+      
+      console.log(e.origin, '=>', location.origin, e.data);
+      
+    // An optional origin URL (Ignored where window.postMessage is unsupported).
+    });
+    
+    setTimeout(function() {
+
+      $.postMessage( 'da foo is 42', src, iframe.get(0).contentWindow );
+
+    }, 1000);
+
+    
+  });
+  </script>
+
+</body>
+</html>
