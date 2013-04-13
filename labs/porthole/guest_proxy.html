@@ -35,6 +35,10 @@
 
         console.log(e.origin, '=>', location.origin, e.data);
 
+
+        if(e.data === 'ping')
+          windowProxy.post('pong');
+
       });
     };
   </script>

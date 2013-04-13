@@ -1,27 +1,12 @@
 'use strict'
 
-
-slave = window.top isnt window
-
+#variables
 $window = $(window)
-
 realAjax = $.ajax
-
 PING = '__xdomain_PING'
 PONG = '__xdomain_PONG'
-
 origins = { masters: {}, slaves: {}}
 frames  = {}
-
-#listeners
-listeners = {}
-listen = (id, callback) ->
-  if listeners[id]
-    throw "already listening for: " + id
-  listeners[id] = callback
-
-unlisten = (id) ->
-  delete listeners[id]
 
 #helpers
 guid = -> 
@@ -43,42 +28,87 @@ setMessage = (obj) ->
 getMessage = (obj) ->
   JSON.parse obj
 
-if slave
-  recieveMessage = (jq) ->
-    event = jq.originalEvent
-    # console.log "slave", event.data
-    origin = event.origin
+setupSlave = ->
+
+  check = (masterOrigin) ->
+    proxy = origins.masters[masterOrigin]
+    unless proxy
+      throw "Origin not allowed: " + masterOrigin
+    proxy
+
+  mOrigin = hashMatch[2]
+
+  parentProxyPath = check mOrigin
+  
+  proxy = new Porthole.WindowProxy parentProxyPath
+  proxy.addEventListener (event) ->
 
     #ping only
     if event.data is PING
-      event.source.postMessage PONG, origin 
+      proxy.post PONG, event.origin 
       return
 
+    #extract data
     message = getMessage event.data
 
     #security checks
-    paths = origins.masters[origin]
-
-    unless paths
-      throw "Origin not allowed: " + origin
-
-    if paths isnt '*'
-      throw "Path checks not implemented"
-    # url = parseUrl message.payload.url
-
+    check event.origin
+    
     #proxy ajax
     realAjax(message.payload).always ->
-
       args = Array.prototype.slice.call(arguments)
 
       m = setMessage({id: message.id,args})
-      event.source.postMessage m, event.origin
+      proxy.post m, event.origin
 
-else
-  recieveMessage = (jq) ->
-    event = jq.originalEvent
-    # console.log "master", event.data
 
+
+
+
+
+
+
+
+#frame
+class Frame
+
+  constructor: (@origin) ->
+    return frames[@origin] if frames[@origin]
+
+    @proxyPath = origins.slaves[origin]
+
+    unless @proxyPath
+      throw "Missing slave origin: " + @origin
+
+    @listeners = {}
+
+    @id = guid()
+    @frame = document.createElement "iframe"
+    @frame.id = @id
+    @frame.name = @id
+    @frame.src = @origin + @proxyPath
+    frames[@origin] = @
+    @ready = false
+
+    getReady
+
+    `undefined`
+
+
+
+
+  #sub-events with id's
+  listen: (id, callback) ->
+    if @listeners[id]
+      throw "already listening for: " + id
+    @listeners[id] = =>
+      @unlisten id
+      callback()
+
+  unlisten: (id) ->
+    delete @listeners[id]
+
+  recieve: (event) ->
     #pong only
     if event.data is PONG
       frames[event.origin].ready = true
@@ -92,44 +122,20 @@ else
       return 
     callback message.args
 
-#responder
-$window.on 'message', recieveMessage
-
-#frame
-class Frame
-
-  constructor: (@origin, path) ->
-    return frames[@origin] if frames[@origin]
-    @id = guid()
-    @frame = document.createElement "iframe"
-    @frame.id = @id
-    @frame.name = @id
-    @frame.src = @origin + path
-
-    $ =>
-      $("body").append $(@frame).hide()
-      @win = @frame.contentWindow
-
-    frames[@origin] = @
-    @ready = false
-    `undefined`
-
+  #send with id
   send: (payload, callback) ->
     @check =>
-
       id = guid()
-
-      listen id, (data) ->
-        unlisten id
-        callback data
-
+      @listen id, (data) -> callback data
       @win.postMessage setMessage({id,payload}), @origin
 
   check: (callback) ->
     return callback() if @ready
-    cur = 0
-    max = 3
-    t = setInterval =>
+    setTimeout =>
+      @check callback
+    , 500
+
+    pingPong = =>
       if @ready
         clearInterval t
         callback()
@@ -141,38 +147,22 @@ class Frame
           clearInterval t
           throw "timeout"
       `undefined`
-    , 500
 
-#caller
-class AjaxCall
+    loadProxy = =>
+      $("body").append $(@frame).hide()
 
-  constructor: (@origin, @url, @opts)->
-    #check ajax opts
-    proxyPath = origins.slaves[@origin]
+      @proxy = new Porthole.WindowProxy(target+path, 'guestFrame');
+      @win = @frame.contentWindow
+      t = setInterval pingPong, 500
 
-    unless proxyPath
-      throw "Missing slave origin: " + @origin
-
-    #check frame exists
-    @frame = new Frame @origin, proxyPath 
-    
-    #create promise
-    @d = $.Deferred()
-    @frame.send @opts, $.proxy @handleResponse, @
-    @d.promise()
-
-  handleResponse: (args) ->
-    if args[1] is 'success'
-      @d.resolve.apply @d, args
-    else if args[1] is 'error'
-      @d.reject.apply @d, args
-    #unknown reponse...
+    $ loadProxy
 
 #public methods
 $.xdomain = (o) ->
   $.extend origins, o
 
 $.ajax = (url, opts = {}) ->
+  #check ajax opts
   if typeof url is 'string'
     opts.url = url
   else
@@ -182,9 +172,44 @@ $.ajax = (url, opts = {}) ->
   throw "url required" unless url
 
   p = parseUrl url
-  if p and p.origin
-    ajax = new AjaxCall p.origin, url, opts
-    return ajax.d
+  throw "url invalid" unless p
 
-  return realAjax.call $, url, opts
+  # $.ajax if origin not listed
+  unless origins.slaves[p.origin]
+    return realAjax.call $, url, opts
+
+  #check frame exists
+  frame = new Frame origin
+  
+  #create promise
+  d = $.Deferred()
+
+  frame.send opts, (args) ->
+    if args[1] is 'success'
+      d.resolve.apply d, args
+    else if args[1] is 'error'
+      d.reject.apply d, args
+
+  d.promise()
+
+#type check and setup
+hash = decodeURIComponent location.hash.substr 1
+hashMatch = hash.match /^XDOMAIN_([A-Z]+)(=(.*))?$/
+
+type = 'MASTER'
+type = hashMatch[1] if hashMatch
+
+console.log location.origin, type
+
+#type setups
+if type is 'RELAY'
+  Porthole.WindowProxyDispatcher.start()
+else if type is 'SLAVE'
+  $ setupSlave
+else if type is 'MASTER'
+  
+else
+  console.warn location.origin, 'unknown type', type
+
+  
 

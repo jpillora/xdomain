@@ -38,6 +38,11 @@
         console.log(e.origin, '=>', location.origin, e.data);
 
       });
+
+      setTimeout(function() {
+        windowProxy.post('ping')
+      }, 1000)
+
     });
   </script>
 
