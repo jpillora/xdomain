@@ -7,19 +7,21 @@
   <h3>Guest</h3>
 
   <script type="text/javascript">
-    // window.postMessage = null;
+    window.postMessage = null;
   </script>
   <script src="porthole.js"></script>
 
   <script type="text/javascript">
     window.onload=function(){
 
-      var parentProxy = location.hash.substr(0),
-          type = !parentProxy ? 'proxy' : 'guest';
+      var hash = decodeURIComponent(location.hash.substr(0)),
+          m = hash.match(/PARENT=(.*)/),
+          parentProxy =  m && m[1],
+          type = !parentProxy ? 'relay' : 'child';
 
-      console.log(type, location.origin);
+      console.log(type, location.origin, parentProxy);
 
-      if(type === 'proxy') {
+      if(type === 'relay') {
         Porthole.WindowProxyDispatcher.start();
         return;
       }

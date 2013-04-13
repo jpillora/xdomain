@@ -9,7 +9,7 @@
 
   <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
   <script type="text/javascript">
-    // window.postMessage = null;
+    window.postMessage = null;
   </script>
   <script src="porthole.js"></script>
 
@@ -23,7 +23,7 @@
 
       var frame = document.createElement('iframe');
       frame.id = frame.name = 'guestFrame';
-      frame.src = target+path+'#'+encodeURIComponent(location.origin)+path
+      frame.src = target+path+'#'+encodeURIComponent('PARENT='+location.origin+path)
 
       document.getElementById('body').appendChild(frame);
 

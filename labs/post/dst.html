@@ -1,0 +1,19 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+  <h3>DEST</h3>
+
+  <script type="text/javascript">
+
+    window.onmessage = function(e) {
+      console.log(location.host, e.data)
+
+      e.source.postMessage(e.data + ' too', 'http://abc.example.com:3000')
+
+    }
+
+  </script>
+</body>
+</html>

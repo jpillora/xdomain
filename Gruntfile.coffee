@@ -25,7 +25,7 @@ module.exports = (grunt) ->
     concat:
       dist:
         src: [
-          # "src/lib/porthole.js"
+          "src/lib/porthole.js"
           "dist/<%= pkg.name %>.js"
         ]
         dest: "dist/<%= pkg.name %>.js"
