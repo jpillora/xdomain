@@ -1,0 +1,32 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+
+  <h3>Guest</h3>
+
+  <script type="text/javascript">
+    window.postMessage = null;
+  </script>
+  <script src="porthole.js"></script>
+
+  <script type="text/javascript">
+    window.onload=function(){
+        console.log('guest', location.origin);
+        // Create a proxy window to send to and receive 
+        // messages from the iFrame
+        window.windowProxy = new Porthole.WindowProxy(
+            'http://a.example.com:8888/xdomain/labs/porthole/proxy.html');
+
+        // Register an event handler to receive messages;
+        windowProxy.addEventListener(function(e) {
+
+          console.log(e.origin, '=>', location.origin, e.data);
+
+        });
+    };
+  </script>
+
+</body>
+</html>
