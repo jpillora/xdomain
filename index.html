@@ -8,6 +8,8 @@
     window.postMessage = null;
   </script>
 
+  <!-- JSON -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"></script>
   <!-- jQuery -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
   <!-- XDomain -->
@@ -42,7 +44,7 @@
     $("button").click(function() {
       $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
         function(data) {
-          $("#output").html(JSON.stringify(data));
+          $("#output").text(JSON.stringify(data,null,2));
         }
       );
     }).click();

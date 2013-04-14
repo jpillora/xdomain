@@ -6,6 +6,8 @@ Summary
 ---
 A JQuery plugin to do cross-domain AJAX requests via postMessage
 
+This plugin can be used as an alternative browsers missing CORS functionality
+
 Downloads
 ---
 
@@ -34,7 +36,7 @@ Say you wanted to communicate from:
     <script type="text/javascript">
     $.xdomain({
       masters: {
-        'http://abc.example.com': '*'
+        'http://abc.example.com': '/proxy.html'
       }
     });
     </script>
@@ -70,7 +72,7 @@ Say you wanted to communicate from:
   </html>
   ```
 
-3. Requests from your master domain to your slave domain will work seemlessly
+3. Any jQuery Ajax (`$.get` `$.post` `$.ajax`) request from your master domain to your slave domain will now work seemlessly
 
   File: `http://abc.example.com/app.js`
   
@@ -81,22 +83,21 @@ Say you wanted to communicate from:
   
   ```
 
-Limitations
----
-* IE6/7 Not supported yet
-* Functions are removed from the ajax response
-
-Demos
+Demo
 ---
 
 http://xdomain.jpillora.com/
+
+Limitations
+---
+* Functions like are removed from the ajax response
 
 API
 ---
 
 ## `$.xdomain`(`object`)
 
-Method to white list master and slave domains
+A domain manifest representing whitelisted master and slave domains. See examples above.
 
 Conceptual Overview
 ---

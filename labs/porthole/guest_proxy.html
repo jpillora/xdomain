@@ -33,7 +33,10 @@
       // Register an event handler to receive messages;
       windowProxy.addEventListener(function(e) {
 
-        console.log(e.origin, '=>', location.origin, e.data);
+        //e.data, 
+
+        console.log(e.origin, '=>', location.origin, 
+          '(', e.data.length, ')');
 
 
         if(e.data === 'ping')
