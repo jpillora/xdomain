@@ -1,13 +1,6 @@
 
 <html>
 <head>
-  <title></title>
-
-  <!-- Simulate IE6/7 -->
-  <script type="text/javascript">
-  if(location.hash === 'simulateIE')
-    window.postMessage = null;
-  </script>
 
   <!-- JSON -->
   <script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"></script>
@@ -18,8 +11,9 @@
   <!-- Demo -->
   <script type="text/javascript">
 
-
-  var slave, path = '/xdomain/example/proxy.html';
+  var slave,
+      path = '/xdomain/example/proxy.html',
+      file = '/xdomain/example/data.json' ;
 
   if(location.origin === 'http://abc.example.com:3000') {
     slave = 'http://xyz.example.com:3000';
@@ -28,6 +22,7 @@
   } else if(location.origin === 'http://xdomain.jpillora.com') {
     slave = 'http://anotherdomain.jpillora.com';
     path = '/proxy.html';
+    file = '/data/file1.json' ;
   } else {
     return console.warn('demo slave mismatch');
   }
@@ -42,6 +37,7 @@
   $(function() {
 
     $("#hostInput").val(slave);
+    $("#pathInput").val(file);
 
     $("button").click(function() {
       $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
@@ -74,8 +70,7 @@
     </style>
 
     <input id='hostInput' type='text' placeholder='host'/>
-    <input id='pathInput' type='text' placeholder='host'
-           value='/data/file1.json' />
+    <input id='pathInput' type='text' placeholder='host'/>
     <button>GET</button>
   </div>
 
