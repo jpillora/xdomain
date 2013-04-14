@@ -3,38 +3,41 @@
 <head>
   <title></title>
 
+  <!-- Simulate IE6/7 -->
+  <script type="text/javascript">
+    window.postMessage = null;
+  </script>
+
   <!-- jQuery -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
   <!-- XDomain -->
   <script src="dist/xdomain.js"></script>
   <!-- Demo -->
   <script type="text/javascript">
 
-  console.log
-
   !function() {
 
-    var origin, path;
+    var slave, path;
 
     if(location.origin === 'http://abc.example.com:3000') {
-      origin = 'http://xyz.example.com:3000';
+      slave = 'http://xyz.example.com:3000';
     } else if(location.origin === 'http://a.example.com:8888') {
-      origin = 'http://b.example.com:8888';
+      slave = 'http://b.example.com:8888';
     } else if(location.origin === 'http://xdomain.jpillora.com') {
-      origin = 'http://jpillora.com';
+      slave = 'http://jpillora.com';
     } else {
-      return console.warn('demo origin mismatch');
+      return console.warn('demo slave mismatch');
     }
 
     var slaves = {};
-    slaves[origin] = '/xdomain/example/proxy.html'
+    slaves[slave] = '/xdomain/example/proxy.html'
 
     $.xdomain({
       slaves: slaves
     });
 
-    $.get(origin + '/xdomain/example/data.json').always(function() {
-      console.log("got result from '",origin,"':", arguments);
+    $.get(slave + '/xdomain/example/data.json').always(function() {
+      console.log("got result from '",slave,"':", arguments);
     });
 
   }();

@@ -22,7 +22,8 @@
     $(function(){ 
 
       var frame = document.createElement('iframe');
-      frame.id = frame.name = 'guestFrame';
+      var id = (Math.random()*Math.pow(2,32)).toString(16);
+      frame.id = frame.name = id;
       frame.src = target+path+'#'+encodeURIComponent('PARENT='+location.origin+path)
 
       document.getElementById('body').appendChild(frame);
@@ -30,7 +31,7 @@
       console.log('home', location.origin);
       // Create a proxy window to send to and receive 
       // messages from the iFrame
-      window.windowProxy = new Porthole.WindowProxy(target+path, 'guestFrame');
+      window.windowProxy = new Porthole.WindowProxy(target+path, id);
 
       // Register an event handler to receive messages;
       windowProxy.addEventListener(function(e) {
