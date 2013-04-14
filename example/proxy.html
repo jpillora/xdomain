@@ -1,7 +1,8 @@
 
 <!-- Simulate IE6/7 -->
 <script type="text/javascript">
-  window.postMessage = null;
+  if(location.hash === 'simulateIE')
+    window.postMessage = null;
 </script>
 
 <!-- JSON -->

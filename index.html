@@ -5,6 +5,7 @@
 
   <!-- Simulate IE6/7 -->
   <script type="text/javascript">
+  if(location.hash === 'simulateIE')
     window.postMessage = null;
   </script>
 
@@ -18,20 +19,21 @@
   <script type="text/javascript">
 
 
-  var slave, path;
+  var slave, path = '/xdomain/example/proxy.html';
 
   if(location.origin === 'http://abc.example.com:3000') {
     slave = 'http://xyz.example.com:3000';
   } else if(location.origin === 'http://a.example.com:8888') {
     slave = 'http://b.example.com:8888';
   } else if(location.origin === 'http://xdomain.jpillora.com') {
-    slave = 'http://jpillora.com';
+    slave = 'http://anotherdomain.jpillora.com';
+    path = '/proxy.html';
   } else {
     return console.warn('demo slave mismatch');
   }
 
   var slaves = {};
-  slaves[slave] = '/xdomain/example/proxy.html'
+  slaves[slave] = path
 
   $.xdomain({
     slaves: slaves
