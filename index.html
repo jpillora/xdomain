@@ -15,24 +15,34 @@
       path = '/xdomain/example/proxy.html',
       file = '/xdomain/example/data.json' ;
 
-  if(location.origin === 'http://abc.example.com:3000') {
-    slave = 'http://xyz.example.com:3000';
-  } else if(location.origin === 'http://a.example.com:8888') {
-    slave = 'http://b.example.com:8888';
-  } else if(location.origin === 'http://xdomain.jpillora.com') {
-    slave = 'http://anotherdomain.jpillora.com';
-    path = '/proxy.html';
-    file = '/data/file1.json' ;
-  } else {
-    return console.warn('demo slave mismatch');
-  }
+  (function() {
 
-  var slaves = {};
-  slaves[slave] = path
+    if(!window.console)
+      console = { log: $.noop };
 
-  $.xdomain({
-    slaves: slaves
-  });
+    console.log(location.origin);
+
+    if(location.origin === 'http://abc.example.com:3000') {
+      slave = 'http://xyz.example.com:3000';
+    } else if(location.origin === 'http://a.example.com:8888') {
+      slave = 'http://b.example.com:8888';
+    } else if(location.origin === 'http://xdomain.jpillora.com') {
+      slave = 'http://anotherdomain.jpillora.com';
+      path = '/proxy.html';
+      file = '/data/file1.json' ;
+    } else {
+      return console.warn('demo slave mismatch');
+    }
+
+    var slaves = {};
+    slaves[slave] = path
+
+    $.xdomain({
+      slaves: slaves
+    });
+
+  }());
+
 
   $(function() {
 
