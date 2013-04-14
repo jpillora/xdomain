@@ -31,7 +31,7 @@
       console.log('home', location.origin);
       // Create a proxy window to send to and receive 
       // messages from the iFrame
-      window.windowProxy = new Porthole.WindowProxy(target+path, id);
+      var windowProxy = new Porthole.WindowProxy(target+path, id);
 
       // Register an event handler to receive messages;
       windowProxy.addEventListener(function(e) {
@@ -39,6 +39,9 @@
         console.log(e.origin, '=>', location.origin, e.data);
 
       });
+
+
+      window['windowProxy'+id] = windowProxy;
 
       setTimeout(function() {
         windowProxy.post('ping')

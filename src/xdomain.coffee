@@ -5,7 +5,6 @@ $window = $(window)
 realAjax = $.ajax
 PING = '__xdomain_PING'
 PONG = '__xdomain_PONG'
-RELAY = '#XDOMAIN_RELAY.'
 origins = { masters: {}, slaves: {}}
 
 #helpers
@@ -30,27 +29,18 @@ getMessage = (obj) ->
 
 setupSlave = (masterOrigin) ->
 
-  check = ->
-    p = origins.masters[masterOrigin]
-    unless p
-      throw "Origin not allowed: " + masterOrigin
-    p
+  parentProxyPath = origins.masters[masterOrigin]
+  unless parentProxyPath
+    throw "Origin not allowed: " + masterOrigin
 
-  parentProxyPath = check()
-
-  proxySrc = masterOrigin+parentProxyPath + RELAY
-
-  console.log location.origin, proxySrc
+  proxySrc = masterOrigin+parentProxyPath
 
   proxy = new Porthole.WindowProxy proxySrc
   proxy.addEventListener (event) ->
 
-    console.log location.origin, 'recieve', event.data
-
     #ping only
     if event.data is PING
-      proxy.post PONG
-      console.log location.origin, 'PONG'
+      proxy.post PONG, masterOrigin
       return
 
     #extract data
@@ -66,8 +56,7 @@ setupSlave = (masterOrigin) ->
       m = setMessage({id: message.id,args})
       proxy.post m, event.origin
 
-  console.log location.origin, 'SLAVE SETUP'
-  window.PROXY = proxy
+  window["windowProxy#{guid()}"] = proxy
 
 #frame
 class Frame
@@ -95,47 +84,43 @@ class Frame
     @pingPong.attempts = 0
     @ready = @domReady = false
 
-    console.log location.origin, type, proxySrc
-
     $ =>
-      @domReady = true
-      console.log location.origin, type, 'dom ready'
       $("body").append $(@frame).hide()
-      @proxy = new Porthole.WindowProxy proxySrc + RELAY, id
+      @proxy = new Porthole.WindowProxy proxySrc, id
       @proxy.addEventListener $.proxy @recieve, @
+      window["windowProxy#{id}"] = @proxy
 
   #sub-events with id's
   listen: (id, callback) ->
     if @listeners[id]
       throw "already listening for: " + id
-    @listeners[id] = =>
-      @unlisten id
-      callback()
+    @listeners[id] = callback
 
   unlisten: (id) ->
     delete @listeners[id]
 
   recieve: (event) ->
-    console.log location.origin, 'recieve', event.data
     #pong only
     if event.data is PONG
       @ready = true
       return
 
     message = getMessage event.data
+
     #response
-    callback = listeners[message.id]
-    unless callback
+    cb = @listeners[message.id]
+    unless cb
       console.warn "missing id", message.id
       return 
-    callback message.args
+    @unlisten message.id
+    cb message.args
 
   #send with id
   send: (payload, callback) ->
-    console.log location.origin, 'send', payload
     @pingPong =>
       id = guid()
-      @listen id, (data) -> callback data
+      @listen id, (data) -> 
+        callback data
       @proxy.post setMessage({id,payload}), @origin
 
   pingPong: (callback) ->
@@ -144,8 +129,8 @@ class Frame
       return
 
     if @proxy
-      @proxy.post PING
-    if @pingPong.attempts++ >= 3
+      @proxy.post PING, @origin
+    if @pingPong.attempts++ >= 10
       throw "Timeout connecting to iframe: " + @origin
 
     setTimeout =>
@@ -167,10 +152,8 @@ $.ajax = (url, opts = {}) ->
   throw "url required" unless url
 
   p = parseUrl url
-  throw "url invalid" unless p
-
   # $.ajax if origin not listed
-  unless origins.slaves[p.origin]
+  unless p and origins.slaves[p.origin]
     return realAjax.call $, url, opts
 
   #check frame exists
@@ -179,6 +162,10 @@ $.ajax = (url, opts = {}) ->
   #create promise
   d = $.Deferred()
 
+  d.done opts.success if typeof opts.success is 'function'
+  d.fail opts.error if typeof opts.error is 'function'
+  d.always opts.complete if typeof opts.complete is 'function'
+
   frame.send opts, (args) ->
     if args[1] is 'success'
       d.resolve.apply d, args
@@ -186,26 +173,14 @@ $.ajax = (url, opts = {}) ->
       d.reject.apply d, args
 
   d.promise()
-
+  
 #type check and setup
 hash = decodeURIComponent location.hash.substr 1
 hashMatch = hash.match /^XDOMAIN_([A-Z]+)\.#?(.*)?/
 
-type = 'MASTER'
-if hashMatch
-  type = hashMatch[1]
-
 #type setups
-if type is 'RELAY'
-  location.hash = hashMatch[2] if hashMatch[2]
-  Porthole.WindowProxyDispatcher.start()
-else if type is 'SLAVE'
+if hashMatch and hashMatch[1] is 'SLAVE'
   $ -> setupSlave hashMatch[2]
-else if type is 'MASTER'
-else
-  console.warn location.origin, 'unknown type', type
 
-  
-console.log '>>>>', location.origin, hash, location.hash, type
-window.Frame = Frame
-
+#relay
+$ -> Porthole.WindowProxyDispatcher.start()

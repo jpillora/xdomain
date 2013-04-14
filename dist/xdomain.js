@@ -124,7 +124,11 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
      * @private
      */
     trace: function(s) {
-      if (window['console'] !== undefined) {
+      
+
+      if (window.location.host === 'localhost' &&
+          window.location.host === 'a.example.com' &&
+          window['console'] !== undefined) {
         window.console.log('Porthole: ' + s);
       }
     },
@@ -494,7 +498,7 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
 (function() {
   'use strict';
 
-  var $window, Frame, PING, PONG, RELAY, getMessage, guid, hash, hashMatch, inherit, origins, parseUrl, realAjax, setMessage, setupSlave, type;
+  var $window, Frame, PING, PONG, getMessage, guid, hash, hashMatch, inherit, origins, parseUrl, realAjax, setMessage, setupSlave;
 
   $window = $(window);
 
@@ -503,8 +507,6 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
   PING = '__xdomain_PING';
 
   PONG = '__xdomain_PONG';
-
-  RELAY = '#XDOMAIN_RELAY.';
 
   origins = {
     masters: {},
@@ -540,25 +542,17 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
   };
 
   setupSlave = function(masterOrigin) {
-    var check, parentProxyPath, proxy, proxySrc;
-    check = function() {
-      var p;
-      p = origins.masters[masterOrigin];
-      if (!p) {
-        throw "Origin not allowed: " + masterOrigin;
-      }
-      return p;
-    };
-    parentProxyPath = check();
-    proxySrc = masterOrigin + parentProxyPath + RELAY;
-    console.log(location.origin, proxySrc);
+    var parentProxyPath, proxy, proxySrc;
+    parentProxyPath = origins.masters[masterOrigin];
+    if (!parentProxyPath) {
+      throw "Origin not allowed: " + masterOrigin;
+    }
+    proxySrc = masterOrigin + parentProxyPath;
     proxy = new Porthole.WindowProxy(proxySrc);
     proxy.addEventListener(function(event) {
       var message;
-      console.log(location.origin, 'recieve', event.data);
       if (event.data === PING) {
-        proxy.post(PONG);
-        console.log(location.origin, 'PONG');
+        proxy.post(PONG, masterOrigin);
         return;
       }
       message = getMessage(event.data);
@@ -575,8 +569,7 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
         return proxy.post(m, event.origin);
       });
     });
-    console.log(location.origin, 'SLAVE SETUP');
-    return window.PROXY = proxy;
+    return window["windowProxy" + (guid())] = proxy;
   };
 
   Frame = (function() {
@@ -603,25 +596,19 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
       this.frame.src = proxySrc + '#' + encodeURIComponent('XDOMAIN_SLAVE.' + location.origin);
       this.pingPong.attempts = 0;
       this.ready = this.domReady = false;
-      console.log(location.origin, type, proxySrc);
       $(function() {
-        _this.domReady = true;
-        console.log(location.origin, type, 'dom ready');
         $("body").append($(_this.frame).hide());
-        _this.proxy = new Porthole.WindowProxy(proxySrc + RELAY, id);
-        return _this.proxy.addEventListener($.proxy(_this.recieve, _this));
+        _this.proxy = new Porthole.WindowProxy(proxySrc, id);
+        _this.proxy.addEventListener($.proxy(_this.recieve, _this));
+        return window["windowProxy" + id] = _this.proxy;
       });
     }
 
     Frame.prototype.listen = function(id, callback) {
-      var _this = this;
       if (this.listeners[id]) {
         throw "already listening for: " + id;
       }
-      return this.listeners[id] = function() {
-        _this.unlisten(id);
-        return callback();
-      };
+      return this.listeners[id] = callback;
     };
 
     Frame.prototype.unlisten = function(id) {
@@ -629,24 +616,23 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
     };
 
     Frame.prototype.recieve = function(event) {
-      var callback, message;
-      console.log(location.origin, 'recieve', event.data);
+      var cb, message;
       if (event.data === PONG) {
         this.ready = true;
         return;
       }
       message = getMessage(event.data);
-      callback = listeners[message.id];
-      if (!callback) {
+      cb = this.listeners[message.id];
+      if (!cb) {
         console.warn("missing id", message.id);
         return;
       }
-      return callback(message.args);
+      this.unlisten(message.id);
+      return cb(message.args);
     };
 
     Frame.prototype.send = function(payload, callback) {
       var _this = this;
-      console.log(location.origin, 'send', payload);
       return this.pingPong(function() {
         var id;
         id = guid();
@@ -667,9 +653,9 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
         return;
       }
       if (this.proxy) {
-        this.proxy.post(PING);
+        this.proxy.post(PING, this.origin);
       }
-      if (this.pingPong.attempts++ >= 3) {
+      if (this.pingPong.attempts++ >= 10) {
         throw "Timeout connecting to iframe: " + this.origin;
       }
       return setTimeout(function() {
@@ -700,14 +686,20 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
       throw "url required";
     }
     p = parseUrl(url);
-    if (!p) {
-      throw "url invalid";
-    }
-    if (!origins.slaves[p.origin]) {
+    if (!(p && origins.slaves[p.origin])) {
       return realAjax.call($, url, opts);
     }
     frame = new Frame(p.origin);
     d = $.Deferred();
+    if (typeof opts.success === 'function') {
+      d.done(opts.success);
+    }
+    if (typeof opts.error === 'function') {
+      d.fail(opts.error);
+    }
+    if (typeof opts.complete === 'function') {
+      d.always(opts.complete);
+    }
     frame.send(opts, function(args) {
       if (args[1] === 'success') {
         return d.resolve.apply(d, args);
@@ -722,30 +714,15 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
 
   hashMatch = hash.match(/^XDOMAIN_([A-Z]+)\.#?(.*)?/);
 
-  type = 'MASTER';
-
-  if (hashMatch) {
-    type = hashMatch[1];
-  }
-
-  if (type === 'RELAY') {
-    if (hashMatch[2]) {
-      location.hash = hashMatch[2];
-    }
-    Porthole.WindowProxyDispatcher.start();
-  } else if (type === 'SLAVE') {
+  if (hashMatch && hashMatch[1] === 'SLAVE') {
     $(function() {
       return setupSlave(hashMatch[2]);
     });
-  } else if (type === 'MASTER') {
-
-  } else {
-    console.warn(location.origin, 'unknown type', type);
   }
 
-  console.log('>>>>', location.origin, hash, location.hash, type);
-
-  window.Frame = Frame;
+  $(function() {
+    return Porthole.WindowProxyDispatcher.start();
+  });
 
 }).call(this);
 

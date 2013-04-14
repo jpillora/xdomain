@@ -15,32 +15,42 @@
   <!-- Demo -->
   <script type="text/javascript">
 
-  !function() {
 
-    var slave, path;
+  var slave, path;
 
-    if(location.origin === 'http://abc.example.com:3000') {
-      slave = 'http://xyz.example.com:3000';
-    } else if(location.origin === 'http://a.example.com:8888') {
-      slave = 'http://b.example.com:8888';
-    } else if(location.origin === 'http://xdomain.jpillora.com') {
-      slave = 'http://jpillora.com';
-    } else {
-      return console.warn('demo slave mismatch');
-    }
+  if(location.origin === 'http://abc.example.com:3000') {
+    slave = 'http://xyz.example.com:3000';
+  } else if(location.origin === 'http://a.example.com:8888') {
+    slave = 'http://b.example.com:8888';
+  } else if(location.origin === 'http://xdomain.jpillora.com') {
+    slave = 'http://jpillora.com';
+  } else {
+    return console.warn('demo slave mismatch');
+  }
 
-    var slaves = {};
-    slaves[slave] = '/xdomain/example/proxy.html'
+  var slaves = {};
+  slaves[slave] = '/xdomain/example/proxy.html'
 
-    $.xdomain({
-      slaves: slaves
-    });
+  $.xdomain({
+    slaves: slaves
+  });
 
-    $.get(slave + '/xdomain/example/data.json').always(function() {
-      console.log("got result from '",slave,"':", arguments);
-    });
+  $(function() {
 
-  }();
+    $("#hostInput").val(slave);
+
+    $("button").click(function() {
+      $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
+        function(data) {
+          $("#output").html(JSON.stringify(data));
+        }
+      );
+    }).click();
+
+
+  });
+  
+
   </script>
 </head>
 <body>
@@ -52,7 +62,21 @@
     document.getElementById('host').innerHTML = window.location.origin;
   </script>
 
-  <h4>Check your console</h4>
+  <h4>Input</h4>
+  <div>
+
+    <style>
+      input { width: 200px }
+    </style>
+
+    <input id='hostInput' type='text' placeholder='host'/>
+    <input id='pathInput' type='text' placeholder='host'
+           value='/xdomain/example/data.json' />
+    <button>GET</button>
+  </div>
+
+  <h4>Output</h4>
+  <pre id='output'></pre>
 
 </body>
 </html>

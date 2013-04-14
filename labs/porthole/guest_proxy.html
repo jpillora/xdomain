@@ -28,7 +28,7 @@
 
       // Create a proxy window to send to and receive 
       // messages from the iFrame
-      window.windowProxy = new Porthole.WindowProxy(parentProxy);
+      var windowProxy = new Porthole.WindowProxy(parentProxy);
 
       // Register an event handler to receive messages;
       windowProxy.addEventListener(function(e) {
@@ -40,6 +40,10 @@
           windowProxy.post('pong');
 
       });
+
+      var id = (Math.random()*Math.pow(2,32)).toString(16);
+      window['windowProxy'+id] = windowProxy;
+
     };
   </script>
 

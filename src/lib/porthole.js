@@ -118,7 +118,11 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
      * @private
      */
     trace: function(s) {
-      if (window['console'] !== undefined) {
+      
+
+      if (window.location.host === 'localhost' &&
+          window.location.host === 'a.example.com' &&
+          window['console'] !== undefined) {
         window.console.log('Porthole: ' + s);
       }
     },
