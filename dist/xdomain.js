@@ -513,6 +513,10 @@ iFrame proxy abc.com->abc.com: forwardMessageEvent(event)
     slaves: {}
   };
 
+  if (!location.origin) {
+    location.origin = location.protocol + '//' + location.host;
+  }
+
   guid = function() {
     return (Math.random() * Math.pow(2, 32)).toString(16);
   };

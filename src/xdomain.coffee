@@ -7,6 +7,10 @@ PING = '__xdomain_PING'
 PONG = '__xdomain_PONG'
 origins = { masters: {}, slaves: {}}
 
+#missing origin
+unless location.origin
+  location.origin = location.protocol + '//' + location.host
+
 #helpers
 guid = -> 
   (Math.random()*Math.pow(2,32)).toString(16)
