@@ -4,9 +4,9 @@ v0.0.1
 
 Summary
 ---
-A JQuery plugin to do cross-domain AJAX requests via postMessage
+A JQuery plugin for cross-domain AJAX requests via postMessage
 
-This plugin can be used as an alternative browsers missing CORS functionality
+This plugin can be used as an alternative for browsers missing CORS or if server headers are unmodifiable.
 
 Downloads
 ---
@@ -44,7 +44,7 @@ Say you wanted to communicate from:
   </html>
   ```
 
-2. On your master domain (`http://abc.example.com`), definte all slaves 
+2. On your master domain index file, define all slaves 
 
   File: `http://abc.example.com/index.html`
   ``` html
@@ -72,13 +72,13 @@ Say you wanted to communicate from:
   </html>
   ```
 
-3. Any jQuery Ajax (`$.get` `$.post` `$.ajax`) request from your master domain to your slave domain will now work seemlessly
+3. Now, jQuery Ajax requests (`$.get` `$.post` `$.ajax`) from your master domain to your slave domain will work seemlessly
 
   File: `http://abc.example.com/app.js`
   
   ``` js
-  $.get('http://xyz.example.com/secret/data.json').always(function() {
-      console.log("got result: ", arguments);
+  $.get('http://xyz.example.com/secret/data.json').done(function(data) {
+      console.log("got result: ", data);
   });
   
   ```
@@ -90,14 +90,18 @@ http://xdomain.jpillora.com/
 
 Limitations
 ---
-* Functions like are removed from the ajax response
+* Functions are removed from the ajax response
 
 API
 ---
 
 ## `$.xdomain`(`object`)
 
-A domain manifest representing whitelisted master and slave domains. See examples above.
+A domain manifest representing whitelisted master and slave domains.
+The manifest lists proxy locations and splits the `href` into `origin` and `pathname` thereby allowing only one proxy per origin.
+For browsers missing the `postMessage` feature, the slave domains require the master
+domain definition to also be a proxy in order to send return communications.
+See examples above.
 
 Conceptual Overview
 ---
