@@ -71,19 +71,20 @@
 
   setupSlave = function(masters) {
     return onMessage(function(event) {
-      var frame, message, p, regex, _ref1;
-      regex = masters[event.origin];
+      var frame, message, origin, p, regex, _ref1;
+      origin = event.origin;
+      regex = masters[event.origin] || masters['*'];
       if (!regex) {
-        log("blocked request from: '" + event.origin + "'");
+        log("blocked request from: '" + origin + "'");
         return;
       }
       frame = event.source;
       if (event.data === PING) {
-        frame.postMessage(PONG, event.origin);
+        frame.postMessage(PONG, origin);
         return;
       }
       message = getMessage(event.data);
-      if (regex.test) {
+      if (regex && regex.test) {
         p = parseUrl((_ref1 = message.payload) != null ? _ref1.url : void 0);
         if (p && !regex.test(p.path)) {
           log("blocked request to path: '" + p.path + "' by regex: " + regex);
@@ -97,7 +98,7 @@
           id: message.id,
           args: args
         });
-        return frame.postMessage(m, event.origin);
+        return frame.postMessage(m, origin);
       });
     });
   };

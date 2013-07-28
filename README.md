@@ -107,6 +107,8 @@ Then `xdomain` will load as a slave
 
 Each master must be defined as: `master domain` -> `regex matching allowed paths` 
 
+You can allow all with: `'*': /.*/` though this is not recommended.
+
 Conceptual Overview
 ---
 

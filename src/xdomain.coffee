@@ -45,7 +45,8 @@ getMessage = (str) ->
 setupSlave = (masters) ->
   onMessage (event) ->
     origin = event.origin
-    regex = masters[event.origin]
+
+    regex = masters[event.origin] or masters['*']
     #ignore non-whitelisted domains
     unless regex
       log "blocked request from: '#{origin}'"
@@ -61,7 +62,7 @@ setupSlave = (masters) ->
     #extract data
     message = getMessage event.data
 
-    if regex.test
+    if regex and regex.test
       p = parseUrl message.payload?.url
       if p and not regex.test p.path
         log "blocked request to path: '#{p.path}' by regex: #{regex}"
