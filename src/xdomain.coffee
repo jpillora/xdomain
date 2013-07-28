@@ -44,17 +44,18 @@ getMessage = (str) ->
 
 setupSlave = (masters) ->
   onMessage (event) ->
+    origin = event.origin
     regex = masters[event.origin]
     #ignore non-whitelisted domains
     unless regex
-      log "blocked request from: '#{event.origin}'"
+      log "blocked request from: '#{origin}'"
       return
 
     frame = event.source
 
     #ping only
     if event.data is PING
-      frame.postMessage PONG, event.origin
+      frame.postMessage PONG, origin
       return
 
     #extract data
@@ -71,7 +72,7 @@ setupSlave = (masters) ->
       args = Array.prototype.slice.call(arguments)
 
       m = setMessage({id: message.id,args})
-      frame.postMessage m, event.origin
+      frame.postMessage m, origin
 
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
