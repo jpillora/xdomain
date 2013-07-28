@@ -5,7 +5,7 @@ v0.2.0
 Summary
 ---
 
-A JavaScript alternative to CORS. No server configuration required - just add a `proxy.html` on the domain you wish to communicate with.
+A JavaScript alternative to CORS. No server configuration required - just add a `proxy.html` on the domain you wish to communicate with. Currently, this library is a jQuery plugin, with enough interest, I'll split out jQuery to make it easier to create custom "adapters", see issue #2.
 
 Features
 ---
