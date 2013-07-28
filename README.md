@@ -7,15 +7,24 @@ Summary
 
 A JavaScript alternative to CORS. No server configuration required - just add a `proxy.html` on the domain you wish to communicate with.
 
-A JQuery plugin for cross-domain AJAX requests via postMessage.
+Features
+---
 
-Once setup, `$.ajax` (and subsequently `$.get`, `$.post`) will work seemlessly.
+* Simple
+* Cross domain `$.ajax` (and subsequently `$.get`, `$.post`) will work magically
+* White-list allowed domains
+* White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
 
 Downloads
 ---
 
 * [Development Version](http://xdomain.jpillora.com/dist/xdomain.js)
 * [Production Version](http://xdomain.jpillora.com/dist/xdomain.min.js)
+
+```
+Uncompressed size: 6.140KB.
+Compressed size: 0.760KB gzipped (3.196KB minified).
+```
 
 Browser Support
 ---
