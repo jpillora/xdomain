@@ -1,7 +1,6 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-
   <!-- jQuery -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
   <!-- XDomain -->
@@ -9,51 +8,21 @@
   <!-- Demo -->
   <script type="text/javascript">
 
-
-  if(!window.console)
-    console = { log: $.noop };
-
-  var slave,
-      path = '/example/proxy.html',
-      file = '/example/data.json' ;
-
-  (function() {
-
-    console.log(location.origin);
-
-    if(location.origin === 'http://abc.example.com:3000') {
-      slave = 'http://xyz.example.com:3000';
-    } else if(location.origin === 'http://a.example.com:3000') {
-      slave = 'http://b.example.com:3000';
-    } else if(location.origin === 'http://xdomain.jpillora.com') {
-      slave = 'http://anotherdomain.jpillora.com';
-      path = '/proxy.html';
-      file = '/data/file1.json' ;
-    } else {
-      return console.log('demo slave mismatch');
-    }
-
-    var slaves = {};
-    slaves[slave] = path
-
     $.xdomain({
-      slaves: slaves
+      slaves: {
+        'http://anotherdomain.jpillora.com': '/proxy.html'
+      }
     });
 
-  }());
-
-  $(function() {
-    $("#hostInput").val(slave);
-    $("#pathInput").val(file);
-
-    $("button").click(function() {
-      $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
-        function(data) {
-          $("#output").text(JSON.stringify(data,null,2));
-        }
-      );
-    }).click();
-  });
+    $(function() {
+      $("button").click(function() {
+        $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
+          function(data) {
+            $("#output").text(JSON.stringify(data,null,2));
+          }
+        );
+      }).click();
+    });
   
   </script>
 </head>
@@ -73,8 +42,8 @@
       input { width: 200px }
     </style>
 
-    <input id='hostInput' type='text' placeholder='host'/>
-    <input id='pathInput' type='text' placeholder='host'/>
+    <input id='hostInput' type='text' value='http://anotherdomain.jpillora.com'/>
+    <input id='pathInput' type='text' value='/data/file2.json'/>
     <button>GET</button>
   </div>
 
@@ -83,5 +52,3 @@
 
 </body>
 </html>
-
-
