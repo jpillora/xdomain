@@ -2,7 +2,7 @@
 
 log = (str) ->
   return if window.console is `undefined`
-  console.log "xdomain (#{location.origin}): #{str}"
+  console.log "xdomain (#{location.protocol + '//' + location.host}): #{str}"
 
 #feature detect
 for feature in ['postMessage','JSON']
@@ -15,11 +15,6 @@ $window = $(window)
 realAjax = $.ajax
 PING = '__xdomain_PING'
 PONG = '__xdomain_PONG'
-origins = { masters: {}, slaves: {}}
-
-#missing origin
-unless location.origin
-  location.origin = location.protocol + '//' + location.host
 
 #helpers
 guid = -> 
