@@ -37,6 +37,7 @@ Usage
 On your slave domain (`http://xyz.example.com`), create a `proxy.html` file which looks like:x
   
 ``` html
+<!DOCTYPE HTML>
 <html>
 <body>
   <!-- jQuery -->

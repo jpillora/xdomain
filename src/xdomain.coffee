@@ -172,8 +172,10 @@ class Frame
     if @ready is true
       return callback()
     #ping frame
-    if @frame?.contentWindow
+    try
       @post PING
+    catch e
+
     if @pingPong.attempts++ >= 10
       throw "Timeout connecting to iframe: " + @origin
     setTimeout =>

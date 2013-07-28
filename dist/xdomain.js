@@ -7,13 +7,13 @@
 (function() {
   'use strict';
 
-  var $window, Frame, PING, PONG, feature, getMessage, guid, inherit, log, onMessage, origins, parseUrl, realAjax, setMessage, setupMaster, setupSlave, _i, _len, _ref;
+  var $window, Frame, PING, PONG, feature, getMessage, guid, inherit, log, onMessage, parseUrl, realAjax, setMessage, setupMaster, setupSlave, _i, _len, _ref;
 
   log = function(str) {
     if (window.console === undefined) {
       return;
     }
-    return console.log("xdomain (" + location.origin + "): " + str);
+    return console.log("xdomain (" + (location.protocol + '//' + location.host) + "): " + str);
   };
 
   _ref = ['postMessage', 'JSON'];
@@ -32,15 +32,6 @@
   PING = '__xdomain_PING';
 
   PONG = '__xdomain_PONG';
-
-  origins = {
-    masters: {},
-    slaves: {}
-  };
-
-  if (!location.origin) {
-    location.origin = location.protocol + '//' + location.host;
-  }
 
   guid = function() {
     return (Math.random() * Math.pow(2, 32)).toString(16);
@@ -228,13 +219,14 @@
     };
 
     Frame.prototype.pingPong = function(callback) {
-      var _ref1,
-        _this = this;
+      var _this = this;
       if (this.ready === true) {
         return callback();
       }
-      if ((_ref1 = this.frame) != null ? _ref1.contentWindow : void 0) {
+      try {
         this.post(PING);
+      } catch (e) {
+
       }
       if (this.pingPong.attempts++ >= 10) {
         throw "Timeout connecting to iframe: " + this.origin;
