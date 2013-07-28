@@ -1,6 +1,4 @@
 
-<!-- JSON -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"></script>
 <!-- jQuery -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <!-- XDomain -->
@@ -9,9 +7,9 @@
 <script type="text/javascript">
 $.xdomain({
   masters: {
-    'http://abc.example.com:3000': '/xdomain/example/proxy.html',
-      'http://a.example.com:8888': '/xdomain/example/proxy.html',
-    'http://xdomain.jpillora.com': '/example/proxy.html'
+    'http://abc.example.com:3000': /.*/,
+    'http://a.example.com:8888'  : /.*/,
+    'http://xdomain.jpillora.com': /.*/
   }
 });
 </script>

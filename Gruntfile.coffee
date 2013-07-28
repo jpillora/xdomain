@@ -22,14 +22,6 @@ module.exports = (grunt) ->
           'dist/<%= pkg.name %>.js': 'src/<%= pkg.name %>.coffee'
           # 'test/tests/*.js': 'test/tests/*.coffee'
 
-    concat:
-      dist:
-        src: [
-          "src/lib/porthole.js"
-          "dist/<%= pkg.name %>.js"
-        ]
-        dest: "dist/<%= pkg.name %>.js"
-
     wrap: 
       dist: 
         src: ['dist/*.js']
@@ -53,14 +45,13 @@ module.exports = (grunt) ->
           interval: 5000
 
   grunt.loadNpmTasks "grunt-contrib-coffee"
-  grunt.loadNpmTasks "grunt-contrib-concat"
   grunt.loadNpmTasks "grunt-contrib-jshint"
   grunt.loadNpmTasks "grunt-contrib-watch"
   grunt.loadNpmTasks "grunt-contrib-uglify"
   grunt.loadNpmTasks "grunt-wrap"
   
   # Default task
-  grunt.registerTask "default", ["coffee","concat","wrap","uglify"]
+  grunt.registerTask "default", ["coffee","wrap","uglify"]
 
 
 #END CONFIG

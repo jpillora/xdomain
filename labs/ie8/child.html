@@ -1,0 +1,23 @@
+<html>
+<body>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script src="shared.js"></script>
+    
+  <div>
+    child (on domain: <span id="domain"></span>)<br>
+    <input id="msg"/>
+    <input id="target" value="*"/>
+    <button id="send">send</button>
+  </div>
+  
+  <script>
+    handleMessage = function(e) {
+      window.targetFrame = e.source;
+    };
+  </script>
+
+  messages:
+  <div id="messages"></div>
+    
+</body>
+</body>
