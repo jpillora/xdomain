@@ -52,7 +52,7 @@ setupSlave = (masters) ->
     regex = masters[event.origin]
     #ignore non-whitelisted domains
     unless regex
-      log "blocked message from: #{event.origin}"
+      log "blocked request from: '#{event.origin}'"
       return
 
     #ping only
@@ -62,6 +62,12 @@ setupSlave = (masters) ->
 
     #extract data
     message = getMessage event.data
+
+    if regex.test
+      p = parseUrl message.payload?.url
+      if p and not regex.test p.path
+        log "blocked request to path: '#{p.path}' by regex: #{regex}"
+        return
     
     #proxy ajax
     realAjax(message.payload).always ->

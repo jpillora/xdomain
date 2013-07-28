@@ -9,14 +9,15 @@
   <!-- Demo -->
   <script type="text/javascript">
 
+
+  if(!window.console)
+    console = { log: $.noop };
+
   var slave,
       path = '/example/proxy.html',
       file = '/example/data.json' ;
 
   (function() {
-
-    if(!window.console)
-      console = { log: $.noop };
 
     console.log(location.origin);
 
@@ -24,7 +25,7 @@
       slave = 'http://xyz.example.com:3000';
     } else if(location.origin === 'http://a.example.com:3000') {
       slave = 'http://b.example.com:3000';
-    } else if(location.origin === 'http://xdomain.jpillora.com') {
+    } else if(location.origin === 'http://jpillora.com') {
       slave = 'http://anotherdomain.jpillora.com';
       path = '/proxy.html';
       file = '/data/file1.json' ;
@@ -41,9 +42,7 @@
 
   }());
 
-
   $(function() {
-
     $("#hostInput").val(slave);
     $("#pathInput").val(file);
 
@@ -54,11 +53,8 @@
         }
       );
     }).click();
-
-
   });
   
-
   </script>
 </head>
 <body>

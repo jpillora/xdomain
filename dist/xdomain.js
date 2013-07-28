@@ -1,4 +1,4 @@
-/** XDomain - v0.0.1 - 2013/07/28
+/** XDomain - v0.2.0 - 2013/07/28
  * 
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -80,10 +80,10 @@
 
   setupSlave = function(masters) {
     return onMessage(function(event) {
-      var message, regex;
+      var message, p, regex, _ref1;
       regex = masters[event.origin];
       if (!regex) {
-        log("blocked message from: " + event.origin);
+        log("blocked request from: '" + event.origin + "'");
         return;
       }
       if (event.data === PING) {
@@ -91,6 +91,13 @@
         return;
       }
       message = getMessage(event.data);
+      if (regex.test) {
+        p = parseUrl((_ref1 = message.payload) != null ? _ref1.url : void 0);
+        if (p && !regex.test(p.path)) {
+          log("blocked request to path: '" + p.path + "' by regex: " + regex);
+          return;
+        }
+      }
       return realAjax(message.payload).always(function() {
         var args, m;
         args = Array.prototype.slice.call(arguments);
