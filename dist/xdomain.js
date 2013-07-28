@@ -71,14 +71,15 @@
 
   setupSlave = function(masters) {
     return onMessage(function(event) {
-      var message, p, regex, _ref1;
+      var frame, message, p, regex, _ref1;
       regex = masters[event.origin];
       if (!regex) {
         log("blocked request from: '" + event.origin + "'");
         return;
       }
+      frame = event.source;
       if (event.data === PING) {
-        event.source.postMessage(PONG, event.origin);
+        frame.postMessage(PONG, event.origin);
         return;
       }
       message = getMessage(event.data);
@@ -96,7 +97,7 @@
           id: message.id,
           args: args
         });
-        return event.source.postMessage(m, event.origin);
+        return frame.postMessage(m, event.origin);
       });
     });
   };

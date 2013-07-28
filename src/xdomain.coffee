@@ -50,9 +50,11 @@ setupSlave = (masters) ->
       log "blocked request from: '#{event.origin}'"
       return
 
+    frame = event.source
+
     #ping only
     if event.data is PING
-      event.source.postMessage PONG, event.origin
+      frame.postMessage PONG, event.origin
       return
 
     #extract data
@@ -63,13 +65,13 @@ setupSlave = (masters) ->
       if p and not regex.test p.path
         log "blocked request to path: '#{p.path}' by regex: #{regex}"
         return
-    
+
     #proxy ajax
     realAjax(message.payload).always ->
       args = Array.prototype.slice.call(arguments)
 
       m = setMessage({id: message.id,args})
-      event.source.postMessage m, event.origin
+      frame.postMessage m, event.origin
 
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
