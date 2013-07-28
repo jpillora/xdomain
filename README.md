@@ -25,13 +25,7 @@ Browser Support
 Usage
 ---
 
-Say you wanted to communicate from:
-
-`http://abc.example.com` to `http://xyz.example.com`
-
-1. On your slave domain, create a `proxy.html` file which looks like:
-
-### File: `http://xyz.example.com/proxy.html`
+On your slave domain (`http://xyz.example.com`), create a `proxy.html` file which looks like:x
   
 ``` html
 <html>
@@ -52,41 +46,27 @@ Say you wanted to communicate from:
 </html>
 ```
 
-2. On your master domain index file, define all slaves 
-
-### File: `http://abc.example.com/index.html`
-
-``` html
-<html>
-...
-<body>
-  ...
-  <!-- jQuery -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <!-- XDomain -->
-  <script src="http://xdomain.jpillora.com/dist/xdomain.js"></script>
-  <!-- XDomain Slaves - { Domain: Proxy location } -->
-  <script type="text/javascript">
-  $.xdomain({
-    slaves: {
-      'http://xyz.example.com': '/proxy.html'
-    }
-  });
-  </script>
-  <!-- Other scripts -->
-  <script src="app.js"></script>
-</body>
-</html>
-```
-
-3. Now, jQuery Ajax requests (`$.get` `$.post` `$.ajax`) from your master domain to your slave domain will work seemlessly
-
-### File: `http://abc.example.com/app.js`
+Then on your master domain (`http://abc.example.com`), define all slaves:
 
 ``` javascript
+//add the slave and the path to its proxy
+$.xdomain({
+  slaves: {
+    'http://xyz.example.com': '/proxy.html'
+  }
+});
+
+//... after ...
+
+//all requests to 'xyz.example.com' will magically work
 $.get('http://xyz.example.com/secret/data.json').done(function(data) {
     console.log("got result: ", data);
 });
+
+//$.ajax(...)
+
+//$.post(...)
+
 ```
 
 Demo

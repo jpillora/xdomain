@@ -10,8 +10,8 @@
   <script type="text/javascript">
 
   var slave,
-      path = '/xdomain/example/proxy.html',
-      file = '/xdomain/example/data.json' ;
+      path = '/example/proxy.html',
+      file = '/example/data.json' ;
 
   (function() {
 
@@ -22,8 +22,8 @@
 
     if(location.origin === 'http://abc.example.com:3000') {
       slave = 'http://xyz.example.com:3000';
-    } else if(location.origin === 'http://a.example.com:8888') {
-      slave = 'http://b.example.com:8888';
+    } else if(location.origin === 'http://a.example.com:3000') {
+      slave = 'http://b.example.com:3000';
     } else if(location.origin === 'http://xdomain.jpillora.com') {
       slave = 'http://anotherdomain.jpillora.com';
       path = '/proxy.html';
