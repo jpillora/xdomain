@@ -1,0 +1,24 @@
+<html>
+<head>
+  <title>patch vanilla xhr</title>
+</head>
+<body>
+
+  <h3>See network requests</h3>
+  <h5>Vowels have been changed to 'z's</h5>
+
+  <pre></pre>
+
+  <script src="patch.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <script type="text/javascript">
+
+    $.get('test.html').done(function(res) {
+      $("pre").text(res);
+    })
+
+  </script>
+
+</body>
+</html>
