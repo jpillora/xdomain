@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>patch vanilla xhr</title>
+</head>
+<body>
+
+  <div ng-app="app"><div ng-controller="ctrl"></div></div>
+
+  <h3>See network requests</h3>
+  <h5>Vowels have been changed to 'z's</h5>
+
+  <pre id="1"></pre>
+  <pre id="2"></pre>
+
+  <script src="patch.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <script type="text/javascript">
+
+    $.ajax({ method: 'POST', url: 'http://echo.jpillora.com?b=3', data: {a:4}, headers: {Foo:'Bar!'} }).done(function(res) {
+      $("#2").text(res);
+    });
+
+  </script>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.js"></script>
+
+  <script type="text/javascript">
+
+    var app = angular.module('app', []);
+    app.controller('ctrl', function($http) {
+      window.$http = $http;
+
+      $http.get('http://echo.jpillora.com?1').success(function(res) {
+        $("#1").text(res);
+      })
+
+    });
+
+  </script>
+
+</body>
+</html>

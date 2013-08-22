@@ -45,7 +45,7 @@ On your slave domain (`http://xyz.example.com`), create a `proxy.html` file whic
 <html>
 <body>
   <!-- jQuery -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
   <!-- XDomain -->
   <script src="http://xdomain.jpillora.com/dist/xdomain.js"></script>
   <!-- XDomain Whitelist - { Domain: Path matcher } -->
