@@ -1,259 +1,247 @@
-/** XDomain - v0.2.0 - 2013/07/28
- * 
- * Copyright (c) 2013 Jaime Pillora - MIT
- */
-
+// XDomain - v0.3.0 - https://github.com/jpillora/xdomain
+// © Jaime Pillora <dev@jpillora.com> MIT 2013
 (function(window,document,undefined) {
-(function() {
-  'use strict';
 
-  var $window, Frame, PING, PONG, feature, getMessage, guid, inherit, log, onMessage, parseUrl, realAjax, setMessage, setupMaster, setupSlave, _i, _len, _ref;
+'use strict';
+var Frame, PING, currentOrigin, feature, getMessage, guid, log, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, _i, _j, _len, _len1, _ref, _ref1;
 
-  log = function(str) {
-    if (window.console === undefined) {
-      return;
-    }
-    return console.log("xdomain (" + (location.protocol + '//' + location.host) + "): " + str);
-  };
+currentOrigin = location.protocol + '//' + location.host;
 
-  _ref = ['postMessage', 'JSON'];
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    feature = _ref[_i];
-    if (!window[feature]) {
-      log("requires '" + feature + "' and this browser does not support it");
-      return;
-    }
+log = function(str) {
+  if (window.console === undefined) {
+    return;
   }
+  return console.log("xdomain (" + currentOrigin + "): " + str);
+};
 
-  $window = $(window);
+_ref = ['postMessage', 'JSON'];
+for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+  feature = _ref[_i];
+  if (!window[feature]) {
+    log("requires '" + feature + "' and this browser does not support it");
+    return;
+  }
+}
 
-  realAjax = $.ajax;
+PING = 'XPING';
 
-  PING = '__xdomain_PING';
+guid = function() {
+  return (Math.random() * Math.pow(2, 32)).toString(16);
+};
 
-  PONG = '__xdomain_PONG';
-
-  guid = function() {
-    return (Math.random() * Math.pow(2, 32)).toString(16);
-  };
-
-  parseUrl = function(url) {
-    var m;
-    m = url.match(/(https?:\/\/[^\/]+)(\/.*)/);
-    return m && {
-      origin: m[1],
-      path: m[2]
+parseUrl = function(url) {
+  if (/(https?:\/\/[^\/]+)(\/.*)?/.test(url)) {
+    return {
+      origin: RegExp.$1,
+      path: RegExp.$2
     };
-  };
+  } else {
+    return null;
+  }
+};
 
-  inherit = function(parent, obj) {
-    var F;
-    F = function() {};
-    F.prototype = parent;
-    return $.extend(true, new F(), obj);
-  };
+onMessage = function(fn) {
+  if (document.addEventListener) {
+    return window.addEventListener("message", fn);
+  } else {
+    return window.attachEvent("onmessage", fn);
+  }
+};
 
-  onMessage = function(fn) {
-    if (document.addEventListener) {
-      return window.addEventListener("message", fn);
-    } else {
-      return window.attachEvent("onmessage", fn);
+setMessage = function(obj) {
+  return JSON.stringify(obj);
+};
+
+getMessage = function(str) {
+  return JSON.parse(str);
+};
+
+setupSlave = function(masters) {
+  onMessage(function(event) {
+    var frame, message, origin, p, proxyXhr, regex, req;
+    origin = event.origin;
+    regex = masters[origin] || masters['*'];
+    if (!regex) {
+      log("blocked request from: '" + origin + "'");
+      return;
     }
-  };
-
-  setMessage = function(obj) {
-    return JSON.stringify(obj);
-  };
-
-  getMessage = function(str) {
-    return JSON.parse(str);
-  };
-
-  setupSlave = function(masters) {
-    return onMessage(function(event) {
-      var frame, message, origin, p, regex, _ref1;
-      origin = event.origin;
-      regex = masters[event.origin] || masters['*'];
-      if (!regex) {
-        log("blocked request from: '" + origin + "'");
+    frame = event.source;
+    message = getMessage(event.data);
+    req = message.req;
+    if (regex && regex.test && req) {
+      p = parseUrl(req.url);
+      if (!regex.test(p.path)) {
+        log("blocked request to path: '" + p.path + "' by regex: " + regex);
         return;
       }
-      frame = event.source;
-      if (event.data === PING) {
-        frame.postMessage(PONG, origin);
+    }
+    proxyXhr = new XMLHttpRequest();
+    proxyXhr.open(req.method, req.url);
+    proxyXhr.onreadystatechange = function() {
+      var m;
+      if (proxyXhr.readyState !== 4) {
         return;
       }
-      message = getMessage(event.data);
-      if (regex && regex.test) {
-        p = parseUrl((_ref1 = message.payload) != null ? _ref1.url : void 0);
-        if (p && !regex.test(p.path)) {
-          log("blocked request to path: '" + p.path + "' by regex: " + regex);
-          return;
+      m = setMessage({
+        id: message.id,
+        res: {
+          props: proxyXhr,
+          responseHeaders: window.xhook.headers(proxyXhr.getAllResponseHeaders())
         }
-      }
-      return realAjax(message.payload).always(function() {
-        var args, m;
-        args = Array.prototype.slice.call(arguments);
-        m = setMessage({
-          id: message.id,
-          args: args
-        });
-        return frame.postMessage(m, origin);
       });
-    });
-  };
+      return frame.postMessage(m, origin);
+    };
+    return proxyXhr.send();
+  });
+  return window.parent.postMessage(PING, '*');
+};
 
-  setupMaster = function(slaves) {
-    onMessage(function(e) {
-      var frame;
-      frame = Frame.prototype.frames[event.origin];
-      if (frame) {
-        return frame.recieve(e);
-      }
-    });
-    return $.ajax = function(url, opts) {
-      var d, frame, p;
-      if (opts == null) {
-        opts = {};
-      }
-      if (typeof url === 'string') {
-        opts.url = url;
-      } else {
-        opts = url;
-        url = opts.url;
-      }
-      if (!url) {
-        throw "url required";
-      }
-      p = parseUrl(url);
+setupMaster = function(slaves) {
+  onMessage(function(e) {
+    var _ref1;
+    return (_ref1 = Frame.prototype.frames[event.origin]) != null ? _ref1.recieve(e) : void 0;
+  });
+  return window.xhook(function(xhr) {
+    return xhr.onCall('send', function() {
+      var frame, p;
+      p = parseUrl(xhr.url);
       if (!(p && slaves[p.origin])) {
-        return realAjax.call($, url, opts);
+        return;
       }
       frame = new Frame(p.origin, slaves[p.origin]);
-      d = $.Deferred();
-      if (typeof opts.success === 'function') {
-        d.done(opts.success);
-      }
-      if (typeof opts.error === 'function') {
-        d.fail(opts.error);
-      }
-      if (typeof opts.complete === 'function') {
-        d.always(opts.complete);
-      }
-      frame.send(opts, function(args) {
-        if (args[1] === 'success') {
-          return d.resolve.apply(d, args);
-        } else if (args[1] === 'error') {
-          return d.reject.apply(d, args);
-        }
+      frame.send(xhr.serialize(), function(res) {
+        xhr.deserialize(res);
+        return xhr.triggerComplete();
       });
-      return d.promise();
-    };
+      return false;
+    });
+  });
+};
+
+Frame = (function() {
+  Frame.prototype.frames = {};
+
+  function Frame(origin, proxyPath) {
+    this.origin = origin;
+    this.proxyPath = proxyPath;
+    if (this.frames[this.origin]) {
+      return this.frames[this.origin];
+    }
+    this.frames[this.origin] = this;
+    this.listeners = {};
+    this.frame = document.createElement("iframe");
+    this.frame.id = this.frame.name = 'xdomain-' + guid();
+    this.frame.src = this.origin + this.proxyPath;
+    this.frame.setAttribute('style', 'display:none;');
+    document.body.appendChild(this.frame);
+    this.waits = 0;
+    this.ready = false;
+  }
+
+  Frame.prototype.post = function(msg) {
+    return this.frame.contentWindow.postMessage(msg, this.origin);
   };
 
-  Frame = (function() {
-
-    Frame.prototype.frames = {};
-
-    function Frame(origin, proxyPath) {
-      var _this = this;
-      this.origin = origin;
-      this.proxyPath = proxyPath;
-      if (this.frames[this.origin]) {
-        return this.frames[this.origin];
-      }
-      this.frames[this.origin] = this;
-      this.listeners = {};
-      this.frame = document.createElement("iframe");
-      this.frame.id = this.frame.name = 'xdomain-' + guid();
-      this.frame.src = this.origin + this.proxyPath;
-      $(function() {
-        return $("body").append($(_this.frame).hide());
-      });
-      this.pingPong.attempts = 0;
-      this.ready = false;
+  Frame.prototype.listen = function(id, callback) {
+    if (this.listeners[id]) {
+      throw "already listening for: " + id;
     }
+    return this.listeners[id] = callback;
+  };
 
-    Frame.prototype.post = function(msg) {
-      return this.frame.contentWindow.postMessage(msg, this.origin);
-    };
+  Frame.prototype.unlisten = function(id) {
+    return delete this.listeners[id];
+  };
 
-    Frame.prototype.listen = function(id, callback) {
-      if (this.listeners[id]) {
-        throw "already listening for: " + id;
-      }
-      return this.listeners[id] = callback;
-    };
-
-    Frame.prototype.unlisten = function(id) {
-      return delete this.listeners[id];
-    };
-
-    Frame.prototype.recieve = function(event) {
-      var cb, message;
-      if (event.data === PONG) {
-        this.ready = true;
-        return;
-      }
-      message = getMessage(event.data);
-      cb = this.listeners[message.id];
-      if (!cb) {
-        console.warn("missing id", message.id);
-        return;
-      }
-      this.unlisten(message.id);
-      return cb(message.args);
-    };
-
-    Frame.prototype.send = function(payload, callback) {
-      var _this = this;
-      return this.pingPong(function() {
-        var id;
-        id = guid();
-        _this.listen(id, function(data) {
-          return callback(data);
-        });
-        return _this.post(setMessage({
-          id: id,
-          payload: payload
-        }));
-      });
-    };
-
-    Frame.prototype.pingPong = function(callback) {
-      var _this = this;
-      if (this.ready === true) {
-        return callback();
-      }
-      try {
-        this.post(PING);
-      } catch (e) {
-
-      }
-      if (this.pingPong.attempts++ >= 10) {
-        throw "Timeout connecting to iframe: " + this.origin;
-      }
-      return setTimeout(function() {
-        return _this.pingPong(callback);
-      }, 500);
-    };
-
-    return Frame;
-
-  })();
-
-  $.xdomain = function(o) {
-    if (!o) {
+  Frame.prototype.recieve = function(event) {
+    var cb, message;
+    if (event.data === PING) {
+      this.ready = true;
       return;
     }
-    if (o.masters) {
-      setupSlave(o.masters);
+    message = getMessage(event.data);
+    cb = this.listeners[message.id];
+    if (!cb) {
+      console.warn("missing id", message.id);
+      return;
     }
-    if (o.slaves) {
-      return setupMaster(o.slaves);
-    }
+    this.unlisten(message.id);
+    return cb(message.res);
   };
 
-}).call(this);
+  Frame.prototype.send = function(req, callback) {
+    var _this = this;
+    return this.readyCheck(function() {
+      var id;
+      id = guid();
+      _this.listen(id, function(data) {
+        return callback(data);
+      });
+      return _this.post(setMessage({
+        id: id,
+        req: req
+      }));
+    });
+  };
 
+  Frame.prototype.readyCheck = function(callback) {
+    var _this = this;
+    if (this.ready === true) {
+      return callback();
+    }
+    if (this.waits++ >= 100) {
+      throw "Timeout connecting to iframe: " + this.origin;
+    }
+    return setTimeout(function() {
+      return _this.readyCheck(callback);
+    }, 100);
+  };
+
+  return Frame;
+
+})();
+
+window.xdomain = function(o) {
+  if (!o) {
+    return;
+  }
+  log("init");
+  if (o.masters) {
+    setupSlave(o.masters);
+  }
+  if (o.slaves) {
+    return setupMaster(o.slaves);
+  }
+};
+
+xdomain.origin = currentOrigin;
+
+_ref1 = document.getElementsByTagName("script");
+for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+  script = _ref1[_j];
+  if (/xdomain/.test(script.src)) {
+    if (script.hasAttribute('slave')) {
+      p = parseUrl(script.getAttribute('slave'));
+      if (!p) {
+        return;
+      }
+      slaves = {};
+      slaves[p.origin] = p.path;
+      xdomain({
+        slaves: slaves
+      });
+    }
+    if (script.hasAttribute('master')) {
+      p = parseUrl(script.getAttribute('master'));
+      if (!p) {
+        return;
+      }
+      masters = {};
+      masters[p.origin] = /./;
+      xdomain({
+        masters: masters
+      });
+    }
+  }
+}
 }(window,document));

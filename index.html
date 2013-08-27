@@ -1,54 +1,31 @@
 <!DOCTYPE HTML>
 <html>
-<head>
-  <!-- jQuery -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-  <!-- XDomain -->
-  <script src="dist/xdomain.js"></script>
-  <!-- Demo -->
-  <script type="text/javascript">
-
-    $.xdomain({
-      slaves: {
-        'http://anotherdomain.jpillora.com': '/proxy.html'
-      }
-    });
-
-    $(function() {
-      $("button").click(function() {
-        $.get( $('#hostInput').val() + $('#pathInput').val()).always( 
-          function(data) {
-            $("#output").text(JSON.stringify(data,null,2));
-          }
-        );
-      }).click();
-    });
-  
-  </script>
-</head>
 <body>
 
   <h3>XDomain Demo</h3>
-
   <h4 id="host"></h4>
-  <script type="text/javascript">
-    document.getElementById('host').innerHTML = window.location.origin;
-  </script>
 
-  <h4>Input</h4>
-  <div>
-
-    <style>
-      input { width: 200px }
-    </style>
-
-    <input id='hostInput' type='text' value='http://anotherdomain.jpillora.com'/>
-    <input id='pathInput' type='text' value='/data/file2.json'/>
-    <button>GET</button>
-  </div>
-
-  <h4>Output</h4>
+  <h4>GET </h4>
   <pre id='output'></pre>
+
+  <script src="http://localhost:4000/xhook/dist/xhook.js"></script>
+
+  <script src="dist/xdomain.js" slave="http://xyz.example.com:3000/proxy.html"></script>
+  
+  <script type="text/javascript">
+    //show current origin
+    document.getElementById('host').innerHTML = xdomain.origin;
+    //vanilla call
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'http://xyz.example.com:3000/example1.txt');
+    xhr.onload = function(e) {
+      document.getElementById('output').innerHTML = xhr.responseText;
+    }
+    xhr.onreadystatechange = function(e) {
+      console.log(xhr)
+    }
+    xhr.send();
+  </script>
 
 </body>
 </html>

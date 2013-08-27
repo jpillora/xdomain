@@ -1,8 +1,11 @@
 'use strict'
 
+
+currentOrigin = location.protocol + '//' + location.host
+
 log = (str) ->
   return if window.console is `undefined`
-  console.log "xdomain (#{location.protocol + '//' + location.host}): #{str}"
+  console.log "xdomain (#{currentOrigin}): #{str}"
 
 #feature detect
 for feature in ['postMessage','JSON']
@@ -11,23 +14,14 @@ for feature in ['postMessage','JSON']
     return
 
 #variables
-$window = $(window)
-realAjax = $.ajax
-PING = '__xdomain_PING'
-PONG = '__xdomain_PONG'
+PING = 'XPING'
 
 #helpers
 guid = -> 
   (Math.random()*Math.pow(2,32)).toString(16)
 
 parseUrl = (url) ->
-  m = url.match /(https?:\/\/[^\/]+)(\/.*)/
-  m and { origin: m[1], path: m[2] }
-
-inherit = (parent, obj) ->
-  F = ->
-  F.prototype = parent
-  $.extend true, new F(), obj
+  if /(https?:\/\/[^\/]+)(\/.*)?/.test(url) then {origin: RegExp.$1, path: RegExp.$2} else null
 
 #message helpers
 onMessage = (fn) ->
@@ -43,10 +37,11 @@ getMessage = (str) ->
   JSON.parse str
 
 setupSlave = (masters) ->
+
   onMessage (event) ->
     origin = event.origin
 
-    regex = masters[event.origin] or masters['*']
+    regex = masters[origin] or masters['*']
     #ignore non-whitelisted domains
     unless regex
       log "blocked request from: '#{origin}'"
@@ -54,67 +49,55 @@ setupSlave = (masters) ->
 
     frame = event.source
 
-    #ping only
-    if event.data is PING
-      frame.postMessage PONG, origin
-      return
-
     #extract data
     message = getMessage event.data
+    req = message.req
 
-    if regex and regex.test
-      p = parseUrl message.payload?.url
-      if p and not regex.test p.path
+    if regex and regex.test and req
+      p = parseUrl req.url
+      if not regex.test p.path
         log "blocked request to path: '#{p.path}' by regex: #{regex}"
         return
 
-    #proxy ajax
-    realAjax(message.payload).always ->
-      args = Array.prototype.slice.call(arguments)
-
-      m = setMessage({id: message.id,args})
+    proxyXhr = new XMLHttpRequest();
+    proxyXhr.open(req.method, req.url);
+    proxyXhr.onreadystatechange = ->
+      return unless proxyXhr.readyState is 4
+      m = setMessage
+        id: message.id
+        res:
+          props: proxyXhr
+          responseHeaders: window.xhook.headers proxyXhr.getAllResponseHeaders()
       frame.postMessage m, origin
+    proxyXhr.send();
+
+  #ping master
+  window.parent.postMessage PING, '*'
 
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
   onMessage (e) ->
-    frame = Frame::frames[event.origin]
-    if frame
-      frame.recieve (e)
+    Frame::frames[event.origin]?.recieve (e)
 
-  #monkey patch $.ajax
-  $.ajax = (url, opts = {}) ->
-    #check ajax opts
-    if typeof url is 'string'
-      opts.url = url
-    else
-      opts = url
-      url = opts.url
+  #hook XHR  calls
+  window.xhook (xhr) ->
+    xhr.onCall 'send', ->
+      p = parseUrl xhr.url
 
-    throw "url required" unless url
+      #skip unless we have a slave
+      unless p and slaves[p.origin]
+        return
 
-    p = parseUrl url
-    # $.ajax if origin not listed
-    unless p and slaves[p.origin]
-      return realAjax.call $, url, opts
+      #check frame exists
+      frame = new Frame p.origin, slaves[p.origin]
+      
+      frame.send xhr.serialize(), (res) ->
+        xhr.deserialize(res)
+        xhr.triggerComplete()
+      #cancel original call
+      return false
 
-    #check frame exists
-    frame = new Frame p.origin, slaves[p.origin]
-    
-    #create promise
-    d = $.Deferred()
-
-    d.done opts.success if typeof opts.success is 'function'
-    d.fail opts.error if typeof opts.error is 'function'
-    d.always opts.complete if typeof opts.complete is 'function'
-
-    frame.send opts, (args) ->
-      if args[1] is 'success'
-        d.resolve.apply d, args
-      else if args[1] is 'error'
-        d.reject.apply d, args
-
-    d.promise()
+  
 
 #frame
 class Frame
@@ -131,9 +114,11 @@ class Frame
     @frame = document.createElement "iframe"
     @frame.id = @frame.name = 'xdomain-'+guid()
     @frame.src = @origin + @proxyPath
-    $ => $("body").append $(@frame).hide()
+    @frame.setAttribute 'style', 'display:none;'
 
-    @pingPong.attempts = 0
+    document.body.appendChild @frame
+
+    @waits = 0
     @ready = false
 
   post: (msg) ->
@@ -150,7 +135,7 @@ class Frame
 
   recieve: (event) ->
     #pong only
-    if event.data is PONG
+    if event.data is PING
       @ready = true
       return
 
@@ -162,34 +147,58 @@ class Frame
       console.warn "missing id", message.id
       return 
     @unlisten message.id
-    cb message.args
+    cb message.res
 
   #send with id
-  send: (payload, callback) ->
-    @pingPong =>
+  send: (req, callback) ->
+    @readyCheck =>
       id = guid()
       @listen id, (data) -> callback data
-      @post setMessage({id,payload})
+      @post setMessage({id,req})
 
   #confirm the connection to iframe
-  pingPong: (callback) ->
+  readyCheck: (callback) ->
     if @ready is true
       return callback()
-    #ping frame
-    try
-      @post PING
-    catch e
 
-    if @pingPong.attempts++ >= 10
+    if @waits++ >= 100 # 10.0 seconds
       throw "Timeout connecting to iframe: " + @origin
+
     setTimeout =>
-      @pingPong callback
-    , 500
+      @readyCheck callback
+    , 100
 
 #public methods
-$.xdomain = (o) ->
+window.xdomain = (o) ->
   return unless o
+  log "init"
   if o.masters
     setupSlave o.masters
   if o.slaves
     setupMaster o.slaves
+
+xdomain.origin = currentOrigin
+
+#auto init
+for script in document.getElementsByTagName("script")
+  if /xdomain/.test(script.src)
+    if script.hasAttribute 'slave'
+      p = parseUrl script.getAttribute 'slave'
+      return unless p
+      slaves = {}
+      slaves[p.origin] = p.path
+      xdomain { slaves }
+    if script.hasAttribute 'master'
+      p = parseUrl script.getAttribute 'master'
+      return unless p
+      masters = {}
+      masters[p.origin] = /./
+      xdomain { masters }
+
+
+
+
+
+
+
+
