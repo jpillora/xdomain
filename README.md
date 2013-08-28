@@ -20,6 +20,10 @@ conjunction with any library.
 * Cross domain XHR just magically works
   * No need to modify the server code
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
+* Easy XHR access to file servers:
+  * [Amazon](http://xdomain.jpillora.com/)
+  * Dropbox
+* Includes [XHook](http://jpillora.com/xhook)
 * White-list allowed domains
 * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
 
@@ -31,7 +35,7 @@ conjunction with any library.
   *Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it*
 
-## Live Demos
+## Live Demo
 
 ### http://xdomain.jpillora.com/
 
@@ -137,7 +141,6 @@ v0.3.0 - Moved to vanilla, using XHook to hook XHR instead of `$.ajax`
 v0.2.0 - Removed PortHole, using pure postMessage, IE6/7 NOT supported
 
 v0.1.0 - Alpha
-
 
 #### MIT License
 

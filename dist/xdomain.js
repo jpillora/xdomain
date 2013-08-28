@@ -429,7 +429,9 @@ setupSlave = function(masters) {
       _ref1 = xhook.PROPS;
       for (_j = _ref1.length - 1; _j >= 0; _j += -1) {
         p = _ref1[_j];
-        res.props[p] = proxyXhr[p];
+        if (p !== 'responseXML') {
+          res.props[p] = proxyXhr[p];
+        }
       }
       res.responseHeaders = xhook.headers(proxyXhr.getAllResponseHeaders());
       m = setMessage({
@@ -445,7 +447,11 @@ setupSlave = function(masters) {
     }
     return proxyXhr.send();
   });
-  return window.parent.postMessage(PING, '*');
+  if (window === window.parent) {
+    return warn("slaves must be in an iframe");
+  } else {
+    return window.parent.postMessage(PING, '*');
+  }
 };
 
 setupMaster = function(slaves) {

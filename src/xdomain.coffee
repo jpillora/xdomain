@@ -69,7 +69,8 @@ setupSlave = (masters) ->
       #extract properties
       res = { props: {} }
       for p in xhook.PROPS by -1
-        res.props[p] = proxyXhr[p]
+        if p isnt 'responseXML'
+          res.props[p] = proxyXhr[p]
       #and response headers
       res.responseHeaders = xhook.headers proxyXhr.getAllResponseHeaders()
       m = setMessage {id: message.id, res}
@@ -79,7 +80,10 @@ setupSlave = (masters) ->
     proxyXhr.send();
 
   #ping master
-  window.parent.postMessage PING, '*'
+  if window is window.parent
+    warn "slaves must be in an iframe"
+  else
+    window.parent.postMessage PING, '*'
 
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
