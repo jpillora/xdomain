@@ -3,25 +3,23 @@
 <body>
 
   <h3>XDomain Demo</h3>
-  <h4 id="host"></h4>
+  <p>
+    Cross-domain XHR access to Amazon<br>
+    From '<span id="host"></span>'<br>
+    To 'http://s3.amazonaws.com/jpillora-usa/data1.json'<br>
+  </p>
+  <script src="dist/xdomain.js" slave="http://s3.amazonaws.com/jpillora-usa/proxy.html"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
-  <h4>GET </h4>
   <pre id='output'></pre>
 
-  <script src="/xdomain/dist/xdomain.js" slave="http://xyz.example.com:3000/xdomain/proxy.html"></script>
-  
   <script type="text/javascript">
     //show current origin
-    document.getElementById('host').innerHTML = xdomain.origin;
-    //vanilla call
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'http://xyz.example.com:3000/xdomain/Gruntsource.json');
-    xhr.onreadystatechange = function(e) {
-      if(xhr.readyState === 4)
-        document.getElementById('output').innerHTML = xhr.responseText;
-    }
-    xhr.send();
+    $("#host").html(xdomain.origin);
+    //jquery ajax call
+    $("#output").load('http://s3.amazonaws.com/jpillora-usa/data1.json');
   </script>
 
 </body>
 </html>
+

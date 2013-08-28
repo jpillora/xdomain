@@ -1,0 +1,11 @@
+{
+  "DATA": "2",
+  "name": "xdomain",
+  "title": "XDomain",
+  "version": "0.3.0",
+  "homepage": "https://github.com/jpillora/xdomain",
+  "author": "Jaime Pillora <dev@jpillora.com>",
+  "license": "MIT",
+  "source": "~/.grunt-sources/jslib",
+  "repo": "https://github.com/jpillora/grunt-source-jslib.git"
+}
