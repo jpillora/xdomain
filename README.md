@@ -21,7 +21,7 @@ conjunction with any library.
   * No need to modify the server code
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
 * Easy XHR access to file servers:
-  * [Amazon](http://xdomain.jpillora.com/)
+  * [Amazon](http://jpillora.com/xdomain)
   * Dropbox
 * Includes [XHook](http://jpillora.com/xhook)
 * White-list allowed domains
@@ -29,15 +29,15 @@ conjunction with any library.
 
 ## Download
 
-* Development [xdomain.js](http://xdomain.jpillora.com/dist/xdomain.js) 15.4KB
-* Production [xdomain.min.js](http://xdomain.jpillora.com/dist/xdomain..minjs) 7.2KB (1.7KB Gzip)
+* Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 15.4KB
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain..minjs) 7.2KB (1.7KB Gzip)
 
   *Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it*
 
 ## Live Demo
 
-### http://xdomain.jpillora.com/
+### http://jpillora.com/xdomain
 
 ## Browser Support
 
@@ -48,13 +48,13 @@ All except IE6/7 as they don't have `postMessage`
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
     ``` html
-    <script src="http://xdomain.jpillora.com/dist/xdomain.js" master="http://abc.example.com"></script>
+    <script src="http://jpillora.com/xdomain/dist/xdomain.js" master="http://abc.example.com"></script>
     ```
 
 2. Then on your master domain (`http://abc.example.com`), pointing to a `proxy.html`:
 
     ``` html
-    <script src="http://xdomain.jpillora.com/dist/xdomain.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="http://jpillora.com/xdomain/dist/xdomain.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. Now any XHR to `http://xyz.example.com` will automagically work: 
@@ -82,10 +82,10 @@ All except IE6/7 as they don't have `postMessage`
 The following two snippets are equivalent:
 
 ``` html
-<script src="http://xdomain.jpillora.com/dist/xdomain.js" master="http://abc.example.com"></script>
+<script src="http://jpillora.com/xdomain/dist/xdomain.js" master="http://abc.example.com"></script>
 ```
 ``` html
-<script src="http://xdomain.jpillora.com/dist/xdomain.js"></script>
+<script src="http://jpillora.com/xdomain/dist/xdomain.js"></script>
 <script>
 xdomain({
   masters: {
