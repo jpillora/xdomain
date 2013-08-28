@@ -84,7 +84,7 @@ setupSlave = (masters) ->
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
   onMessage (e) ->
-    Frame::frames[event.origin]?.recieve (e)
+    Frame::frames[e.origin]?.recieve (e)
 
   #hook XHR  calls
   xhook (xhr) ->

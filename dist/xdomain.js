@@ -1,5 +1,5 @@
 // XDomain - v0.3.0 - https://github.com/jpillora/xdomain
-// © Jaime Pillora <dev@jpillora.com> 2013
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 // XHook - v0.1.0 - https://github.com/jpillora/xhook
 // © Jaime Pillora <dev@jpillora.com> 2013
@@ -451,7 +451,7 @@ setupSlave = function(masters) {
 setupMaster = function(slaves) {
   onMessage(function(e) {
     var _ref1;
-    return (_ref1 = Frame.prototype.frames[event.origin]) != null ? _ref1.recieve(e) : void 0;
+    return (_ref1 = Frame.prototype.frames[e.origin]) != null ? _ref1.recieve(e) : void 0;
   });
   return xhook(function(xhr) {
     xhr.onCall('open', function(args) {

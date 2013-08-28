@@ -1,1 +1,22 @@
-index.html
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  <h3>XDomain Demo</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://xyz.example.com:3000/xdomain/Gruntsource.json'</h5>
+
+  <script src="/xdomain/dist/xdomain.js" slave="http://xyz.example.com:3000/xdomain/proxy.html"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <pre id='output'></pre>
+
+  <script type="text/javascript">
+    //show current origin
+    $("#host").html(xdomain.origin);
+    //jquery ajax call
+    $("#output").load('http://xyz.example.com:3000/xdomain/Gruntsource.json');
+  </script>
+
+</body>
+</html>
