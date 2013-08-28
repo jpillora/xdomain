@@ -1,16 +1,18 @@
 'use strict'
 
-
 currentOrigin = location.protocol + '//' + location.host
 
-log = (str) ->
-  return if window.console is `undefined`
-  console.log "xdomain (#{currentOrigin}): #{str}"
+warn = (str) ->
+  str = "xdomain (#{currentOrigin}): #{str}"
+  if console['warn']
+    console.warn str
+  else
+    alert str
 
 #feature detect
 for feature in ['postMessage','JSON']
   unless window[feature]
-    log "requires '#{feature}' and this browser does not support it"
+    warn "requires '#{feature}' and this browser does not support it"
     return
 
 #variables
@@ -37,14 +39,13 @@ getMessage = (str) ->
   JSON.parse str
 
 setupSlave = (masters) ->
-
   onMessage (event) ->
     origin = event.origin
 
     regex = masters[origin] or masters['*']
     #ignore non-whitelisted domains
     unless regex
-      log "blocked request from: '#{origin}'"
+      warn "blocked request from: '#{origin}'"
       return
 
     frame = event.source
@@ -56,19 +57,25 @@ setupSlave = (masters) ->
     if regex and regex.test and req
       p = parseUrl req.url
       if not regex.test p.path
-        log "blocked request to path: '#{p.path}' by regex: #{regex}"
+        warn "blocked request to path: '#{p.path}' by regex: #{regex}"
         return
+
+    # warn("request: #{JSON.stringify(req,null,2)}")
 
     proxyXhr = new XMLHttpRequest();
     proxyXhr.open(req.method, req.url);
     proxyXhr.onreadystatechange = ->
       return unless proxyXhr.readyState is 4
-      m = setMessage
-        id: message.id
-        res:
-          props: proxyXhr
-          responseHeaders: window.xhook.headers proxyXhr.getAllResponseHeaders()
+      #extract properties
+      res = { props: {} }
+      for p in xhook.PROPS by -1
+        res.props[p] = proxyXhr[p]
+      #and response headers
+      res.responseHeaders = xhook.headers proxyXhr.getAllResponseHeaders()
+      m = setMessage {id: message.id, res}
       frame.postMessage m, origin
+    for k,v of req.requestHeaders
+      proxyXhr.setRequestHeader k, v
     proxyXhr.send();
 
   #ping master
@@ -80,11 +87,23 @@ setupMaster = (slaves) ->
     Frame::frames[event.origin]?.recieve (e)
 
   #hook XHR  calls
-  window.xhook (xhr) ->
-    xhr.onCall 'send', ->
-      p = parseUrl xhr.url
+  xhook (xhr) ->
 
-      #skip unless we have a slave
+    xhr.onCall 'open', (args) ->
+      #allow unless we have a slave domain
+      p = parseUrl args[1]
+      unless p and slaves[p.origin]
+        return
+
+      if args[2] is false
+        warn "sync not supported" 
+      #trigger openned 
+      setTimeout -> xhr.set 'readyState', 1
+      return false
+
+    xhr.onCall 'send', ->
+      #allow unless we have a slave domain
+      p = parseUrl xhr.url
       unless p and slaves[p.origin]
         return
 
@@ -92,8 +111,9 @@ setupMaster = (slaves) ->
       frame = new Frame p.origin, slaves[p.origin]
       
       frame.send xhr.serialize(), (res) ->
+        # warn("response: #{JSON.stringify(res,null,2)}")
         xhr.deserialize(res)
-        xhr.triggerComplete()
+
       #cancel original call
       return false
 
@@ -144,7 +164,7 @@ class Frame
     #response
     cb = @listeners[message.id]
     unless cb
-      console.warn "missing id", message.id
+      warn "unkown message (#{message.id})"
       return 
     @unlisten message.id
     cb message.res
@@ -171,7 +191,6 @@ class Frame
 #public methods
 window.xdomain = (o) ->
   return unless o
-  log "init"
   if o.masters
     setupSlave o.masters
   if o.slaves
@@ -194,11 +213,3 @@ for script in document.getElementsByTagName("script")
       masters = {}
       masters[p.origin] = /./
       xdomain { masters }
-
-
-
-
-
-
-
-

@@ -1,24 +1,365 @@
 // XDomain - v0.3.0 - https://github.com/jpillora/xdomain
-// © Jaime Pillora <dev@jpillora.com> MIT 2013
+// © Jaime Pillora <dev@jpillora.com> 2013
 (function(window,document,undefined) {
+// XHook - v0.1.0 - https://github.com/jpillora/xhook
+// © Jaime Pillora <dev@jpillora.com> 2013
+(function(window,document,undefined) {
+var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, create, patchClass, patchXhr, xhook,
+  __slice = [].slice;
 
+FNS = ["open", "setRequestHeader", "send", "abort", "getAllResponseHeaders", "getResponseHeader", "overrideMimeType"];
+
+EVENTS = ["onreadystatechange", "onprogress", "onloadstart", "onloadend", "onload", "onerror", "onabort"];
+
+PROPS = ["readyState", "responseText", "withCredentials", "statusText", "status", "response", "responseType", "responseXML", "upload"];
+
+READY_STATE = PROPS[0];
+
+RESPONSE_TEXT = PROPS[1];
+
+WITH_CREDS = PROPS[2];
+
+create = function(parent) {
+  var F;
+  F = function() {};
+  F.prototype = parent;
+  return new F;
+};
+
+xhook = function(callback) {
+  return xhook.s.push(callback);
+};
+
+xhook.s = [];
+
+convertHeaders = function(h, dest) {
+  var header, headers, k, v, _i, _len;
+  if (dest == null) {
+    dest = {};
+  }
+  switch (typeof h) {
+    case "object":
+      headers = [];
+      for (k in h) {
+        v = h[k];
+        headers.push("" + k + ":\t" + v);
+      }
+      return headers.join('\n');
+    case "string":
+      headers = h.split('\n');
+      for (_i = 0, _len = headers.length; _i < _len; _i++) {
+        header = headers[_i];
+        if (/([^:]+):\s*(.+)/.test(header)) {
+          if (!dest[RegExp.$1]) {
+            dest[RegExp.$1] = RegExp.$2;
+          }
+        }
+      }
+      return dest;
+  }
+};
+
+xhook.headers = convertHeaders;
+
+xhook.PROPS = PROPS;
+
+patchClass = function(name) {
+  var Class;
+  Class = window[name];
+  if (!Class) {
+    return;
+  }
+  return window[name] = function(arg) {
+    if (typeof arg === "string" && !/\.XMLHTTP/.test(arg)) {
+      return;
+    }
+    return patchXhr(new Class(arg), Class);
+  };
+};
+
+patchClass("ActiveXObject");
+
+patchClass("XMLHttpRequest");
+
+patchXhr = function(xhr, Class) {
+  var callback, cloneEvent, data, eventName, fn, hooked, requestHeaders, responseHeaders, setAllValues, setValue, user, userOnCalls, userOnChanges, userRequestHeaders, userResponseHeaders, userSets, x, xhrDup, _fn, _i, _j, _k, _len, _len1, _len2, _ref;
+  if (xhook.s.length === 0) {
+    return xhr;
+  }
+  hooked = false;
+  xhrDup = {};
+  x = {};
+  x[WITH_CREDS] = false;
+  requestHeaders = {};
+  responseHeaders = {};
+  data = {};
+  cloneEvent = function(e) {
+    var clone, key, val;
+    clone = {};
+    for (key in e) {
+      val = e[key];
+      clone[key] = val === xhr ? x : val;
+    }
+    return clone;
+  };
+  user = create(data);
+  userSets = {};
+  user.set = function(prop, val) {
+    var _results;
+    hooked = true;
+    userSets[prop] = 1;
+    if (prop === READY_STATE) {
+      _results = [];
+      while (x[READY_STATE] < val) {
+        x[READY_STATE]++;
+        if (x[READY_STATE] === xhr[READY_STATE]) {
+          continue;
+        }
+        user.trigger('readystatechange');
+        if (x[READY_STATE] === 1) {
+          user.trigger('loadstart');
+        }
+        if (x[READY_STATE] === 4) {
+          user.trigger('load');
+          _results.push(user.trigger('loadend'));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    } else {
+      return x[prop] = val;
+    }
+  };
+  userRequestHeaders = create(requestHeaders);
+  user.setRequestHeader = function(key, val) {
+    hooked = true;
+    userRequestHeaders[key] = val;
+    if (!data.opened) {
+      return;
+    }
+    return xhr.setRequestHeader(key, val);
+  };
+  userResponseHeaders = create(responseHeaders);
+  user.setResponseHeader = function(key, val) {
+    hooked = true;
+    return userResponseHeaders[key] = val;
+  };
+  userOnChanges = {};
+  userOnCalls = {};
+  user.onChange = function(event, callback) {
+    hooked = true;
+    return (userOnChanges[event] = userOnChanges[event] || []).push(callback);
+  };
+  user.onCall = function(event, callback) {
+    hooked = true;
+    return (userOnCalls[event] = userOnCalls[event] || []).push(callback);
+  };
+  user.trigger = function(event, obj) {
+    var _ref;
+    if (obj == null) {
+      obj = {};
+    }
+    event = event.replace(/^on/, '');
+    obj.type = event;
+    return (_ref = x['on' + event]) != null ? _ref.call(x, obj) : void 0;
+  };
+  user.serialize = function() {
+    var k, p, props, req, res, v, _i, _len;
+    props = {};
+    for (_i = 0, _len = PROPS.length; _i < _len; _i++) {
+      p = PROPS[_i];
+      props[p] = x[p];
+    }
+    res = {};
+    for (k in userResponseHeaders) {
+      v = userResponseHeaders[k];
+      res[k] = v;
+    }
+    req = {};
+    for (k in userRequestHeaders) {
+      v = userRequestHeaders[k];
+      req[k] = v;
+    }
+    return {
+      method: data.method,
+      url: data.url,
+      async: data.async,
+      body: data.body,
+      responseHeaders: res,
+      requestHeaders: req,
+      props: props
+    };
+  };
+  user.deserialize = function(obj) {
+    var h, k, p, v, _i, _len, _ref, _ref1, _ref2, _ref3;
+    _ref = ['method', 'url', 'async', 'body'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      k = _ref[_i];
+      if (obj[k]) {
+        user[k] = obj[k];
+      }
+    }
+    _ref1 = obj.responseHeaders || {};
+    for (h in _ref1) {
+      v = _ref1[h];
+      user.setResponseHeader(h, v);
+    }
+    _ref2 = obj.requestHeaders || {};
+    for (h in _ref2) {
+      v = _ref2[h];
+      user.setRequestHeader(h, v);
+    }
+    _ref3 = obj.props || {};
+    for (p in _ref3) {
+      v = _ref3[p];
+      user.set(p, v);
+    }
+  };
+  for (_i = 0, _len = FNS.length; _i < _len; _i++) {
+    fn = FNS[_i];
+    if (xhr[fn]) {
+      (function(key) {
+        return x[key] = function() {
+          var args, callback, callbacks, newargs, result, _j, _len1;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          data.opened = !data.opened && key === 'open';
+          data.sent = !data.sent && key === 'send';
+          switch (key) {
+            case "getAllResponseHeaders":
+              return convertHeaders(userResponseHeaders);
+            case "send":
+              data.body = args[0];
+              break;
+            case "open":
+              data.method = args[0];
+              data.url = args[1];
+              data.async = args[2];
+          }
+          newargs = args;
+          callbacks = userOnCalls[key] || [];
+          for (_j = 0, _len1 = callbacks.length; _j < _len1; _j++) {
+            callback = callbacks[_j];
+            result = callback(args);
+            if (result === false) {
+              return;
+            }
+            if (result) {
+              newargs = result;
+            }
+          }
+          if (key === "setRequestHeader") {
+            requestHeaders[newargs[0]] = newargs[1];
+            if (userRequestHeaders[args[0]] !== undefined) {
+              return;
+            }
+          }
+          if (xhr[key]) {
+            return xhr[key].apply(xhr, newargs);
+          }
+        };
+      })(fn);
+    }
+  }
+  setAllValues = function() {
+    var err, prop, _j, _len1, _results;
+    try {
+      _results = [];
+      for (_j = 0, _len1 = PROPS.length; _j < _len1; _j++) {
+        prop = PROPS[_j];
+        _results.push(setValue(prop, xhr[prop]));
+      }
+      return _results;
+    } catch (_error) {
+      err = _error;
+      if (err.constructor.name === 'TypeError') {
+        throw err;
+      }
+    }
+  };
+  setValue = function(prop, curr) {
+    var callback, callbacks, key, override, prev, result, val, _j, _len1;
+    prev = xhrDup[prop];
+    if (curr === prev) {
+      return;
+    }
+    xhrDup[prop] = curr;
+    if (prop === READY_STATE) {
+      if (curr === 1) {
+        for (key in userRequestHeaders) {
+          val = userRequestHeaders[key];
+          xhr.setRequestHeader(key, val);
+        }
+      }
+      if (curr === 2) {
+        data.statusCode = xhr.status;
+        convertHeaders(xhr.getAllResponseHeaders(), responseHeaders);
+      }
+    }
+    callbacks = userOnChanges[prop] || [];
+    for (_j = 0, _len1 = callbacks.length; _j < _len1; _j++) {
+      callback = callbacks[_j];
+      result = callback(curr, prev);
+      if (result !== undefined) {
+        override = result;
+      }
+    }
+    if (userSets[prop]) {
+      return;
+    }
+    return x[prop] = override === undefined ? curr : override;
+  };
+  _fn = function(eventName) {
+    return xhr[eventName] = function(event) {
+      var copy;
+      setAllValues();
+      if (event) {
+        copy = cloneEvent(event);
+      }
+      (window.E = window.E || []).push(copy);
+      if (x[eventName]) {
+        return x[eventName].call(x, copy);
+      }
+    };
+  };
+  for (_j = 0, _len1 = EVENTS.length; _j < _len1; _j++) {
+    eventName = EVENTS[_j];
+    _fn(eventName);
+  }
+  setAllValues();
+  _ref = xhook.s;
+  for (_k = 0, _len2 = _ref.length; _k < _len2; _k++) {
+    callback = _ref[_k];
+    callback.call(null, user);
+  }
+  if (hooked) {
+    return x;
+  } else {
+    return xhr;
+  }
+};
+
+window.xhook = xhook;
+}(window,document));
 'use strict';
-var Frame, PING, currentOrigin, feature, getMessage, guid, log, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, _i, _j, _len, _len1, _ref, _ref1;
+var Frame, PING, currentOrigin, feature, getMessage, guid, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, warn, _i, _j, _len, _len1, _ref, _ref1;
 
 currentOrigin = location.protocol + '//' + location.host;
 
-log = function(str) {
-  if (window.console === undefined) {
-    return;
+warn = function(str) {
+  str = "xdomain (" + currentOrigin + "): " + str;
+  if (console['warn']) {
+    return console.warn(str);
+  } else {
+    return alert(str);
   }
-  return console.log("xdomain (" + currentOrigin + "): " + str);
 };
 
 _ref = ['postMessage', 'JSON'];
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
   feature = _ref[_i];
   if (!window[feature]) {
-    log("requires '" + feature + "' and this browser does not support it");
+    warn("requires '" + feature + "' and this browser does not support it");
     return;
   }
 }
@@ -58,11 +399,11 @@ getMessage = function(str) {
 
 setupSlave = function(masters) {
   onMessage(function(event) {
-    var frame, message, origin, p, proxyXhr, regex, req;
+    var frame, k, message, origin, p, proxyXhr, regex, req, v, _ref1;
     origin = event.origin;
     regex = masters[origin] || masters['*'];
     if (!regex) {
-      log("blocked request from: '" + origin + "'");
+      warn("blocked request from: '" + origin + "'");
       return;
     }
     frame = event.source;
@@ -71,26 +412,37 @@ setupSlave = function(masters) {
     if (regex && regex.test && req) {
       p = parseUrl(req.url);
       if (!regex.test(p.path)) {
-        log("blocked request to path: '" + p.path + "' by regex: " + regex);
+        warn("blocked request to path: '" + p.path + "' by regex: " + regex);
         return;
       }
     }
     proxyXhr = new XMLHttpRequest();
     proxyXhr.open(req.method, req.url);
     proxyXhr.onreadystatechange = function() {
-      var m;
+      var m, res, _j, _ref1;
       if (proxyXhr.readyState !== 4) {
         return;
       }
+      res = {
+        props: {}
+      };
+      _ref1 = xhook.PROPS;
+      for (_j = _ref1.length - 1; _j >= 0; _j += -1) {
+        p = _ref1[_j];
+        res.props[p] = proxyXhr[p];
+      }
+      res.responseHeaders = xhook.headers(proxyXhr.getAllResponseHeaders());
       m = setMessage({
         id: message.id,
-        res: {
-          props: proxyXhr,
-          responseHeaders: window.xhook.headers(proxyXhr.getAllResponseHeaders())
-        }
+        res: res
       });
       return frame.postMessage(m, origin);
     };
+    _ref1 = req.requestHeaders;
+    for (k in _ref1) {
+      v = _ref1[k];
+      proxyXhr.setRequestHeader(k, v);
+    }
     return proxyXhr.send();
   });
   return window.parent.postMessage(PING, '*');
@@ -101,7 +453,21 @@ setupMaster = function(slaves) {
     var _ref1;
     return (_ref1 = Frame.prototype.frames[event.origin]) != null ? _ref1.recieve(e) : void 0;
   });
-  return window.xhook(function(xhr) {
+  return xhook(function(xhr) {
+    xhr.onCall('open', function(args) {
+      var p;
+      p = parseUrl(args[1]);
+      if (!(p && slaves[p.origin])) {
+        return;
+      }
+      if (args[2] === false) {
+        warn("sync not supported");
+      }
+      setTimeout(function() {
+        return xhr.set('readyState', 1);
+      });
+      return false;
+    });
     return xhr.onCall('send', function() {
       var frame, p;
       p = parseUrl(xhr.url);
@@ -110,8 +476,7 @@ setupMaster = function(slaves) {
       }
       frame = new Frame(p.origin, slaves[p.origin]);
       frame.send(xhr.serialize(), function(res) {
-        xhr.deserialize(res);
-        return xhr.triggerComplete();
+        return xhr.deserialize(res);
       });
       return false;
     });
@@ -162,7 +527,7 @@ Frame = (function() {
     message = getMessage(event.data);
     cb = this.listeners[message.id];
     if (!cb) {
-      console.warn("missing id", message.id);
+      warn("unkown message (" + message.id + ")");
       return;
     }
     this.unlisten(message.id);
@@ -205,7 +570,6 @@ window.xdomain = function(o) {
   if (!o) {
     return;
   }
-  log("init");
   if (o.masters) {
     setupSlave(o.masters);
   }

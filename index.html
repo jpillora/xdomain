@@ -8,21 +8,17 @@
   <h4>GET </h4>
   <pre id='output'></pre>
 
-  <script src="http://localhost:4000/xhook/dist/xhook.js"></script>
-
-  <script src="dist/xdomain.js" slave="http://xyz.example.com:3000/proxy.html"></script>
+  <script src="/xdomain/dist/xdomain.js" slave="http://xyz.example.com:3000/xdomain/proxy.html"></script>
   
   <script type="text/javascript">
     //show current origin
     document.getElementById('host').innerHTML = xdomain.origin;
     //vanilla call
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'http://xyz.example.com:3000/example1.txt');
-    xhr.onload = function(e) {
-      document.getElementById('output').innerHTML = xhr.responseText;
-    }
+    xhr.open('GET', 'http://xyz.example.com:3000/xdomain/Gruntsource.json');
     xhr.onreadystatechange = function(e) {
-      console.log(xhr)
+      if(xhr.readyState === 4)
+        document.getElementById('output').innerHTML = xhr.responseText;
     }
     xhr.send();
   </script>
