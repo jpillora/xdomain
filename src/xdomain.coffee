@@ -59,8 +59,6 @@ setupSlave = (masters) ->
       warn "blocked request from: '#{origin}'"
       return
 
-    console.log pathRegex
-
     frame = event.source
 
     #extract data

@@ -1,4 +1,4 @@
-// XDomain - v0.3.0 - https://github.com/jpillora/xdomain
+// XDomain - v0.4.0 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 // XHook - v0.1.0 - https://github.com/jpillora/xhook
@@ -427,7 +427,6 @@ setupSlave = function(masters) {
       warn("blocked request from: '" + origin + "'");
       return;
     }
-    console.log(pathRegex);
     frame = event.source;
     message = getMessage(event.data);
     req = message.req;
