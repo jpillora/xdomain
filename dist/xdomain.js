@@ -342,7 +342,7 @@ patchXhr = function(xhr, Class) {
 window.xhook = xhook;
 }(window,document));
 'use strict';
-var Frame, PING, currentOrigin, feature, getMessage, guid, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, warn, _i, _j, _len, _len1, _ref, _ref1;
+var Frame, PING, currentOrigin, feature, getMessage, guid, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, toRegExp, warn, _i, _j, _len, _len1, _ref, _ref1;
 
 currentOrigin = location.protocol + '//' + location.host;
 
@@ -381,6 +381,17 @@ parseUrl = function(url) {
   }
 };
 
+toRegExp = function(obj) {
+  var str;
+  if (obj instanceof RegExp) {
+    return obj;
+  }
+  str = obj.toString().replace(/\W/g, function(str) {
+    return "\\" + str;
+  }).replace(/\\\*/g, ".+");
+  return new RegExp("^" + str + "$");
+};
+
 onMessage = function(fn) {
   if (document.addEventListener) {
     return window.addEventListener("message", fn);
@@ -399,22 +410,31 @@ getMessage = function(str) {
 
 setupSlave = function(masters) {
   onMessage(function(event) {
-    var frame, k, message, origin, p, proxyXhr, regex, req, v, _ref1;
+    var frame, k, master, masterRegex, message, origin, p, pathRegex, proxyXhr, regex, req, v, _ref1;
     origin = event.origin;
-    regex = masters[origin] || masters['*'];
-    if (!regex) {
+    pathRegex = null;
+    for (master in masters) {
+      regex = masters[master];
+      try {
+        masterRegex = toRegExp(master);
+        if (masterRegex.test(origin)) {
+          pathRegex = toRegExp(regex);
+          break;
+        }
+      } catch (_error) {}
+    }
+    if (!pathRegex) {
       warn("blocked request from: '" + origin + "'");
       return;
     }
+    console.log(pathRegex);
     frame = event.source;
     message = getMessage(event.data);
     req = message.req;
-    if (regex && regex.test && req) {
-      p = parseUrl(req.url);
-      if (!regex.test(p.path)) {
-        warn("blocked request to path: '" + p.path + "' by regex: " + regex);
-        return;
-      }
+    p = parseUrl(req.url);
+    if (!(p && pathRegex.test(p.path))) {
+      warn("blocked request to path: '" + p.path + "' by regex: " + regex);
+      return;
     }
     proxyXhr = new XMLHttpRequest();
     proxyXhr.open(req.method, req.url);
@@ -602,12 +622,8 @@ for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       });
     }
     if (script.hasAttribute('master')) {
-      p = parseUrl(script.getAttribute('master'));
-      if (!p) {
-        return;
-      }
       masters = {};
-      masters[p.origin] = /./;
+      masters[script.getAttribute('master')] = /./;
       xdomain({
         masters: masters
       });

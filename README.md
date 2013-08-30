@@ -29,8 +29,8 @@ conjunction with any library.
 
 ## Download
 
-* Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 15.4KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain..minjs) 7.2KB (1.7KB Gzip)
+* Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 16KB
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain..minjs) 7.5KB (1.8KB Gzip)
 
   *Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it*
@@ -104,19 +104,51 @@ in the `object`, see API below.
 
 If object contains:
 
-### `slaves`
+* ### `slaves`
 
-Then `xdomain` will load as a master
+  Then `xdomain` will load as a master
+  
+  Each slave must be defined as: `origin` -> `proxy file`
+  
+  An object is used to *list* slaves to reinforce the idea
+  that there is 1 proxy file per origin.
 
-Each slave must be defined as: `slave domain` -> `path to proxy file` 
+* ### `masters`
 
-### `masters`
+  Then `xdomain` will load as a slave
+  
+  Each master must be defined as: `origin` -> `allowed path` (RegExp) 
+  
+  `origin` will also be converted to a regular expression by escaping all
+  non alphanumeric chars and converting '*' into `.+`.
+  
+  Requests that do not match **both** the `origin` and the `path` regular
+  expressions will be blocked.
 
-Then `xdomain` will load as a slave
-
-Each master must be defined as: `master domain` -> `regex matching allowed paths` 
-
-You can allow all with: `'*': /.*/` though this is not recommended.
+  So you could use the following `proxy.html` to allow all subdomains of `example.com`:
+  
+  ```html
+  <script src="/dist/xdomain.js" master="http://*.example.com"></script>
+  ```
+  
+  Which is equivalent to:
+  ```html
+  <script src="/dist/xdomain.js"></script>
+  <script>
+    xdomain({
+      masters: {
+        "http://*.example.com": /.*/
+      }
+    });
+  </script>
+  ```
+  
+  Therefore, you could allow domains with the following `proxy.html`:
+  ```html
+  <script src="/dist/xdomain.js" master="*"></script>
+  ```
+  
+  Though this is NOT recommended.
 
 ## Conceptual Overview
 
@@ -126,8 +158,8 @@ You can allow all with: `'*': /.*/` though this is not recommended.
 
 ## Internet Explorer
 
-If you've set your page to use quirks mode for some reason. You won't
-have `JSON` on the page, and XDomain will warn you. Easiest solution is
+If you've set your page to use quirks mode for some reason. The
+`JSON` global object won't exist and XDomain will warn you and exit. Easiest solution is
 just to use the HTML5 DOCTYPE `<!DOCTYPE HTML>`
 
 ## Contributing

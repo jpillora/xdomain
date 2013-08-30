@@ -25,6 +25,11 @@ guid = ->
 parseUrl = (url) ->
   if /(https?:\/\/[^\/]+)(\/.*)?/.test(url) then {origin: RegExp.$1, path: RegExp.$2} else null
 
+toRegExp = (obj) ->
+  return obj if obj instanceof RegExp
+  str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
+  return new RegExp "^#{str}$"
+
 #message helpers
 onMessage = (fn) ->
   if document.addEventListener
@@ -41,12 +46,20 @@ getMessage = (str) ->
 setupSlave = (masters) ->
   onMessage (event) ->
     origin = event.origin
+    pathRegex = null
 
-    regex = masters[origin] or masters['*']
-    #ignore non-whitelisted domains
-    unless regex
+    for master, regex of masters
+      try
+        masterRegex = toRegExp master
+        if masterRegex.test origin
+          pathRegex = toRegExp regex
+          break
+
+    unless pathRegex
       warn "blocked request from: '#{origin}'"
       return
+
+    console.log pathRegex
 
     frame = event.source
 
@@ -54,11 +67,10 @@ setupSlave = (masters) ->
     message = getMessage event.data
     req = message.req
 
-    if regex and regex.test and req
-      p = parseUrl req.url
-      if not regex.test p.path
-        warn "blocked request to path: '#{p.path}' by regex: #{regex}"
-        return
+    p = parseUrl req.url
+    unless p and pathRegex.test p.path
+      warn "blocked request to path: '#{p.path}' by regex: #{regex}"
+      return
 
     # warn("request: #{JSON.stringify(req,null,2)}")
 
@@ -212,8 +224,6 @@ for script in document.getElementsByTagName("script")
       slaves[p.origin] = p.path
       xdomain { slaves }
     if script.hasAttribute 'master'
-      p = parseUrl script.getAttribute 'master'
-      return unless p
       masters = {}
-      masters[p.origin] = /./
+      masters[script.getAttribute 'master'] = /./
       xdomain { masters }

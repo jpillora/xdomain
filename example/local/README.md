@@ -1,9 +1,9 @@
-# This will not work
-
-* Get Node
+* http://nodejs.org
 
 * `npm install -g serve`
 
-* `serve`
+* `cd xdomain`
 
-* `open http://localhost:3000`
+* `serve -p 4000`
+
+* `open http://localhost:4000/example/local`
