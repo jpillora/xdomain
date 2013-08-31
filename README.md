@@ -32,8 +32,8 @@ conjunction with any library.
 * Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 16KB
 * Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain..minjs) 7.5KB (1.8KB Gzip)
 
-  *Note: It's **important** to include XDomain first as other libraries may
-    store a reference to `XMLHttpRequest` before XHook can patch it*
+    Note: It's **important** to include XDomain first as other libraries may
+    store a reference to `XMLHttpRequest` before XHook can patch it
 
 ## Live Demo
 
@@ -51,13 +51,13 @@ All except IE6/7 as they don't have `postMessage`
     <script src="http://jpillora.com/xdomain/dist/xdomain.js" master="http://abc.example.com"></script>
     ```
 
-2. Then on your master domain (`http://abc.example.com`), pointing to a `proxy.html`:
+2. Then on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
     <script src="http://jpillora.com/xdomain/dist/xdomain.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
-3. Now any XHR to `http://xyz.example.com` will automagically work: 
+3. Done! Now, any XHR to `http://xyz.example.com` will automagically work: 
 
     ``` js
     //do some vanilla XHR
@@ -161,6 +161,23 @@ If object contains:
 If you've set your page to use quirks mode for some reason. The
 `JSON` global object won't exist and XDomain will warn you and exit. Easiest solution is
 just to use the HTML5 DOCTYPE `<!DOCTYPE HTML>`
+
+## FAQ
+
+Q: But I love CORS
+
+A: You shouldn't:
+
+* IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
+* On RESTful JSON API server, CORS will send a preflight OPTIONS request on every request except GET,
+  generating supurfluous traffic.
+* Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file
+* Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
+
+  ```html
+  <iframe name="oauth2relay564752183" id="oauth2relay564752183"
+  src="https://accounts.google.com/o/oauth2/postmessageRelay?..."> </iframe>
+  ```
 
 ## Contributing
 
