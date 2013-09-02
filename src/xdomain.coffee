@@ -72,8 +72,8 @@ setupSlave = (masters) ->
 
     # warn("request: #{JSON.stringify(req,null,2)}")
 
-    proxyXhr = new XMLHttpRequest();
-    proxyXhr.open(req.method, req.url);
+    proxyXhr = new XMLHttpRequest()
+    proxyXhr.open req.method, req.url
     proxyXhr.onreadystatechange = ->
       return unless proxyXhr.readyState is 4
       #extract properties
@@ -87,7 +87,7 @@ setupSlave = (masters) ->
       frame.postMessage m, origin
     for k,v of req.requestHeaders
       proxyXhr.setRequestHeader k, v
-    proxyXhr.send();
+    proxyXhr.send req.body or null
 
   #ping master
   if window is window.parent

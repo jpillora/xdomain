@@ -1,10 +1,10 @@
-// XDomain - v0.4.0 - https://github.com/jpillora/xdomain
+// XDomain - v0.4.1 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-// XHook - v0.1.0 - https://github.com/jpillora/xhook
-// © Jaime Pillora <dev@jpillora.com> 2013
+// XHook - v0.1.1 - https://github.com/jpillora/xhook
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, create, patchClass, patchXhr, xhook,
+var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, create, patchClass, patchXhr, xhook, xhooks,
   __slice = [].slice;
 
 FNS = ["open", "setRequestHeader", "send", "abort", "getAllResponseHeaders", "getResponseHeader", "overrideMimeType"];
@@ -26,11 +26,14 @@ create = function(parent) {
   return new F;
 };
 
-xhook = function(callback) {
-  return xhook.s.push(callback);
-};
+xhooks = [];
 
-xhook.s = [];
+xhook = function(callback, i) {
+  if (i == null) {
+    i = xhooks.length;
+  }
+  return xhooks.splice(i, 0, callback);
+};
 
 convertHeaders = function(h, dest) {
   var header, headers, k, v, _i, _len;
@@ -82,8 +85,8 @@ patchClass("ActiveXObject");
 patchClass("XMLHttpRequest");
 
 patchXhr = function(xhr, Class) {
-  var callback, cloneEvent, data, eventName, fn, hooked, requestHeaders, responseHeaders, setAllValues, setValue, user, userOnCalls, userOnChanges, userRequestHeaders, userResponseHeaders, userSets, x, xhrDup, _fn, _i, _j, _k, _len, _len1, _len2, _ref;
-  if (xhook.s.length === 0) {
+  var callback, cloneEvent, data, eventName, fn, hooked, requestHeaders, responseHeaders, setAllValues, setValue, user, userOnCalls, userOnChanges, userRequestHeaders, userResponseHeaders, userSets, x, xhrDup, _fn, _i, _j, _k, _len, _len1, _len2;
+  if (xhooks.length === 0) {
     return xhr;
   }
   hooked = false;
@@ -327,9 +330,8 @@ patchXhr = function(xhr, Class) {
     _fn(eventName);
   }
   setAllValues();
-  _ref = xhook.s;
-  for (_k = 0, _len2 = _ref.length; _k < _len2; _k++) {
-    callback = _ref[_k];
+  for (_k = 0, _len2 = xhooks.length; _k < _len2; _k++) {
+    callback = xhooks[_k];
     callback.call(null, user);
   }
   if (hooked) {
@@ -464,7 +466,7 @@ setupSlave = function(masters) {
       v = _ref1[k];
       proxyXhr.setRequestHeader(k, v);
     }
-    return proxyXhr.send();
+    return proxyXhr.send(req.body || null);
   });
   if (window === window.parent) {
     return warn("slaves must be in an iframe");
