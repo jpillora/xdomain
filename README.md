@@ -30,7 +30,7 @@ conjunction with any library.
 ## Download
 
 * Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 16KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain..minjs) 7.5KB (1.8KB Gzip)
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain.min.js) 7.5KB (1.8KB Gzip)
 
     Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it
@@ -48,16 +48,16 @@ All except IE6/7 as they don't have `postMessage`
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/xdomain.js" master="http://abc.example.com"></script>
+    <script src="http://jpillora.com/xdomain/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
-2. Then on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
+2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/xdomain.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="http://jpillora.com/xdomain/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
-3. Done! Now, any XHR to `http://xyz.example.com` will automagically work: 
+3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
 
     ``` js
     //do some vanilla XHR
@@ -82,20 +82,20 @@ All except IE6/7 as they don't have `postMessage`
 The following two snippets are equivalent:
 
 ``` html
-<script src="http://jpillora.com/xdomain/dist/xdomain.js" master="http://abc.example.com"></script>
+<script src="http://jpillora.com/xdomain/dist/xdomain.min.js" master="http://abc.example.com"></script>
 ```
 ``` html
-<script src="http://jpillora.com/xdomain/dist/xdomain.js"></script>
+<script src="http://jpillora.com/xdomain/dist/xdomain.min.js"></script>
 <script>
 xdomain({
   masters: {
-  	'http://abc.example.com': /.*/
+    'http://abc.example.com': /.*/
   }
 });
 </script>
 ```
 
-With this in mind, we can then add more `masters` or (`slaves`) by simply including them
+So, we can then add more `masters` or (`slaves`) by simply including them
 in the `object`, see API below.
 
 ## API
@@ -128,12 +128,12 @@ If object contains:
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/xdomain.js" master="http://*.example.com"></script>
+  <script src="/dist/xdomain.min.js" master="http://*.example.com"></script>
   ```
   
   Which is equivalent to:
   ```html
-  <script src="/dist/xdomain.js"></script>
+  <script src="/dist/xdomain.min.js"></script>
   <script>
     xdomain({
       masters: {
@@ -143,9 +143,9 @@ If object contains:
   </script>
   ```
   
-  Therefore, you could allow domains with the following `proxy.html`:
+  Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
-  <script src="/dist/xdomain.js" master="*"></script>
+  <script src="/dist/xdomain.min.js" master="*"></script>
   ```
   
   Though this is NOT recommended.
@@ -170,8 +170,8 @@ A: You shouldn't:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
 * On RESTful JSON API server, CORS will send a preflight OPTIONS request on every request except GET,
-  generating supurfluous traffic.
-* Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file
+  generating superfluous traffic.
+* Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
 
   ```html
@@ -184,6 +184,8 @@ A: You shouldn't:
 Issues and Pull-requests welcome.
 
 ## Change Log
+
+v0.4.0 - Now setting request body, duh.
 
 v0.3.0 - Moved to vanilla, using XHook to hook XHR instead of `$.ajax`
 
