@@ -1,7 +1,7 @@
-// XDomain - v0.4.1 - https://github.com/jpillora/xdomain
+// XDomain - v0.4.2 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-// XHook - v0.1.1 - https://github.com/jpillora/xhook
+// XHook - v0.1.2 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, create, patchClass, patchXhr, xhook, xhooks,
@@ -9,7 +9,7 @@ var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, 
 
 FNS = ["open", "setRequestHeader", "send", "abort", "getAllResponseHeaders", "getResponseHeader", "overrideMimeType"];
 
-EVENTS = ["onreadystatechange", "onprogress", "onloadstart", "onloadend", "onload", "onerror", "onabort"];
+EVENTS = ["readystatechange", "progress", "loadstart", "loadend", "load", "error", "abort"];
 
 PROPS = ["readyState", "responseText", "withCredentials", "statusText", "status", "response", "responseType", "responseXML", "upload"];
 
@@ -85,31 +85,52 @@ patchClass("ActiveXObject");
 patchClass("XMLHttpRequest");
 
 patchXhr = function(xhr, Class) {
-  var callback, cloneEvent, data, eventName, fn, hooked, requestHeaders, responseHeaders, setAllValues, setValue, user, userOnCalls, userOnChanges, userRequestHeaders, userResponseHeaders, userSets, x, xhrDup, _fn, _i, _j, _k, _len, _len1, _len2;
+  var callback, cloneEvent, data, eventListeners, eventName, fn, requestHeaders, responseHeaders, setAllValues, setValue, user, userOnCalls, userOnChanges, userRequestHeaders, userResponseHeaders, userSets, x, xhrDup, _fn, _i, _j, _k, _len, _len1, _len2;
   if (xhooks.length === 0) {
     return xhr;
   }
-  hooked = false;
   xhrDup = {};
   x = {};
   x[WITH_CREDS] = false;
   requestHeaders = {};
   responseHeaders = {};
   data = {};
+  eventListeners = {};
   cloneEvent = function(e) {
-    var clone, key, val;
+    var clone, key, val, _ref;
     clone = {};
-    for (key in e) {
-      val = e[key];
+    _ref = e || {};
+    for (key in _ref) {
+      val = _ref[key];
       clone[key] = val === xhr ? x : val;
     }
     return clone;
+  };
+  x.addEventListener = function(event, fn) {
+    return (eventListeners[event] = eventListeners[event] || []).push(fn);
+  };
+  x.removeEventListener = function(event, fn) {
+    var f, fi, i, _i, _len, _ref;
+    fi = -1;
+    _ref = eventListeners[event] || [];
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      f = _ref[i];
+      if (f === fn) {
+        fi = i;
+      }
+    }
+    if (fi === -1) {
+      return;
+    }
+    return eventListeners[event].splice(fi, 1);
+  };
+  x.dispatchEvent = function(event) {
+    return user.trigger(event);
   };
   user = create(data);
   userSets = {};
   user.set = function(prop, val) {
     var _results;
-    hooked = true;
     userSets[prop] = 1;
     if (prop === READY_STATE) {
       _results = [];
@@ -136,7 +157,6 @@ patchXhr = function(xhr, Class) {
   };
   userRequestHeaders = create(requestHeaders);
   user.setRequestHeader = function(key, val) {
-    hooked = true;
     userRequestHeaders[key] = val;
     if (!data.opened) {
       return;
@@ -145,27 +165,31 @@ patchXhr = function(xhr, Class) {
   };
   userResponseHeaders = create(responseHeaders);
   user.setResponseHeader = function(key, val) {
-    hooked = true;
     return userResponseHeaders[key] = val;
   };
   userOnChanges = {};
   userOnCalls = {};
   user.onChange = function(event, callback) {
-    hooked = true;
     return (userOnChanges[event] = userOnChanges[event] || []).push(callback);
   };
   user.onCall = function(event, callback) {
-    hooked = true;
     return (userOnCalls[event] = userOnCalls[event] || []).push(callback);
   };
   user.trigger = function(event, obj) {
-    var _ref;
+    var fn, _i, _len, _ref, _ref1;
     if (obj == null) {
       obj = {};
     }
     event = event.replace(/^on/, '');
     obj.type = event;
-    return (_ref = x['on' + event]) != null ? _ref.call(x, obj) : void 0;
+    if ((_ref = x['on' + event]) != null) {
+      _ref.call(x, obj);
+    }
+    _ref1 = eventListeners[event] || [];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      fn = _ref1[_i];
+      fn.call(x, obj);
+    }
   };
   user.serialize = function() {
     var k, p, props, req, res, v, _i, _len;
@@ -314,31 +338,20 @@ patchXhr = function(xhr, Class) {
   };
   _fn = function(eventName) {
     return xhr[eventName] = function(event) {
-      var copy;
       setAllValues();
-      if (event) {
-        copy = cloneEvent(event);
-      }
-      (window.E = window.E || []).push(copy);
-      if (x[eventName]) {
-        return x[eventName].call(x, copy);
-      }
+      return user.trigger(eventName, cloneEvent(event));
     };
   };
   for (_j = 0, _len1 = EVENTS.length; _j < _len1; _j++) {
     eventName = EVENTS[_j];
-    _fn(eventName);
+    _fn("on" + eventName);
   }
   setAllValues();
   for (_k = 0, _len2 = xhooks.length; _k < _len2; _k++) {
     callback = xhooks[_k];
     callback.call(null, user);
   }
-  if (hooked) {
-    return x;
-  } else {
-    return xhr;
-  }
+  return x;
 };
 
 window.xhook = xhook;
@@ -601,7 +614,7 @@ window.xdomain = function(o) {
     setupSlave(o.masters);
   }
   if (o.slaves) {
-    return setupMaster(o.slaves);
+    setupMaster(o.slaves);
   }
 };
 

@@ -209,6 +209,7 @@ window.xdomain = (o) ->
     setupSlave o.masters
   if o.slaves
     setupMaster o.slaves
+  return
 
 xdomain.origin = currentOrigin
 
