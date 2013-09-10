@@ -6,7 +6,7 @@
   <h5>From '<span id="host"></span>'</h5>
   <h5>To 'http://xyz.example.com:4000/Gruntsource.json'</h5>
 
-  <script src="/dist/xdomain.js" slave="http://xyz.example.com:4000/example/local/proxy2.html"></script>
+  <script src="/dist/xdomain.js" slave="http://127.0.0.1:3000/example/local/proxy2.html"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
   <pre id='output'></pre>
@@ -15,7 +15,7 @@
     //show current origin
     $("#host").html(xdomain.origin);
     //jquery ajax call
-    $("#output").load('http://xyz.example.com:4000/Gruntsource.json');
+    $("#output").load('http://127.0.0.1:3000/Gruntsource.json');
   </script>
 
 </body>

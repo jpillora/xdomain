@@ -1,4 +1,4 @@
-// XHook - v0.1.2 - https://github.com/jpillora/xhook
+// XHook - v0.1.2b - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 var EVENTS, FNS, PROPS, READY_STATE, RESPONSE_TEXT, WITH_CREDS, convertHeaders, create, patchClass, patchXhr, xhook, xhooks,
@@ -277,6 +277,8 @@ patchXhr = function(xhr, Class) {
             if (userRequestHeaders[args[0]] !== undefined) {
               return;
             }
+          } else if (key === "getRequestHeader") {
+            return userResponseHeaders[newargs[0]];
           }
           if (xhr[key]) {
             return xhr[key].apply(xhr, newargs);

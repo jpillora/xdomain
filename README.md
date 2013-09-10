@@ -169,8 +169,8 @@ Q: But I love CORS
 A: You shouldn't:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
-* On RESTful JSON API server, CORS will send a preflight OPTIONS request on every request except GET,
-  generating superfluous traffic.
+* On RESTful JSON API server, CORS will send a preflight OPTIONS request on all requests
+  except for GET and HEAD, generating superfluous traffic.
 * Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
 
@@ -180,6 +180,19 @@ A: You shouldn't:
   ```
 
 ## Contributing
+
+```
+npm install -g grunt-source serve
+git clone https://github.com/jpillora/xdomain
+cd xdomain
+grunt-source
+```
+Will start watching `src` for changes and will then compile and minify into `dist`
+```
+cd xdomain
+serve
+```
+Visit http://localhost:3000
 
 Issues and Pull-requests welcome.
 
