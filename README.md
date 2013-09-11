@@ -37,11 +37,11 @@ conjunction with any library.
 
 ## Live Demos
 
-* ### [http://jpillora.com/xdomain](Simple GET from S3)
+* ### [Simple GET from S3](http://jpillora.com/xdomain)
 
-* ### [http://jpillora.com/s3js](Serverless S3 Client)
+* ### [Serverless S3 Client](http://jpillora.com/s3js)
 
-* ### [http://jpillora.com/example/echo](XDomain Playground)
+* ### [XDomain Playground](http://jpillora.com/example/echo)
 
 ## Browser Support
 
@@ -70,16 +70,14 @@ All except IE6/7 as they don't have `postMessage`
     xhr.onreadystatechange = function(e) {
       if(xhr.readyState === 4)
         alert(xhr.responseText);
-    }
+    };
     xhr.send();
 
     //or if we are using jQuery...
     $.get('http://xyz.example.com/secret/file.txt').done(function(data) {
-        console.log("got result: ", data);
+      console.log("got result: ", data);
     });
     ```
-
-## More Examples
 
 ### Using multiple masters and slaves
 
@@ -201,6 +199,8 @@ Visit http://localhost:3000
 Issues and Pull-requests welcome.
 
 ## Change Log
+
+v0.5.0 - Upgraded to XHook v1.
 
 v0.4.0 - Now setting request body, duh.
 
