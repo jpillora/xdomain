@@ -109,7 +109,7 @@ patchClass = function(name) {
   if (!Class) {
     return;
   }
-  return window[name] = function(arg) {
+  window[name] = function(arg) {
     if (typeof arg === "string" && !/\.XMLHTTP/.test(arg)) {
       return;
     }
@@ -122,13 +122,12 @@ patchClass("ActiveXObject");
 patchClass("XMLHttpRequest");
 
 createXHRFacade = function(xhr) {
-  var checkEvent, currentState, extractListeners, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents;
+  var checkEvent, currentState, event, extractProps, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents, _i, _len, _ref;
   if (pluginEvents.listeners(BEFORE).length === 0 && pluginEvents.listeners(AFTER).length === 0) {
     return xhr;
   }
   transiting = false;
   request = {
-    timeout: 0,
     headers: {}
   };
   response = null;
@@ -147,7 +146,7 @@ createXHRFacade = function(xhr) {
   currentState = 0;
   setReadyState = function(n) {
     var fire, hooks, process;
-    extractListeners();
+    extractProps();
     fire = function() {
       while (n > currentState && currentState < 4) {
         face[READY_STATE] = ++currentState;
@@ -193,18 +192,21 @@ createXHRFacade = function(xhr) {
     }
     return clone;
   };
-  extractListeners = function() {
-    var fn, key, _results;
-    _results = [];
+  extractProps = function() {
+    var fn, key, _i, _len, _ref;
+    _ref = ['timeout'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      if (xhr[key] && request[key] === undefined) {
+        request[key] = xhr[key];
+      }
+    }
     for (key in face) {
       fn = face[key];
       if (typeof fn === 'function' && /^on(\w+)/.test(key)) {
-        _results.push(xhrEvents.on(RegExp.$1, fn));
-      } else {
-        _results.push(void 0);
+        xhrEvents.on(RegExp.$1, fn);
       }
     }
-    return _results;
   };
   xhr.onreadystatechange = function(event) {
     var key, val, _ref;
@@ -228,12 +230,21 @@ createXHRFacade = function(xhr) {
       setReadyState(xhr[READY_STATE]);
     }
   };
+  _ref = ['abort', 'progress'];
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    event = _ref[_i];
+    xhr["on" + event] = function(obj) {
+      return xhrEvents.fire(event, checkEvent(obj));
+    };
+  }
   face = {
     withCredentials: false,
     response: null,
     status: 0
   };
-  face.addEventListener = xhrEvents.on;
+  face.addEventListener = function(event, fn) {
+    return xhrEvents.on(e, fn);
+  };
   face.removeEventListener = xhrEvents.off;
   face.dispatchEvent = function() {};
   face.open = function(method, url, async) {
@@ -246,15 +257,16 @@ createXHRFacade = function(xhr) {
     var hooks, process, send;
     request.body = body;
     send = function() {
-      var header, value, _ref;
+      var header, value, _ref1;
       response = {
         headers: {}
       };
       transiting = true;
       xhr.open(request.method, request.url, request.async);
-      _ref = request.headers;
-      for (header in _ref) {
-        value = _ref[header];
+      xhr.timeout = request.timeout;
+      _ref1 = request.headers;
+      for (header in _ref1) {
+        value = _ref1[header];
         xhr.setRequestHeader(header, value);
       }
       xhr.send(request.body);
@@ -277,6 +289,7 @@ createXHRFacade = function(xhr) {
       if (hook.length === 1) {
         return done(hook(request));
       } else if (hook.length === 2) {
+        request.async = true;
         return hook(request, done);
       } else {
         throw INVALID_PARAMS_ERROR;
@@ -286,11 +299,12 @@ createXHRFacade = function(xhr) {
   };
   face.abort = function() {
     if (transiting) {
-      return xhr.abort();
+      xhr.abort();
     }
+    xhrEvents.fire('abort', arguments);
   };
   face.setRequestHeader = function(header, value) {
-    return request.headers[header] = value;
+    request.headers[header] = value;
   };
   face.getResponseHeader = function(header) {
     return response.headers[header];
@@ -298,8 +312,7 @@ createXHRFacade = function(xhr) {
   face.getAllResponseHeaders = function() {
     return convertHeaders(response.headers);
   };
-  face.overrideMimeType = function() {};
-  face.upload = {};
+  face.upload = EventEmitter();
   return face;
 };
 

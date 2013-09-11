@@ -43,7 +43,16 @@ setMessage = (obj) ->
 getMessage = (str) ->
   JSON.parse str
 
-setupSlave = (masters) ->
+masters = null
+addMasters = (m) ->
+  if masters is null
+    masters = {}
+    setupReceiver()
+  for origin, path of m
+    masters[origin] = path
+  return
+
+setupReceiver = ->
   onMessage (event) ->
     origin = event.origin
     pathRegex = null
@@ -99,7 +108,17 @@ setupSlave = (masters) ->
   else
     window.parent.postMessage "XPING_#{COMPAT_VERSION}", '*'
 
-setupMaster = (slaves) ->
+
+slaves = null
+addSlaves = (s) ->
+  if slaves is null
+    slaves = {}
+    setupSender()
+  for origin, path of s
+    slaves[origin] = path
+  return
+
+setupSender = ->
   #pass messages to the correct frame instance
   onMessage (e) ->
     Frame::frames[e.origin]?.recieve (e)
@@ -117,9 +136,7 @@ setupMaster = (slaves) ->
 
     #check frame exists
     frame = new Frame p.origin, slaves[p.origin]
-    
     frame.send request, callback
-
     return
 
 #frame
@@ -198,9 +215,9 @@ class Frame
 window.xdomain = (o) ->
   return unless o
   if o.masters
-    setupSlave o.masters
+    addMasters o.masters
   if o.slaves
-    setupMaster o.slaves
+    addSlaves o.slaves
   return
 
 xdomain.origin = currentOrigin
@@ -211,10 +228,10 @@ for script in document.getElementsByTagName("script")
     if script.hasAttribute 'slave'
       p = parseUrl script.getAttribute 'slave'
       return unless p
-      slaves = {}
-      slaves[p.origin] = p.path
-      xdomain { slaves }
+      s = {}
+      s[p.origin] = p.path
+      addSlaves s
     if script.hasAttribute 'master'
-      masters = {}
-      masters[script.getAttribute 'master'] = /./
-      xdomain { masters }
+      m = {}
+      m[script.getAttribute 'master'] = /./
+      addMasters m

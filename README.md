@@ -29,15 +29,19 @@ conjunction with any library.
 
 ## Download
 
-* Development [xdomain.js](http://jpillora.com/xdomain/dist/xdomain.js) 16KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/xdomain.min.js) 7.5KB (1.8KB Gzip)
+* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.5/xdomain.js) 15KB
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.5/xdomain.min.js) 7KB (1.8KB Gzip)
 
     Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it
 
-## Live Demo
+## Live Demos
 
-### http://jpillora.com/xdomain
+* ### [http://jpillora.com/xdomain](Simple GET from S3)
+
+* ### [http://jpillora.com/s3js](Serverless S3 Client)
+
+* ### [http://jpillora.com/example/echo](XDomain Playground)
 
 ## Browser Support
 
@@ -48,13 +52,13 @@ All except IE6/7 as they don't have `postMessage`
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -82,10 +86,10 @@ All except IE6/7 as they don't have `postMessage`
 The following two snippets are equivalent:
 
 ``` html
-<script src="http://jpillora.com/xdomain/dist/xdomain.min.js" master="http://abc.example.com"></script>
+<script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
 ```
 ``` html
-<script src="http://jpillora.com/xdomain/dist/xdomain.min.js"></script>
+<script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js"></script>
 <script>
 xdomain({
   masters: {
@@ -128,12 +132,12 @@ If object contains:
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/xdomain.min.js" master="http://*.example.com"></script>
+  <script src="/dist/0.5/xdomain.min.js" master="http://*.example.com"></script>
   ```
   
   Which is equivalent to:
   ```html
-  <script src="/dist/xdomain.min.js"></script>
+  <script src="/dist/0.5/xdomain.min.js"></script>
   <script>
     xdomain({
       masters: {
@@ -145,7 +149,7 @@ If object contains:
   
   Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
-  <script src="/dist/xdomain.min.js" master="*"></script>
+  <script src="/dist/0.5/xdomain.min.js" master="*"></script>
   ```
   
   Though this is NOT recommended.
