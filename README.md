@@ -2,7 +2,7 @@
 
 <a href="https://twitter.com/intent/tweet?hashtags=xdomain&original_referer=http%3A%2F%2Fgithub.com%2F&text=XDomain+-+A+pure+JavaScript+CORS+alternative&tw_p=tweetbutton&url=https%3A%2F%2Fgithub.com%2Fjpillora%2Fxdomain" target="_blank">
   <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
-</a> ![ga track](https://www.google-analytics.com/collect?v=1&a=257770996&t=pageview&dl=https%3A%2F%2Fgithub.com%2Fjpillora%2Fxdomain%2F&ul=en-us&de=UTF-8&cid=978224512.1377738459&tid=UA-38709761-8&z=887657232 "ga tracker")
+</a>
 
 ## Summary
 
@@ -41,7 +41,7 @@ conjunction with any library.
 
 * ### [Serverless S3 Client](http://jpillora.com/s3js)
 
-* ### [XDomain Playground](http://jpillora.com/example/echo)
+* ### [XDomain Playground](http://jpillora.com/xdomain/example/echo)
 
 ## Browser Support
 
@@ -234,3 +234,5 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/522b80b35a6636fe47e616dd63c90ca6 "githalytics.com")](http://githalytics.com/jpillora/xdomain)
