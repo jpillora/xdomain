@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  <h3>XDomain Slow Server Example</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://xyz.example.com:4000/Gruntsource.json'</h5>
+
+  <script src="/dist/0.5/xdomain.js" slave="http://127.0.0.1:4001/example/slowserver/proxy.html"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <pre id='output'></pre>
+
+  <script type="text/javascript">
+    //show current origin
+    $("#host").html(xdomain.origin);
+    //jquery ajax call
+    var requests = 8;
+    while(requests--) {
+      setTimeout(function () {
+        $("#output").load('http://127.0.0.1:4001/Gruntsource.json');
+      }, 100);
+    }
+  </script>
+
+</body>
+</html>
