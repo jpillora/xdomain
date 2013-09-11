@@ -136,8 +136,6 @@ setupSender = ->
 
     #check frame exists
     frame = new Frame p.origin, slaves[p.origin]
-    unless frame.ready
-      return callback()
     frame.send request, callback
     return
 

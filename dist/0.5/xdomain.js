@@ -491,9 +491,6 @@ setupSender = function() {
       warn("sync not supported");
     }
     frame = new Frame(p.origin, slaves[p.origin]);
-    if (!frame.ready) {
-      return callback();
-    }
     frame.send(request, callback);
   });
 };
