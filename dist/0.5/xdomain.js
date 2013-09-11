@@ -1,4 +1,4 @@
-// XDomain - v0.5.0 - https://github.com/jpillora/xdomain
+// XDomain - v0.5.1 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 // XHook - v1.0.0 - https://github.com/jpillora/xhook
@@ -439,7 +439,7 @@ setupReceiver = function() {
       resp = {
         status: proxyXhr.status,
         statusText: proxyXhr.statusText,
-        type: "text",
+        type: "",
         text: proxyXhr.responseText,
         headers: xhook.headers(proxyXhr.getAllResponseHeaders())
       };
@@ -512,6 +512,7 @@ Frame = (function() {
     this.frame.setAttribute('style', 'display:none;');
     document.body.appendChild(this.frame);
     this.waits = 0;
+    this.waiters = [];
     this.ready = false;
   }
 
@@ -566,16 +567,27 @@ Frame = (function() {
   };
 
   Frame.prototype.readyCheck = function(callback) {
-    var _this = this;
-    if (this.ready === true) {
+    var check,
+      _this = this;
+    if (this.ready) {
       return callback();
     }
-    if (this.waits++ >= 100) {
-      throw "Timeout connecting to iframe: " + this.origin;
-    } else {
-      setTimeout(function() {
-        return _this.readyCheck(callback);
-      }, 100);
+    this.waiters.push(callback);
+    check = function() {
+      if (_this.ready) {
+        while (_this.waiters.length) {
+          _this.waiters.shift()();
+        }
+        return;
+      }
+      if (_this.waits++ >= 150) {
+        throw "Timeout connecting to iframe: " + _this.origin;
+      } else {
+        return setTimeout(check, 100);
+      }
+    };
+    if (this.waiters.length === 1) {
+      check();
     }
   };
 

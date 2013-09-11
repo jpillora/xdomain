@@ -89,7 +89,7 @@ setupReceiver = ->
       resp =
         status: proxyXhr.status
         statusText: proxyXhr.statusText
-        type: "text" # proxyXhr.responseType (only support text)
+        type: "" # proxyXhr.responseType (only support text)
         # data: proxyXhr.response
         text: proxyXhr.responseText
         # xml: proxyXhr.responseXML (need a json<->xml converter...)
@@ -159,6 +159,7 @@ class Frame
     document.body.appendChild @frame
 
     @waits = 0
+    @waiters = []
     @ready = false
 
   post: (msg) ->
@@ -206,15 +207,18 @@ class Frame
 
   #confirm the connection to iframe
   readyCheck: (callback) ->
-    if @ready is true
-      return callback()
-
-    if @waits++ >= 100 # 10.0 seconds
-      throw "Timeout connecting to iframe: " + @origin
-    else
-      setTimeout =>
-        @readyCheck callback
-      , 100
+    return callback() if @ready
+    @waiters.push callback
+    check = =>
+      if @ready
+        while @waiters.length
+          @waiters.shift()()
+        return
+      if @waits++ >= 150 # 15.0 seconds
+        throw "Timeout connecting to iframe: " + @origin
+      else
+        setTimeout check, 100
+    check() if @waiters.length is 1
     return
 
 #public methods
