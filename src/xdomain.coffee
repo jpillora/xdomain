@@ -136,6 +136,8 @@ setupSender = ->
 
     #check frame exists
     frame = new Frame p.origin, slaves[p.origin]
+    unless frame.ready
+      return callback()
     frame.send request, callback
     return
 
@@ -163,15 +165,18 @@ class Frame
 
   post: (msg) ->
     @frame.contentWindow.postMessage msg, @origin
+    return
 
   #sub-events with id's
   listen: (id, callback) ->
     if @listeners[id]
       throw "already listening for: " + id
     @listeners[id] = callback
+    return
 
   unlisten: (id) ->
     delete @listeners[id]
+    return
 
   recieve: (event) ->
     #pong only
@@ -191,6 +196,7 @@ class Frame
       return 
     @unlisten message.id
     cb message.msg
+    return
 
   #send with id
   send: (msg, callback) ->
@@ -198,6 +204,7 @@ class Frame
       id = guid()
       @listen id, (data) -> callback data
       @post setMessage({id,msg})
+    return
 
   #confirm the connection to iframe
   readyCheck: (callback) ->
@@ -206,10 +213,11 @@ class Frame
 
     if @waits++ >= 100 # 10.0 seconds
       throw "Timeout connecting to iframe: " + @origin
-
-    setTimeout =>
-      @readyCheck callback
-    , 100
+    else
+      setTimeout =>
+        @readyCheck callback
+      , 100
+    return
 
 #public methods
 window.xdomain = (o) ->

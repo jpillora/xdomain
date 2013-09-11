@@ -491,6 +491,9 @@ setupSender = function() {
       warn("sync not supported");
     }
     frame = new Frame(p.origin, slaves[p.origin]);
+    if (!frame.ready) {
+      return callback();
+    }
     frame.send(request, callback);
   });
 };
@@ -516,18 +519,18 @@ Frame = (function() {
   }
 
   Frame.prototype.post = function(msg) {
-    return this.frame.contentWindow.postMessage(msg, this.origin);
+    this.frame.contentWindow.postMessage(msg, this.origin);
   };
 
   Frame.prototype.listen = function(id, callback) {
     if (this.listeners[id]) {
       throw "already listening for: " + id;
     }
-    return this.listeners[id] = callback;
+    this.listeners[id] = callback;
   };
 
   Frame.prototype.unlisten = function(id) {
-    return delete this.listeners[id];
+    delete this.listeners[id];
   };
 
   Frame.prototype.recieve = function(event) {
@@ -547,12 +550,12 @@ Frame = (function() {
       return;
     }
     this.unlisten(message.id);
-    return cb(message.msg);
+    cb(message.msg);
   };
 
   Frame.prototype.send = function(msg, callback) {
     var _this = this;
-    return this.readyCheck(function() {
+    this.readyCheck(function() {
       var id;
       id = guid();
       _this.listen(id, function(data) {
@@ -572,10 +575,11 @@ Frame = (function() {
     }
     if (this.waits++ >= 100) {
       throw "Timeout connecting to iframe: " + this.origin;
+    } else {
+      setTimeout(function() {
+        return _this.readyCheck(callback);
+      }, 100);
     }
-    return setTimeout(function() {
-      return _this.readyCheck(callback);
-    }, 100);
   };
 
   return Frame;
