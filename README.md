@@ -52,6 +52,7 @@ All except IE6/7 as they don't have `postMessage`
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
     ``` html
+    <!DOCTYPE HTML>
     <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
