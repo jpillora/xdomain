@@ -1,4 +1,4 @@
-// XHook - v1.0.0 - https://github.com/jpillora/xhook
+// XHook - v1.0.1 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, convertHeaders, createXHRFacade, patchClass, pluginEvents, xhook, _base,
@@ -243,7 +243,7 @@ createXHRFacade = function(xhr) {
     status: 0
   };
   face.addEventListener = function(event, fn) {
-    return xhrEvents.on(e, fn);
+    return xhrEvents.on(event, fn);
   };
   face.removeEventListener = xhrEvents.off;
   face.dispatchEvent = function() {};
@@ -263,7 +263,9 @@ createXHRFacade = function(xhr) {
       };
       transiting = true;
       xhr.open(request.method, request.url, request.async);
-      xhr.timeout = request.timeout;
+      if (request.timeout) {
+        xhr.timeout = request.timeout;
+      }
       _ref1 = request.headers;
       for (header in _ref1) {
         value = _ref1[header];
@@ -289,7 +291,6 @@ createXHRFacade = function(xhr) {
       if (hook.length === 1) {
         return done(hook(request));
       } else if (hook.length === 2) {
-        request.async = true;
         return hook(request, done);
       } else {
         throw INVALID_PARAMS_ERROR;
