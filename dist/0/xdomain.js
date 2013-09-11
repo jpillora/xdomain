@@ -1,3 +1,6 @@
+// XDomain - v0.5.0 - https://github.com/jpillora/xdomain
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
+(function(window,document,undefined) {
 // XHook - v1.0.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
@@ -304,4 +307,276 @@ createXHRFacade = function(xhr) {
 };
 
 window.xhook = xhook;
+}(window,document));
+'use strict';
+var COMPAT_VERSION, Frame, currentOrigin, feature, getMessage, guid, masters, onMessage, p, parseUrl, script, setMessage, setupMaster, setupSlave, slaves, toRegExp, warn, _i, _j, _len, _len1, _ref, _ref1;
+
+currentOrigin = location.protocol + '//' + location.host;
+
+warn = function(str) {
+  str = "xdomain (" + currentOrigin + "): " + str;
+  if (console['warn']) {
+    return console.warn(str);
+  } else {
+    return alert(str);
+  }
+};
+
+_ref = ['postMessage', 'JSON'];
+for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+  feature = _ref[_i];
+  if (!window[feature]) {
+    warn("requires '" + feature + "' and this browser does not support it");
+    return;
+  }
+}
+
+COMPAT_VERSION = "V0";
+
+guid = function() {
+  return (Math.random() * Math.pow(2, 32)).toString(16);
+};
+
+parseUrl = function(url) {
+  if (/(https?:\/\/[^\/]+)(\/.*)?/.test(url)) {
+    return {
+      origin: RegExp.$1,
+      path: RegExp.$2
+    };
+  } else {
+    return null;
+  }
+};
+
+toRegExp = function(obj) {
+  var str;
+  if (obj instanceof RegExp) {
+    return obj;
+  }
+  str = obj.toString().replace(/\W/g, function(str) {
+    return "\\" + str;
+  }).replace(/\\\*/g, ".+");
+  return new RegExp("^" + str + "$");
+};
+
+onMessage = function(fn) {
+  if (document.addEventListener) {
+    return window.addEventListener("message", fn);
+  } else {
+    return window.attachEvent("onmessage", fn);
+  }
+};
+
+setMessage = function(obj) {
+  return JSON.stringify(obj);
+};
+
+getMessage = function(str) {
+  return JSON.parse(str);
+};
+
+setupSlave = function(masters) {
+  onMessage(function(event) {
+    var frame, k, master, masterRegex, message, origin, p, pathRegex, proxyXhr, regex, req, v, _ref1;
+    origin = event.origin;
+    pathRegex = null;
+    for (master in masters) {
+      regex = masters[master];
+      try {
+        masterRegex = toRegExp(master);
+        if (masterRegex.test(origin)) {
+          pathRegex = toRegExp(regex);
+          break;
+        }
+      } catch (_error) {}
+    }
+    if (!pathRegex) {
+      warn("blocked request from: '" + origin + "'");
+      return;
+    }
+    frame = event.source;
+    message = getMessage(event.data);
+    req = message.msg;
+    p = parseUrl(req.url);
+    if (!(p && pathRegex.test(p.path))) {
+      warn("blocked request to path: '" + p.path + "' by regex: " + regex);
+      return;
+    }
+    proxyXhr = new XMLHttpRequest();
+    proxyXhr.open(req.method, req.url);
+    proxyXhr.onreadystatechange = function() {
+      var resp;
+      if (proxyXhr.readyState !== 4) {
+        return;
+      }
+      resp = {
+        status: proxyXhr.status,
+        statusText: proxyXhr.statusText,
+        type: "text",
+        text: proxyXhr.responseText,
+        headers: xhook.headers(proxyXhr.getAllResponseHeaders())
+      };
+      return frame.postMessage(setMessage({
+        id: message.id,
+        msg: resp
+      }), origin);
+    };
+    _ref1 = req.headers;
+    for (k in _ref1) {
+      v = _ref1[k];
+      proxyXhr.setRequestHeader(k, v);
+    }
+    return proxyXhr.send(req.body || null);
+  });
+  if (window === window.parent) {
+    return warn("slaves must be in an iframe");
+  } else {
+    return window.parent.postMessage("XPING_" + COMPAT_VERSION, '*');
+  }
+};
+
+setupMaster = function(slaves) {
+  onMessage(function(e) {
+    var _ref1;
+    return (_ref1 = Frame.prototype.frames[e.origin]) != null ? _ref1.recieve(e) : void 0;
+  });
+  return xhook.before(function(request, callback) {
+    var frame, p;
+    p = parseUrl(request.url);
+    if (!(p && slaves[p.origin])) {
+      return callback();
+    }
+    if (request.async === false) {
+      warn("sync not supported");
+    }
+    frame = new Frame(p.origin, slaves[p.origin]);
+    frame.send(request, callback);
+  });
+};
+
+Frame = (function() {
+  Frame.prototype.frames = {};
+
+  function Frame(origin, proxyPath) {
+    this.origin = origin;
+    this.proxyPath = proxyPath;
+    if (this.frames[this.origin]) {
+      return this.frames[this.origin];
+    }
+    this.frames[this.origin] = this;
+    this.listeners = {};
+    this.frame = document.createElement("iframe");
+    this.frame.id = this.frame.name = 'xdomain-' + guid();
+    this.frame.src = this.origin + this.proxyPath;
+    this.frame.setAttribute('style', 'display:none;');
+    document.body.appendChild(this.frame);
+    this.waits = 0;
+    this.ready = false;
+  }
+
+  Frame.prototype.post = function(msg) {
+    return this.frame.contentWindow.postMessage(msg, this.origin);
+  };
+
+  Frame.prototype.listen = function(id, callback) {
+    if (this.listeners[id]) {
+      throw "already listening for: " + id;
+    }
+    return this.listeners[id] = callback;
+  };
+
+  Frame.prototype.unlisten = function(id) {
+    return delete this.listeners[id];
+  };
+
+  Frame.prototype.recieve = function(event) {
+    var cb, message;
+    if (/^XPING(_(V\d+))?$/.test(event.data)) {
+      if (RegExp.$2 !== COMPAT_VERSION) {
+        warn("your master is not compatible with your slave, check your xdomain.js verison");
+        return;
+      }
+      this.ready = true;
+      return;
+    }
+    message = getMessage(event.data);
+    cb = this.listeners[message.id];
+    if (!cb) {
+      warn("unkown message (" + message.id + ")");
+      return;
+    }
+    this.unlisten(message.id);
+    return cb(message.msg);
+  };
+
+  Frame.prototype.send = function(msg, callback) {
+    var _this = this;
+    return this.readyCheck(function() {
+      var id;
+      id = guid();
+      _this.listen(id, function(data) {
+        return callback(data);
+      });
+      return _this.post(setMessage({
+        id: id,
+        msg: msg
+      }));
+    });
+  };
+
+  Frame.prototype.readyCheck = function(callback) {
+    var _this = this;
+    if (this.ready === true) {
+      return callback();
+    }
+    if (this.waits++ >= 100) {
+      throw "Timeout connecting to iframe: " + this.origin;
+    }
+    return setTimeout(function() {
+      return _this.readyCheck(callback);
+    }, 100);
+  };
+
+  return Frame;
+
+})();
+
+window.xdomain = function(o) {
+  if (!o) {
+    return;
+  }
+  if (o.masters) {
+    setupSlave(o.masters);
+  }
+  if (o.slaves) {
+    setupMaster(o.slaves);
+  }
+};
+
+xdomain.origin = currentOrigin;
+
+_ref1 = document.getElementsByTagName("script");
+for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+  script = _ref1[_j];
+  if (/xdomain/.test(script.src)) {
+    if (script.hasAttribute('slave')) {
+      p = parseUrl(script.getAttribute('slave'));
+      if (!p) {
+        return;
+      }
+      slaves = {};
+      slaves[p.origin] = p.path;
+      xdomain({
+        slaves: slaves
+      });
+    }
+    if (script.hasAttribute('master')) {
+      masters = {};
+      masters[script.getAttribute('master')] = /./;
+      xdomain({
+        masters: masters
+      });
+    }
+  }
+}
 }(window,document));

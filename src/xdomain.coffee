@@ -15,8 +15,8 @@ for feature in ['postMessage','JSON']
     warn "requires '#{feature}' and this browser does not support it"
     return
 
-#variables
-PING = 'XPING'
+#master-slave compatibility version
+COMPAT_VERSION = "V0"
 
 #helpers
 guid = -> 
@@ -63,7 +63,7 @@ setupSlave = (masters) ->
 
     #extract data
     message = getMessage event.data
-    req = message.req
+    req = message.msg
 
     p = parseUrl req.url
     unless p and pathRegex.test p.path
@@ -77,23 +77,27 @@ setupSlave = (masters) ->
     proxyXhr.onreadystatechange = ->
       return unless proxyXhr.readyState is 4
       #extract properties
-      res = { props: {} }
-      for p in xhook.PROPS by -1
-        if p isnt 'responseXML'
-          res.props[p] = proxyXhr[p]
-      #and response headers
-      res.responseHeaders = xhook.headers proxyXhr.getAllResponseHeaders()
-      m = setMessage {id: message.id, res}
-      frame.postMessage m, origin
-    for k,v of req.requestHeaders
+      resp =
+        status: proxyXhr.status
+        statusText: proxyXhr.statusText
+        type: "text" # proxyXhr.responseType (only support text)
+        # data: proxyXhr.response
+        text: proxyXhr.responseText
+        # xml: proxyXhr.responseXML (need a json<->xml converter...)
+        headers: xhook.headers proxyXhr.getAllResponseHeaders()
+
+      frame.postMessage setMessage({id:message.id,msg:resp}), origin
+    
+    for k,v of req.headers
       proxyXhr.setRequestHeader k, v
+
     proxyXhr.send req.body or null
 
   #ping master
   if window is window.parent
     warn "slaves must be in an iframe"
   else
-    window.parent.postMessage PING, '*'
+    window.parent.postMessage "XPING_#{COMPAT_VERSION}", '*'
 
 setupMaster = (slaves) ->
   #pass messages to the correct frame instance
@@ -101,37 +105,22 @@ setupMaster = (slaves) ->
     Frame::frames[e.origin]?.recieve (e)
 
   #hook XHR  calls
-  xhook (xhr) ->
+  xhook.before (request, callback) ->
 
-    xhr.onCall 'open', (args) ->
-      #allow unless we have a slave domain
-      p = parseUrl args[1]
-      unless p and slaves[p.origin]
-        return
+    #allow unless we have a slave domain
+    p = parseUrl request.url
+    unless p and slaves[p.origin]
+      return callback()
 
-      if args[2] is false
-        warn "sync not supported" 
-      #trigger openned 
-      setTimeout -> xhr.set 'readyState', 1
-      return false
+    if request.async is false
+      warn "sync not supported"
 
-    xhr.onCall 'send', ->
-      #allow unless we have a slave domain
-      p = parseUrl xhr.url
-      unless p and slaves[p.origin]
-        return
+    #check frame exists
+    frame = new Frame p.origin, slaves[p.origin]
+    
+    frame.send request, callback
 
-      #check frame exists
-      frame = new Frame p.origin, slaves[p.origin]
-      
-      frame.send xhr.serialize(), (res) ->
-        # warn("response: #{JSON.stringify(res,null,2)}")
-        xhr.deserialize(res)
-
-      #cancel original call
-      return false
-
-  
+    return
 
 #frame
 class Frame
@@ -169,7 +158,10 @@ class Frame
 
   recieve: (event) ->
     #pong only
-    if event.data is PING
+    if /^XPING(_(V\d+))?$/.test event.data
+      if RegExp.$2 isnt COMPAT_VERSION
+        warn "your master is not compatible with your slave, check your xdomain.js verison"
+        return
       @ready = true
       return
 
@@ -181,14 +173,14 @@ class Frame
       warn "unkown message (#{message.id})"
       return 
     @unlisten message.id
-    cb message.res
+    cb message.msg
 
   #send with id
-  send: (req, callback) ->
+  send: (msg, callback) ->
     @readyCheck =>
       id = guid()
       @listen id, (data) -> callback data
-      @post setMessage({id,req})
+      @post setMessage({id,msg})
 
   #confirm the connection to iframe
   readyCheck: (callback) ->
