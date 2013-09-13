@@ -54,7 +54,7 @@ addMasters = (m) ->
 
 setupReceiver = ->
   onMessage (event) ->
-    origin = event.origin
+    origin = if event.origin is "null" then "*" else origin
     pathRegex = null
 
     for master, regex of masters

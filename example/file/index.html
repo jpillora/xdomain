@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  <h3>XDomain Demo</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://s3.amazonaws.com/jpillora-usa/data1.json'</h5>
+
+  <script src="http://s3.amazonaws.com/jpillora-usa/xdomain/0.5.min.js"
+          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/proxy.html"></script>
+   
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <pre id='output'></pre>
+
+  <script type="text/javascript">
+    //show current origin
+    $("#host").html(xdomain.origin);
+    //jquery ajax call
+    $("#output").load('http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json');
+  </script>
+
+</body>
+</html>

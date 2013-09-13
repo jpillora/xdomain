@@ -1,4 +1,4 @@
-// XDomain - v0.5.2 - https://github.com/jpillora/xdomain
+// XDomain - v0.5.3 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 // XHook - v1.0.1 - https://github.com/jpillora/xhook
@@ -406,7 +406,7 @@ addMasters = function(m) {
 setupReceiver = function() {
   onMessage(function(event) {
     var frame, k, master, masterRegex, message, origin, p, pathRegex, proxyXhr, regex, req, v, _ref1;
-    origin = event.origin;
+    origin = event.origin === "null" ? "*" : origin;
     pathRegex = null;
     for (master in masters) {
       regex = masters[master];
