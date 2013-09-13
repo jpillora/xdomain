@@ -29,8 +29,8 @@ conjunction with any library.
 
 ## Download
 
-* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.5/xdomain.js) 15KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.5/xdomain.min.js) 7KB (1.8KB Gzip)
+* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.5/xdomain.js) 16KB
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.5/xdomain.min.js) 7.5KB (1.8KB Gzip)
 
     Note: It's **important** to include XDomain first as other libraries may
     store a reference to `XMLHttpRequest` before XHook can patch it
@@ -80,6 +80,8 @@ All except IE6/7 as they don't have `postMessage`
     });
     ```
 
+*Tip: If you enjoy being standards compliant, you can also use `data-master` and `data-slave` attributes.*
+
 ### Using multiple masters and slaves
 
 The following two snippets are equivalent:
@@ -114,7 +116,7 @@ If object contains:
   Each slave must be defined as: `origin` -> `proxy file`
   
   An object is used to *list* slaves to reinforce the idea
-  that there is 1 proxy file per origin.
+  that we need one proxy file per origin.
 
 * ### `masters`
 
@@ -123,7 +125,7 @@ If object contains:
   Each master must be defined as: `origin` -> `allowed path` (RegExp) 
   
   `origin` will also be converted to a regular expression by escaping all
-  non alphanumeric chars and converting '*' into `.+`.
+  non alphanumeric chars, converting `*` into `.+` and wrapping with `^` and `$`.
   
   Requests that do not match **both** the `origin` and the `path` regular
   expressions will be blocked.
@@ -131,7 +133,7 @@ If object contains:
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/0.5/xdomain.min.js" master="http://*.example.com"></script>
+  <script src="/dist/0.5/xdomain.min.js" data-master="http://*.example.com"></script>
   ```
   
   Which is equivalent to:
@@ -159,11 +161,13 @@ If object contains:
 2. Master will communicate to slave iframe using postMessage.
 3. Slave will create XHRs on behalf of master then return the results.
 
+XHR interception is done seemlessly via [XHook](https://github.com/jpillora/xhook#overview).
+
 ## Internet Explorer
 
-If you've set your page to use quirks mode for some reason. The
-`JSON` global object won't exist and XDomain will warn you and exit. Easiest solution is
-just to use the HTML5 DOCTYPE `<!DOCTYPE HTML>`
+Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
+from going into quirks mode. If you don't do this, XDomain will warn you about
+the missing `JSON` and/or `postMessage` globals and will exit.
 
 ## FAQ
 

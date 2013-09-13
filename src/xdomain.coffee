@@ -209,20 +209,21 @@ class Frame
   readyCheck: (callback) ->
     return callback() if @ready
     @waiters.push callback
+    return unless @waiters.length is 1
     check = =>
       if @ready
         while @waiters.length
           @waiters.shift()()
         return
-      if @waits++ >= 150 # 15.0 seconds
+      if @waits++ >= xdomain.timeout/CHECK_INTERVAL
         throw "Timeout connecting to iframe: " + @origin
       else
-        setTimeout check, 100
-    check() if @waiters.length is 1
+        setTimeout check, CHECK_INTERVAL
+    check()
     return
 
 #public methods
-window.xdomain = (o) ->
+xdomain = (o) ->
   return unless o
   if o.masters
     addMasters o.masters
@@ -231,17 +232,27 @@ window.xdomain = (o) ->
   return
 
 xdomain.origin = currentOrigin
+xdomain.timeout = 15e3
+CHECK_INTERVAL = 100
+
+#publicise
+window.xdomain = xdomain
 
 #auto init
 for script in document.getElementsByTagName("script")
   if /xdomain/.test(script.src)
-    if script.hasAttribute 'slave'
-      p = parseUrl script.getAttribute 'slave'
-      return unless p
-      s = {}
-      s[p.origin] = p.path
-      addSlaves s
-    if script.hasAttribute 'master'
-      m = {}
-      m[script.getAttribute 'master'] = /./
-      addMasters m
+    for prefix in ['','data-']
+      attr = script.getAttribute prefix+'slave'
+      if attr
+        p = parseUrl attr
+        unless p
+          return 
+        s = {}
+        s[p.origin] = p.path
+        addSlaves s
+        break
+      attr = script.getAttribute prefix+'master'
+      if attr
+        m = {}
+        m[attr] = /./
+        addMasters m

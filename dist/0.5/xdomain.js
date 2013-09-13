@@ -1,4 +1,4 @@
-// XDomain - v0.5.1 - https://github.com/jpillora/xdomain
+// XDomain - v0.5.2 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 // XHook - v1.0.1 - https://github.com/jpillora/xhook
@@ -323,7 +323,7 @@ createXHRFacade = function(xhr) {
 window.xhook = xhook;
 }(window,document));
 'use strict';
-var COMPAT_VERSION, Frame, addMasters, addSlaves, currentOrigin, feature, getMessage, guid, m, masters, onMessage, p, parseUrl, s, script, setMessage, setupReceiver, setupSender, slaves, toRegExp, warn, _i, _j, _len, _len1, _ref, _ref1;
+var CHECK_INTERVAL, COMPAT_VERSION, Frame, addMasters, addSlaves, attr, currentOrigin, feature, getMessage, guid, m, masters, onMessage, p, parseUrl, prefix, s, script, setMessage, setupReceiver, setupSender, slaves, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
 
 currentOrigin = location.protocol + '//' + location.host;
 
@@ -574,6 +574,9 @@ Frame = (function() {
       return callback();
     }
     this.waiters.push(callback);
+    if (this.waiters.length !== 1) {
+      return;
+    }
     check = function() {
       if (_this.ready) {
         while (_this.waiters.length) {
@@ -581,22 +584,20 @@ Frame = (function() {
         }
         return;
       }
-      if (_this.waits++ >= 150) {
+      if (_this.waits++ >= xdomain.timeout / CHECK_INTERVAL) {
         throw "Timeout connecting to iframe: " + _this.origin;
       } else {
-        return setTimeout(check, 100);
+        return setTimeout(check, CHECK_INTERVAL);
       }
     };
-    if (this.waiters.length === 1) {
-      check();
-    }
+    check();
   };
 
   return Frame;
 
 })();
 
-window.xdomain = function(o) {
+xdomain = function(o) {
   if (!o) {
     return;
   }
@@ -610,23 +611,36 @@ window.xdomain = function(o) {
 
 xdomain.origin = currentOrigin;
 
+xdomain.timeout = 15e3;
+
+CHECK_INTERVAL = 100;
+
+window.xdomain = xdomain;
+
 _ref1 = document.getElementsByTagName("script");
 for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
   script = _ref1[_j];
   if (/xdomain/.test(script.src)) {
-    if (script.hasAttribute('slave')) {
-      p = parseUrl(script.getAttribute('slave'));
-      if (!p) {
-        return;
+    _ref2 = ['', 'data-'];
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      prefix = _ref2[_k];
+      attr = script.getAttribute(prefix + 'slave');
+      if (attr) {
+        p = parseUrl(attr);
+        if (!p) {
+          return;
+        }
+        s = {};
+        s[p.origin] = p.path;
+        addSlaves(s);
+        break;
       }
-      s = {};
-      s[p.origin] = p.path;
-      addSlaves(s);
-    }
-    if (script.hasAttribute('master')) {
-      m = {};
-      m[script.getAttribute('master')] = /./;
-      addMasters(m);
+      attr = script.getAttribute(prefix + 'master');
+      if (attr) {
+        m = {};
+        m[attr] = /./;
+        addMasters(m);
+      }
     }
   }
 }

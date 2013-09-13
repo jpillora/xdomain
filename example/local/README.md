@@ -2,8 +2,10 @@
 
 * `npm install -g serve`
 
-* `cd xdomain`
+* `git clone`
 
-* `serve -p 4000`
+* `serve`
 
-* `open http://localhost:4000/example/local`
+* `cd xdomain/example/local`
+
+* `open http://localhost:3000/xdomain/example/local`
