@@ -37,11 +37,13 @@ conjunction with any library.
 
 ## Live Demos
 
-* ### [Simple GET from S3](http://jpillora.com/xdomain)
+### [Simple GET from S3](http://jpillora.com/xdomain) 
 
-* ### [Serverless S3 Client](http://jpillora.com/s3js)
+### [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
 
-* ### [XDomain Playground](http://jpillora.com/xdomain/example/echo)
+### [Serverless S3 Client](http://jpillora.com/s3js)
+
+### [XDomain Playground](http://jpillora.com/xdomain/example/echo)
 
 ## Browser Support
 
