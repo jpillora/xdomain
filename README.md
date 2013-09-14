@@ -190,20 +190,7 @@ A: You shouldn't:
 
 ## Contributing
 
-```
-npm install -g grunt-source serve
-git clone https://github.com/jpillora/xdomain
-cd xdomain
-grunt-source
-```
-Will start watching `src` for changes and will then compile and minify into `dist`
-```
-cd xdomain
-serve
-```
-Visit http://localhost:3000
-
-Issues and Pull-requests welcome.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Change Log
 
