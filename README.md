@@ -15,19 +15,19 @@ conjunction with any library.
 
 * Simple
 * Library Agnostic
-  * Tested with jQuery `$.ajax` (and subsequently `$.get`, `$.post`)
-  * Tested with [Angular](jpillora.com/xdomain/example/angular) `$http` service
+  * Tested with [jQuery](http://jpillora.com/xdomain)  `$.ajax` (and subsequently `$.get`, `$.post`)
+  * Tested with [Angular](http://jpillora.com/xdomain/example/angular) `$http` service
 * Cross domain XHR just magically works
   * No need to modify the server code
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
 * Easy XHR access to file servers:
   * [Amazon](http://jpillora.com/xdomain)
   * Dropbox
-* Includes [XHook](http://jpillora.com/xhook)
-* `proxy.html` files may:
+* Includes [XHook](http://jpillora.com/xhook) and its [Features](https://github.com/jpillora/xhook#features)
+* `proxy.html` files (slaves) may:
   * White-list domains
   * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
-* Highly [performant](jpillora.com/xdomain/example/performance/)
+* Highly [performant](http://jpillora.com/xdomain/example/performance/)
 
 ## Download
 
@@ -39,13 +39,13 @@ conjunction with any library.
 
 ## Live Demos
 
-### [Simple GET from S3](http://jpillora.com/xdomain) 
+* [Simple GET from S3](http://jpillora.com/xdomain) 
 
-### [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
+* [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
 
-### [Serverless S3 Client](http://jpillora.com/s3js)
+* [Serverless S3 Client](http://jpillora.com/s3js)
 
-### [XDomain Playground](http://jpillora.com/xdomain/example/echo)
+* [XDomain Playground](http://jpillora.com/xdomain/example/echo)
 
 ## Browser Support
 
@@ -180,8 +180,8 @@ Q: But I love CORS
 A: You shouldn't:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
-* On RESTful JSON API server, CORS will send a preflight OPTIONS request on all requests
-  except for GET and HEAD, generating superfluous traffic.
+* On RESTful JSON API server, CORS will generating superfluous traffic by sending a
+  preflight OPTIONS request on all requests, except for GET and HEAD, .
 * Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
 
@@ -192,7 +192,7 @@ A: You shouldn't:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDomain locally.
 
 ## Change Log
 
