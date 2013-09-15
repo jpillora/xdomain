@@ -6,7 +6,7 @@
 
 ## Summary
 
-A pure JavaScript CORS alternative. No server configuration required - 
+A pure JavaScript CORS alternative/polyfill. No server configuration required - 
 just add a `proxy.html` on the domain you wish to communicate with. This
 library utilizes [XHook](http://jpillora.com/xhook) to hook all XHR, so XDomain should work in
 conjunction with any library.
@@ -16,7 +16,7 @@ conjunction with any library.
 * Simple
 * Library Agnostic
   * Tested with jQuery `$.ajax` (and subsequently `$.get`, `$.post`)
-  * Tested with Angular `$http` service
+  * Tested with [Angular](jpillora.com/xdomain/example/angular) `$http` service
 * Cross domain XHR just magically works
   * No need to modify the server code
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
@@ -24,8 +24,10 @@ conjunction with any library.
   * [Amazon](http://jpillora.com/xdomain)
   * Dropbox
 * Includes [XHook](http://jpillora.com/xhook)
-* White-list allowed domains
-* White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
+* `proxy.html` files may:
+  * White-list domains
+  * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
+* Highly [performant](jpillora.com/xdomain/example/performance/)
 
 ## Download
 
