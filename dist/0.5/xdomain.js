@@ -449,6 +449,9 @@ setupReceiver = function() {
         msg: resp
       }), origin);
     };
+    if (req.timeout) {
+      proxyXhr.timeout = req.timeout;
+    }
     _ref1 = req.headers;
     for (k in _ref1) {
       v = _ref1[k];

@@ -97,6 +97,8 @@ setupReceiver = ->
 
       frame.postMessage setMessage({id:message.id,msg:resp}), origin
     
+    proxyXhr.timeout = req.timeout if req.timeout
+
     for k,v of req.headers
       proxyXhr.setRequestHeader k, v
 

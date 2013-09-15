@@ -4,9 +4,11 @@
 
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://127.0.0.1:3000/xdomain/Gruntsource.json'</h5>
+  <h5>To 'http://echo.jpillora.com/foo/bar'</h5>
 
-  <script src="../../dist/0.5/xdomain.js" data-slave="http://127.0.0.1:3000/xdomain/example/local/proxy1.html"></script>
+  <script src="http://localhost:3000/dist/0.5/xdomain.js"
+          slave="http://echo.jpillora.com/proxy.html?src=http://localhost:3000/dist/0.5/xdomain.js"></script>
+
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
   <pre id='output'></pre>
@@ -15,7 +17,19 @@
     //show current origin
     $("#host").html(xdomain.origin);
     //jquery ajax call
-    $("#output").load('http://127.0.0.1:3000/xdomain/Gruntsource.json');
+    $("#output").load('http://echo.jpillora.com/foo/bar');
+
+    // $.ajax({
+    //   url:'http://echo.jpillora.com/foo/bar/delay/2500/test',
+    //   timeout: 2000,
+    //   success: function(data) {
+    //     $("#output").text(JSON.stringify(data, null, 2));
+    //   },
+    //   error: function(resp) {
+    //     $("#output").text("ERROR! " + JSON.stringify(resp, null, 2));
+    //   }
+    // });
+
   </script>
 
 </body>

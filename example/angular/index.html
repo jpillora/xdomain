@@ -6,14 +6,11 @@
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
 
   <h3>XDomain Demo</h3>
-  <p>
-    Cross-domain XHR access to Amazon (http://s3.amazonaws.com)<br>
-    From '<span id="host"></span>'<br>
-    To 'http://s3.amazonaws.com/jpillora-usa/data1.json'<br>
-  </p>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://echo.jpillora.com/foo/bar'</h5>
 
-  <script src="http://s3.amazonaws.com/jpillora-usa/xdomain/0.5.min.js"
-          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/proxy.html"></script>
+  <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.js"
+          slave="http://echo.jpillora.com/proxy.html"></script>
 
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js"></script>
 
@@ -25,7 +22,7 @@
     //angular ajax call
     angular.module('xd', []).run(function($http) {
 
-      $http.get('http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json').then(function(result) {
+      $http.get('http://echo.jpillora.com/foo/bar').then(function(result) {
 
         document.getElementById('output').innerHTML = JSON.stringify(result.data, null, 2);
 
