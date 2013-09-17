@@ -1,4 +1,4 @@
-// XHook - v1.0.1 - https://github.com/jpillora/xhook
+// XHook - v1.0.2 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, convertHeaders, createXHRFacade, patchClass, pluginEvents, xhook, _base,
@@ -122,7 +122,7 @@ patchClass("ActiveXObject");
 patchClass("XMLHttpRequest");
 
 createXHRFacade = function(xhr) {
-  var checkEvent, currentState, event, extractProps, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents, _i, _len, _ref;
+  var checkEvent, copyBody, copyHead, currentState, event, extractProps, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents, _i, _len, _ref;
   if (pluginEvents.listeners(BEFORE).length === 0 && pluginEvents.listeners(AFTER).length === 0) {
     return xhr;
   }
@@ -142,6 +142,28 @@ createXHRFacade = function(xhr) {
     face.response = response.data || null;
     face.responseText = response.text || response.data || '';
     face.responseXML = response.xml || null;
+  };
+  copyHead = function() {
+    var key, val, _ref, _results;
+    response.status = xhr.status;
+    response.statusText = xhr.statusText;
+    _ref = convertHeaders(xhr.getAllResponseHeaders());
+    _results = [];
+    for (key in _ref) {
+      val = _ref[key];
+      if (!response.headers[key]) {
+        _results.push(response.headers[key] = val);
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+  copyBody = function() {
+    response.type = xhr.responseType;
+    response.text = xhr.responseText;
+    response.data = xhr.response || response.text;
+    return response.xml = xhr.responseXML;
   };
   currentState = 0;
   setReadyState = function(n) {
@@ -209,24 +231,13 @@ createXHRFacade = function(xhr) {
     }
   };
   xhr.onreadystatechange = function(event) {
-    var key, val, _ref;
-    if (xhr[READY_STATE] === 2) {
-      response.status = xhr.status;
-      response.statusText = xhr.statusText;
-      _ref = convertHeaders(xhr.getAllResponseHeaders());
-      for (key in _ref) {
-        val = _ref[key];
-        if (!response.headers[key]) {
-          response.headers[key] = val;
-        }
-      }
+    if (typeof xhr.status !== 'unknown' && xhr[READY_STATE] === 2) {
+      copyHead();
     }
     if (xhr[READY_STATE] === 4) {
       transiting = false;
-      response.type = xhr.responseType;
-      response.text = xhr.responseText;
-      response.data = xhr.response || response.text;
-      response.xml = xhr.responseXML;
+      copyHead();
+      copyBody();
       setReadyState(xhr[READY_STATE]);
     }
   };
