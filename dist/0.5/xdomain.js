@@ -339,7 +339,9 @@ var CHECK_INTERVAL, COMPAT_VERSION, Frame, addMasters, addSlaves, attr, currentO
 currentOrigin = location.protocol + '//' + location.host;
 
 warn = function(str) {
+  var console;
   str = "xdomain (" + currentOrigin + "): " + str;
+  console = window.console = window.console || {};
   if (console['warn']) {
     return console.warn(str);
   } else {
