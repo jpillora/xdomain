@@ -623,6 +623,8 @@ xdomain = function(o) {
   }
 };
 
+xdomain.parseUrl = parseUrl;
+
 xdomain.origin = currentOrigin;
 
 xdomain.timeout = 15e3;

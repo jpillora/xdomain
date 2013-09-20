@@ -233,6 +233,7 @@ xdomain = (o) ->
     addSlaves o.slaves
   return
 
+xdomain.parseUrl = parseUrl
 xdomain.origin = currentOrigin
 xdomain.timeout = 15e3
 CHECK_INTERVAL = 100
