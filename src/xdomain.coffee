@@ -4,6 +4,7 @@ currentOrigin = location.protocol + '//' + location.host
 
 warn = (str) ->
   str = "xdomain (#{currentOrigin}): #{str}"
+  console = window.console = window.console || {}
   if console['warn']
     console.warn str
   else
