@@ -6,5 +6,10 @@
   "author": "Jaime Pillora <dev@jpillora.com>",
   "license": "MIT",
   "source": "~/.grunt-sources/jslib",
-  "repo": "https://github.com/jpillora/grunt-source-jslib.git"
+  "repo": "https://github.com/jpillora/grunt-source-jslib.git",
+  "config": {
+    "webget": {
+      "http://jpillora.com/xhook/dist/1/xhook.js": "vendor/xhook.js"
+    }
+  }
 }
