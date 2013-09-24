@@ -43,7 +43,7 @@ conjunction with any library.
 
 * [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
 
-* [Serverless S3 Client](http://jpillora.com/s3js)
+* [Serverless S3 Client](http://jpillora.com/s3hook)
 
 * [XDomain Playground](http://jpillora.com/xdomain/example/echo)
 
