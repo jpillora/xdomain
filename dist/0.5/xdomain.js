@@ -1,7 +1,7 @@
-// XDomain - v0.5.5 - https://github.com/jpillora/xdomain
+// XDomain - v0.5.6 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-// XHook - v1.0.2 - https://github.com/jpillora/xhook
+// XHook - v1.0.3 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
 var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, convertHeaders, createXHRFacade, patchClass, pluginEvents, xhook, _base,
@@ -125,7 +125,7 @@ patchClass("ActiveXObject");
 patchClass("XMLHttpRequest");
 
 createXHRFacade = function(xhr) {
-  var checkEvent, copyBody, copyHead, currentState, event, extractProps, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents, _i, _len, _ref;
+  var checkEvent, copyBody, copyHead, currentState, event, extractProps, face, faceEvents, readyBody, readyHead, request, response, setReadyState, transiting, _i, _len, _ref;
   if (pluginEvents.listeners(BEFORE).length === 0 && pluginEvents.listeners(AFTER).length === 0) {
     return xhr;
   }
@@ -134,7 +134,7 @@ createXHRFacade = function(xhr) {
     headers: {}
   };
   response = null;
-  xhrEvents = EventEmitter();
+  faceEvents = EventEmitter();
   readyHead = function() {
     face.status = response.status;
     face.statusText = response.statusText;
@@ -181,9 +181,9 @@ createXHRFacade = function(xhr) {
         if (currentState === 4) {
           readyBody();
         }
-        xhrEvents.fire("readystatechange");
+        faceEvents.fire("readystatechange");
         if (currentState === 4) {
-          xhrEvents.fire("load");
+          faceEvents.fire("load");
         }
       }
     };
@@ -229,26 +229,29 @@ createXHRFacade = function(xhr) {
     for (key in face) {
       fn = face[key];
       if (typeof fn === 'function' && /^on(\w+)/.test(key)) {
-        xhrEvents.on(RegExp.$1, fn);
+        faceEvents.on(RegExp.$1, fn);
       }
     }
   };
   xhr.onreadystatechange = function(event) {
-    if (typeof xhr.status !== 'unknown' && xhr[READY_STATE] === 2) {
-      copyHead();
-    }
+    try {
+      if (xhr[READY_STATE] === 2) {
+        copyHead();
+        setReadyState(2);
+      }
+    } catch (_error) {}
     if (xhr[READY_STATE] === 4) {
       transiting = false;
       copyHead();
       copyBody();
-      setReadyState(xhr[READY_STATE]);
+      setReadyState(4);
     }
   };
   _ref = ['abort', 'progress'];
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     event = _ref[_i];
     xhr["on" + event] = function(obj) {
-      return xhrEvents.fire(event, checkEvent(obj));
+      return faceEvents.fire(event, checkEvent(obj));
     };
   }
   face = {
@@ -257,9 +260,9 @@ createXHRFacade = function(xhr) {
     status: 0
   };
   face.addEventListener = function(event, fn) {
-    return xhrEvents.on(event, fn);
+    return faceEvents.on(event, fn);
   };
-  face.removeEventListener = xhrEvents.off;
+  face.removeEventListener = faceEvents.off;
   face.dispatchEvent = function() {};
   face.open = function(method, url, async) {
     request.method = method;
@@ -316,7 +319,7 @@ createXHRFacade = function(xhr) {
     if (transiting) {
       xhr.abort();
     }
-    xhrEvents.fire('abort', arguments);
+    faceEvents.fire('abort', arguments);
   };
   face.setRequestHeader = function(header, value) {
     request.headers[header] = value;
