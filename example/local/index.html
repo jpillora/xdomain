@@ -1,23 +1,31 @@
 <!DOCTYPE HTML>
 <html>
-<body>
+<head>
+  <script type="text/javascript">
 
+  </script>
+</head>
+<body>
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://echo.jpillora.com/foo/bar'</h5>
+  <h5>To 'http://xyz.lvho.st:3000/CONTRIBUTING.md'</h5>
 
-  <script src="http://localhost:3000/dist/0.5/xdomain.js"
-          slave="http://echo.jpillora.com/proxy.html?src=http://localhost:3000/dist/0.5/xdomain.js"></script>
+  <script src="../../dist/0.5/xdomain.js" slave="http://xyz.lvho.st:3000/example/local/proxy1.html"></script>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
   <pre id='output'></pre>
 
   <script type="text/javascript">
+
+    var href = 'http://abc.lvho.st:3000/example/local/index.html';
+    if(window.location.href !== href)
+      window.location.href = href;
+
     //show current origin
     $("#host").html(xdomain.origin);
     //jquery ajax call
-    $("#output").load('http://echo.jpillora.com/foo/bar');
+    $("#output").load('http://xyz.lvho.st:3000/CONTRIBUTING.md');
 
     // $.ajax({
     //   url:'http://echo.jpillora.com/foo/bar/delay/2500/test',

@@ -1,10 +1,10 @@
 // XDomain - v0.5.6 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-// XHook - v1.0.3 - https://github.com/jpillora/xhook
+// XHook - v1.0.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,undefined) {
-var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, convertHeaders, createXHRFacade, patchClass, pluginEvents, xhook, _base,
+var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, XMLHttpRequest, convertHeaders, pluginEvents, xhook, _base,
   __slice = [].slice;
 
 BEFORE = 'before';
@@ -106,26 +106,11 @@ convertHeaders = function(h, dest) {
 
 xhook.headers = convertHeaders;
 
-patchClass = function(name) {
-  var Class;
-  Class = window[name];
-  if (!Class) {
-    return;
-  }
-  window[name] = function(arg) {
-    if (typeof arg === "string" && !/\.XMLHTTP/.test(arg)) {
-      return;
-    }
-    return createXHRFacade(new Class(arg));
-  };
-};
+XMLHttpRequest = window.XMLHttpRequest;
 
-patchClass("ActiveXObject");
-
-patchClass("XMLHttpRequest");
-
-createXHRFacade = function(xhr) {
-  var checkEvent, copyBody, copyHead, currentState, event, extractProps, face, faceEvents, readyBody, readyHead, request, response, setReadyState, transiting, _i, _len, _ref;
+window.XMLHttpRequest = function() {
+  var checkEvent, copyBody, copyHead, currentState, event, extractProps, facade, facadeEventEmitter, makeFakeEvent, readyBody, readyHead, request, response, setReadyState, transiting, xhr, _i, _len, _ref;
+  xhr = new XMLHttpRequest;
   if (pluginEvents.listeners(BEFORE).length === 0 && pluginEvents.listeners(AFTER).length === 0) {
     return xhr;
   }
@@ -134,17 +119,17 @@ createXHRFacade = function(xhr) {
     headers: {}
   };
   response = null;
-  faceEvents = EventEmitter();
+  facadeEventEmitter = EventEmitter();
   readyHead = function() {
-    face.status = response.status;
-    face.statusText = response.statusText;
+    facade.status = response.status;
+    facade.statusText = response.statusText;
     response.headers || (response.headers = {});
   };
   readyBody = function() {
-    face.responseType = response.type || '';
-    face.response = response.data || null;
-    face.responseText = response.text || response.data || '';
-    face.responseXML = response.xml || null;
+    facade.responseType = response.type || '';
+    facade.response = response.data || null;
+    facade.responseText = response.text || response.data || '';
+    facade.responseXML = response.xml || null;
   };
   copyHead = function() {
     var key, val, _ref, _results;
@@ -170,31 +155,32 @@ createXHRFacade = function(xhr) {
   };
   currentState = 0;
   setReadyState = function(n) {
-    var fire, hooks, process;
+    var checkReadyState, hooks, process;
     extractProps();
-    fire = function() {
+    checkReadyState = function() {
       while (n > currentState && currentState < 4) {
-        face[READY_STATE] = ++currentState;
+        facade[READY_STATE] = ++currentState;
         if (currentState === 2) {
           readyHead();
         }
         if (currentState === 4) {
           readyBody();
         }
-        faceEvents.fire("readystatechange");
+        facadeEventEmitter.fire("readystatechange", makeFakeEvent("readystatechange"));
         if (currentState === 4) {
-          faceEvents.fire("load");
+          facadeEventEmitter.fire("load", makeFakeEvent("load"));
+          facadeEventEmitter.fire("loadend", makeFakeEvent("loadend"));
         }
       }
     };
     if (n < 4) {
-      return fire();
+      return checkReadyState();
     }
     hooks = pluginEvents.listeners(AFTER);
     process = function() {
       var hook;
       if (!hooks.length) {
-        return fire();
+        return checkReadyState();
       }
       hook = hooks.shift();
       if (hook.length === 2) {
@@ -208,12 +194,22 @@ createXHRFacade = function(xhr) {
     };
     process();
   };
+  makeFakeEvent = function(type) {
+    var msieEventObject;
+    if (window.document.createEventObject != null) {
+      msieEventObject = window.document.createEventObject();
+      msieEventObject.type = type;
+      return msieEventObject;
+    } else {
+      return new Event(type);
+    }
+  };
   checkEvent = function(e) {
     var clone, key, val;
     clone = {};
     for (key in e) {
       val = e[key];
-      clone[key] = val === xhr ? face : val;
+      clone[key] = val === xhr ? facade : val;
     }
     return clone;
   };
@@ -226,10 +222,10 @@ createXHRFacade = function(xhr) {
         request[key] = xhr[key];
       }
     }
-    for (key in face) {
-      fn = face[key];
+    for (key in facade) {
+      fn = facade[key];
       if (typeof fn === 'function' && /^on(\w+)/.test(key)) {
-        faceEvents.on(RegExp.$1, fn);
+        facadeEventEmitter.on(RegExp.$1, fn);
       }
     }
   };
@@ -251,26 +247,26 @@ createXHRFacade = function(xhr) {
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     event = _ref[_i];
     xhr["on" + event] = function(obj) {
-      return faceEvents.fire(event, checkEvent(obj));
+      return facadeEventEmitter.fire(event, checkEvent(obj));
     };
   }
-  face = {
+  facade = {
     withCredentials: false,
     response: null,
     status: 0
   };
-  face.addEventListener = function(event, fn) {
-    return faceEvents.on(event, fn);
+  facade.addEventListener = function(event, fn) {
+    return facadeEventEmitter.on(event, fn);
   };
-  face.removeEventListener = faceEvents.off;
-  face.dispatchEvent = function() {};
-  face.open = function(method, url, async) {
+  facade.removeEventListener = facadeEventEmitter.off;
+  facade.dispatchEvent = function() {};
+  facade.open = function(method, url, async) {
     request.method = method;
     request.url = url;
     request.async = async;
     setReadyState(1);
   };
-  face.send = function(body) {
+  facade.send = function(body) {
     var hooks, process, send;
     request.body = body;
     send = function() {
@@ -315,23 +311,23 @@ createXHRFacade = function(xhr) {
     };
     process();
   };
-  face.abort = function() {
+  facade.abort = function() {
     if (transiting) {
       xhr.abort();
     }
-    faceEvents.fire('abort', arguments);
+    facadeEventEmitter.fire('abort', arguments);
   };
-  face.setRequestHeader = function(header, value) {
+  facade.setRequestHeader = function(header, value) {
     request.headers[header] = value;
   };
-  face.getResponseHeader = function(header) {
+  facade.getResponseHeader = function(header) {
     return response.headers[header];
   };
-  face.getAllResponseHeaders = function() {
+  facade.getAllResponseHeaders = function() {
     return convertHeaders(response.headers);
   };
-  face.upload = EventEmitter();
-  return face;
+  facade.upload = EventEmitter();
+  return facade;
 };
 
 window.xhook = xhook;
