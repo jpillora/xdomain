@@ -93,6 +93,7 @@ The following two snippets are equivalent:
 ``` html
 <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
 ```
+
 ``` html
 <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js"></script>
 <script>
@@ -177,12 +178,13 @@ the missing `JSON` and/or `postMessage` globals and will exit.
 
 Q: But I love CORS
 
-A: You shouldn't:
+A: You shouldn't. You should use XDomain because:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
+* The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
 * On RESTful JSON API server, CORS will generating superfluous traffic by sending a
-  preflight OPTIONS request on all requests, except for GET and HEAD, .
-* Not everyone can change the HTTP headers on the server, but most people can drop in a `proxy.html` file.
+  preflight OPTIONS request on all requests, except for GET and HEAD.
+* Not everyone is able to modify HTTP headers on the server, but most can upload a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
 
   ```html
