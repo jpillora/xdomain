@@ -34,9 +34,6 @@ conjunction with any library.
 * Development [xdomain.js](http://jpillora.com/xdomain/dist/0.5/xdomain.js) 16KB
 * Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.5/xdomain.min.js) 7.5KB (1.8KB Gzip)
 
-    Note: It's **important** to include XDomain first as other libraries may
-    store a reference to `XMLHttpRequest` before XHook can patch it
-
 ## Live Demos
 
 * [Simple GET from S3](http://jpillora.com/xdomain) 
@@ -52,6 +49,13 @@ conjunction with any library.
 All except IE6/7 as they don't have `postMessage`
 
 ## Quick Usage
+
+    Note: It's **important** to include XDomain before any other library or
+    code pulls and stores a reference to `window.XMLHttpRequest`, whether to
+    construct an actual request or to save the constructor function for use
+    later (angular.js appears to do this, for example). XHook replaces
+    `window.XMLHttpRequest`, and if a library stores the old reference, it
+    won't use XHook's replaced `XMLHttpRequest`.
 
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
@@ -191,6 +195,19 @@ A: You shouldn't. You should use XDomain because:
   <iframe name="oauth2relay564752183" id="oauth2relay564752183"
   src="https://accounts.google.com/o/oauth2/postmessageRelay?..."> </iframe>
   ```
+
+## Troubleshooting
+
+Q: The browser is still sending a CORS request.
+
+A: Double check your slaves configuration. If your slaves configuration is
+correct, double check that you're including XDomain *before*
+`window.XMLHttpRequest` is referenced to construct the request. If you cannot
+find where the reference is pulled, run a XHR breakpoint and compare the
+constructor of the object that's having `send` called on it to
+`window.XMLHttpRequest`. If the code is using the old `XMLHttpRequest` instead
+of the new one supplied by XHook, `xhr.constructor == window.XMLHttpRequest`
+will be false.
 
 ## Contributing
 
