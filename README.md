@@ -50,12 +50,10 @@ All except IE6/7 as they don't have `postMessage`
 
 ## Quick Usage
 
-    Note: It's **important** to include XDomain before any other library or
-    code pulls and stores a reference to `window.XMLHttpRequest`, whether to
-    construct an actual request or to save the constructor function for use
-    later (angular.js appears to do this, for example). XHook replaces
-    `window.XMLHttpRequest`, and if a library stores the old reference, it
-    won't use XHook's replaced `XMLHttpRequest`.
+Note: It's **important** to include XDomain before any other library.
+When XDomain loads, XHook replaces the current `window.XMLHttpRequest`.
+So if another library saves a reference to the original `window.XMLHttpRequest`
+and uses that, XHook won't be able to intercept those requests.
 
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
@@ -126,6 +124,18 @@ If object contains:
   
   An object is used to *list* slaves to reinforce the idea
   that we need one proxy file per origin.
+
+  The **Quick Usage** step 2 above is equivalent to:
+  ```html
+  <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js"></script>
+  <script>
+    xdomain({
+      slaves: {
+        "http://xyz.example.com": "/proxy.html"
+      }
+    });
+  </script>
+  ```
 
 * ### `masters`
 
@@ -200,14 +210,13 @@ A: You shouldn't. You should use XDomain because:
 
 Q: The browser is still sending a CORS request.
 
-A: Double check your slaves configuration. If your slaves configuration is
-correct, double check that you're including XDomain *before*
-`window.XMLHttpRequest` is referenced to construct the request. If you cannot
-find where the reference is pulled, run a XHR breakpoint and compare the
-constructor of the object that's having `send` called on it to
-`window.XMLHttpRequest`. If the code is using the old `XMLHttpRequest` instead
-of the new one supplied by XHook, `xhr.constructor == window.XMLHttpRequest`
-will be false.
+A: Double check your slaves configuration against the examples.
+If your slaves configuration is correct, double check that you're
+including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
+The safest way to fix it is to include XDomain **first**, it has no dependancies,
+it only modifies `window.XMLHttpRequest`. If you can't, break where `xhr.send()`
+is called and if you're using the original `XMLHttpRequest`,
+`xhr.constructor == window.XMLHttpRequest` will be false.
 
 ## Contributing
 
