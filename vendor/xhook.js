@@ -124,7 +124,7 @@ window.XMLHttpRequest = function() {
   };
   readyBody = function() {
     facade.responseType = response.type || '';
-    facade.response = response.data || null;
+    facade.response = response.data || response.text || null;
     facade.responseText = response.text || response.data || '';
     facade.responseXML = response.xml || null;
   };
