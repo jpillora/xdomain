@@ -1,3 +1,6 @@
+// XDomain - v0.6.0 - https://github.com/jpillora/xdomain
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
+(function(window,document,undefined) {
 // XHook - v1.1.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,document,undefined) {
@@ -372,4 +375,371 @@ window[XMLHTTP] = function() {
 };
 
 (this.define || Object)((this.exports || this).xhook = xhook);
+}(window,document));
+'use strict';
+var CHECK_INTERVAL, COMPAT_VERSION, Frame, addMasters, addSlaves, attr, currentOrigin, feature, getMessage, guid, m, masters, onMessage, p, parseUrl, prefix, s, script, setMessage, setupReceiver, setupSender, slaves, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2,
+  __slice = [].slice;
+
+currentOrigin = location.protocol + '//' + location.host;
+
+warn = function(str) {
+  var console;
+  str = "xdomain (" + currentOrigin + "): " + str;
+  console = window.console = window.console || {};
+  if (console['warn']) {
+    return console.warn(str);
+  } else {
+    return alert(str);
+  }
+};
+
+_ref = ['postMessage', 'JSON'];
+for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+  feature = _ref[_i];
+  if (!window[feature]) {
+    warn("requires '" + feature + "' and this browser does not support it");
+    return;
+  }
+}
+
+COMPAT_VERSION = "V0";
+
+guid = function() {
+  return (Math.random() * Math.pow(2, 32)).toString(16);
+};
+
+parseUrl = function(url) {
+  if (/(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)) {
+    return {
+      origin: RegExp.$1,
+      path: RegExp.$2
+    };
+  } else {
+    return null;
+  }
+};
+
+toRegExp = function(obj) {
+  var str;
+  if (obj instanceof RegExp) {
+    return obj;
+  }
+  str = obj.toString().replace(/\W/g, function(str) {
+    return "\\" + str;
+  }).replace(/\\\*/g, ".+");
+  return new RegExp("^" + str + "$");
+};
+
+onMessage = function(fn) {
+  if (document.addEventListener) {
+    return window.addEventListener("message", fn);
+  } else {
+    return window.attachEvent("onmessage", fn);
+  }
+};
+
+setMessage = function(obj) {
+  return JSON.stringify(obj);
+};
+
+getMessage = function(str) {
+  return JSON.parse(str);
+};
+
+masters = null;
+
+addMasters = function(m) {
+  var origin, path;
+  if (masters === null) {
+    masters = {};
+    setupReceiver();
+  }
+  for (origin in m) {
+    path = m[origin];
+    masters[origin] = path;
+  }
+};
+
+setupReceiver = function() {
+  throw "TODO create id => proxy request map";
+  onMessage(function(event) {
+    var emit, frame, id, k, master, masterRegex, msg, origin, p, pathRegex, proxyXhr, regex, v, _ref1, _ref2;
+    origin = event.origin === "null" ? "*" : event.origin;
+    pathRegex = null;
+    for (master in masters) {
+      regex = masters[master];
+      try {
+        masterRegex = toRegExp(master);
+        if (masterRegex.test(origin)) {
+          pathRegex = toRegExp(regex);
+          break;
+        }
+      } catch (_error) {}
+    }
+    if (!pathRegex) {
+      warn("blocked request from: '" + origin + "'");
+      return;
+    }
+    frame = event.source;
+    _ref1 = getMessage(event.data), id = _ref1.id, msg = _ref1.msg;
+    p = parseUrl(req.url);
+    if (!(p && pathRegex.test(p.path))) {
+      warn("blocked request to path: '" + p.path + "' by regex: " + regex);
+      return;
+    }
+    emit = function() {
+      var args, event;
+      event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      return frame.postMessage(setMessage([id, event].concat(args)), origin);
+    };
+    proxyXhr = new XMLHttpRequest();
+    proxyXhr.open(req.method, req.url);
+    proxyXhr.onprogress = function(e) {
+      return emit('download', {
+        loaded: e.loaded,
+        total: e.total
+      });
+    };
+    proxyXhr.upload.onprogress = function(e) {
+      return emit('upload', {
+        loaded: e.loaded,
+        total: e.total
+      });
+    };
+    proxyXhr.onabort = function() {
+      return emit('abort');
+    };
+    proxyXhr.onreadystatechange = function() {
+      var resp;
+      if (proxyXhr.readyState !== 4) {
+        return;
+      }
+      resp = {
+        status: proxyXhr.status,
+        statusText: proxyXhr.statusText,
+        type: "",
+        text: proxyXhr.responseText,
+        headers: xhook.headers(proxyXhr.getAllResponseHeaders())
+      };
+      return emit('response', resp);
+    };
+    if (req.timeout) {
+      proxyXhr.timeout = req.timeout;
+    }
+    _ref2 = req.headers;
+    for (k in _ref2) {
+      v = _ref2[k];
+      proxyXhr.setRequestHeader(k, v);
+    }
+    return proxyXhr.send(req.body || null);
+  });
+  if (window === window.parent) {
+    return warn("slaves must be in an iframe");
+  } else {
+    return window.parent.postMessage("XPING_" + COMPAT_VERSION, '*');
+  }
+};
+
+slaves = null;
+
+addSlaves = function(s) {
+  var origin, path;
+  if (slaves === null) {
+    slaves = {};
+    setupSender();
+  }
+  for (origin in s) {
+    path = s[origin];
+    slaves[origin] = path;
+  }
+};
+
+setupSender = function() {
+  onMessage(function(e) {
+    var _ref1;
+    return (_ref1 = Frame.prototype.frames[e.origin]) != null ? _ref1.recieve(e) : void 0;
+  });
+  return xhook.before(function(request, callback) {
+    var c, frame, p;
+    p = parseUrl(request.url);
+    if (!(p && slaves[p.origin])) {
+      return callback();
+    }
+    if (request.async === false) {
+      warn("sync not supported");
+    }
+    frame = new Frame(p.origin, slaves[p.origin]);
+    c = frame.channel(function(msg) {
+      if (msg.type === 'response') {
+        callback(msg.resp);
+        return c.close();
+      } else if (msg.type === 'event') {
+        return request.fire.apply(null, msg.event);
+      }
+    });
+    c.send({
+      type: 'request',
+      req: request
+    });
+    request.on('abort', function() {
+      return c.send({
+        type: 'abort'
+      });
+    });
+  });
+};
+
+Frame = (function() {
+  Frame.prototype.frames = {};
+
+  function Frame(origin, proxyPath) {
+    this.origin = origin;
+    this.proxyPath = proxyPath;
+    if (this.frames[this.origin]) {
+      return this.frames[this.origin];
+    }
+    this.frames[this.origin] = this;
+    this.listeners = {};
+    this.frame = document.createElement("iframe");
+    this.frame.id = this.frame.name = 'xdomain-' + guid();
+    this.frame.src = this.origin + this.proxyPath;
+    this.frame.setAttribute('style', 'display:none;');
+    document.body.appendChild(this.frame);
+    this.waits = 0;
+    this.waiters = [];
+    this.ready = false;
+  }
+
+  Frame.prototype.channel = function(handler) {
+    var id,
+      _this = this;
+    id = guid();
+    this.open(id, handler);
+    return {
+      send: function(msg) {
+        return _this.send(id, msg);
+      },
+      close: function() {
+        return _this.close(id);
+      }
+    };
+  };
+
+  Frame.prototype.open = function(id, callback) {
+    if (this.listeners[id]) {
+      throw "already open: " + id;
+    }
+    this.listeners[id] = callback;
+  };
+
+  Frame.prototype.close = function(id) {
+    delete this.listeners[id];
+  };
+
+  Frame.prototype.send = function(id, msg) {
+    var _this = this;
+    this.readyCheck(function() {
+      return _this.frame.contentWindow.postMessage(setMessage({
+        id: id,
+        msg: msg
+      }), _this.origin);
+    });
+  };
+
+  Frame.prototype.recieve = function(event) {
+    var cb, data;
+    if (/^XPING(_(V\d+))?$/.test(event.data)) {
+      if (RegExp.$2 !== COMPAT_VERSION) {
+        warn("your master is not compatible with your slave, check your xdomain.js verison");
+        return;
+      }
+      this.ready = true;
+      return;
+    }
+    data = getMessage(event.data);
+    cb = this.listeners[data.id];
+    if (cb) {
+      cb(data.msg);
+    }
+  };
+
+  Frame.prototype.readyCheck = function(callback) {
+    var check,
+      _this = this;
+    if (this.ready) {
+      return callback();
+    }
+    this.waiters.push(callback);
+    if (this.waiters.length !== 1) {
+      return;
+    }
+    check = function() {
+      if (_this.ready) {
+        while (_this.waiters.length) {
+          _this.waiters.shift()();
+        }
+        return;
+      }
+      if (_this.waits++ >= xdomain.timeout / CHECK_INTERVAL) {
+        throw "Timeout connecting to iframe: " + _this.origin;
+      } else {
+        return setTimeout(check, CHECK_INTERVAL);
+      }
+    };
+    check();
+  };
+
+  return Frame;
+
+})();
+
+xdomain = function(o) {
+  if (!o) {
+    return;
+  }
+  if (o.masters) {
+    addMasters(o.masters);
+  }
+  if (o.slaves) {
+    addSlaves(o.slaves);
+  }
+};
+
+xdomain.parseUrl = parseUrl;
+
+xdomain.origin = currentOrigin;
+
+xdomain.timeout = 15e3;
+
+CHECK_INTERVAL = 100;
+
+window.xdomain = xdomain;
+
+_ref1 = document.getElementsByTagName("script");
+for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+  script = _ref1[_j];
+  if (/xdomain/.test(script.src)) {
+    _ref2 = ['', 'data-'];
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      prefix = _ref2[_k];
+      attr = script.getAttribute(prefix + 'slave');
+      if (attr) {
+        p = parseUrl(attr);
+        if (!p) {
+          return;
+        }
+        s = {};
+        s[p.origin] = p.path;
+        addSlaves(s);
+        break;
+      }
+      attr = script.getAttribute(prefix + 'master');
+      if (attr) {
+        m = {};
+        m[attr] = /./;
+        addMasters(m);
+      }
+    }
+  }
+}
 }(window,document));

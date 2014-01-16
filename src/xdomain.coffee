@@ -54,6 +54,11 @@ addMasters = (m) ->
   return
 
 setupReceiver = ->
+
+
+  throw "TODO create id => proxy request map"
+
+
   onMessage (event) ->
     origin = if event.origin is "null" then "*" else event.origin
     pathRegex = null
@@ -72,32 +77,41 @@ setupReceiver = ->
     frame = event.source
 
     #extract data
-    message = getMessage event.data
-    req = message.msg
+    {id,msg} = getMessage event.data
 
     p = parseUrl req.url
     unless p and pathRegex.test p.path
       warn "blocked request to path: '#{p.path}' by regex: #{regex}"
       return
 
+    emit = (event, args...) ->
+      frame.postMessage setMessage([id, event].concat(args)), origin
+
     # warn("request: #{JSON.stringify(req,null,2)}")
 
     proxyXhr = new XMLHttpRequest()
     proxyXhr.open req.method, req.url
+
+    proxyXhr.onprogress = (e) ->
+      emit 'download', {loaded: e.loaded, total: e.total}
+
+    proxyXhr.upload.onprogress = (e) ->
+      emit 'upload', {loaded: e.loaded, total: e.total}
+
+    proxyXhr.onabort = ->
+      emit 'abort'
+
     proxyXhr.onreadystatechange = ->
       return unless proxyXhr.readyState is 4
       #extract properties
       resp =
         status: proxyXhr.status
         statusText: proxyXhr.statusText
-        type: "" # proxyXhr.responseType (only support text)
-        # data: proxyXhr.response
+        type: "" # only support string type
         text: proxyXhr.responseText
-        # xml: proxyXhr.responseXML (need a json<->xml converter...)
         headers: xhook.headers proxyXhr.getAllResponseHeaders()
-
-      frame.postMessage setMessage({id:message.id,msg:resp}), origin
-    
+      emit 'response', resp
+      
     proxyXhr.timeout = req.timeout if req.timeout
 
     for k,v of req.headers
@@ -124,7 +138,7 @@ addSlaves = (s) ->
 setupSender = ->
   #pass messages to the correct frame instance
   onMessage (e) ->
-    Frame::frames[e.origin]?.recieve (e)
+    Frame::frames[e.origin]?.recieve e
 
   #hook XHR  calls
   xhook.before (request, callback) ->
@@ -139,7 +153,19 @@ setupSender = ->
 
     #check frame exists
     frame = new Frame p.origin, slaves[p.origin]
-    frame.send request, callback
+
+    c = frame.channel (msg) ->
+      if msg.type is 'response'
+        callback msg.resp
+        c.close()
+      else if msg.type is 'event'
+        request.fire.apply null, msg.event 
+
+    c.send {type:'request', req: request}
+
+    request.on 'abort', ->
+      c.send {type:'abort'}
+
     return
 
 #frame
@@ -165,19 +191,26 @@ class Frame
     @waiters = []
     @ready = false
 
-  post: (msg) ->
-    @frame.contentWindow.postMessage msg, @origin
-    return
+  channel: (handler) ->
+    id = guid()
+    @open id, handler
+    send: (msg) => @send id, msg
+    close: => @close id
 
   #sub-events with id's
-  listen: (id, callback) ->
+  open: (id, callback) ->
     if @listeners[id]
-      throw "already listening for: " + id
+      throw "already open: " + id
     @listeners[id] = callback
     return
 
-  unlisten: (id) ->
+  close: (id) ->
     delete @listeners[id]
+    return
+
+  send: (id, msg) ->
+    @readyCheck =>
+      @frame.contentWindow.postMessage setMessage({id,msg}), @origin
     return
 
   recieve: (event) ->
@@ -189,23 +222,11 @@ class Frame
       @ready = true
       return
 
-    message = getMessage event.data
+    data = getMessage event.data
 
     #response
-    cb = @listeners[message.id]
-    unless cb
-      warn "unkown message (#{message.id})"
-      return 
-    @unlisten message.id
-    cb message.msg
-    return
-
-  #send with id
-  send: (msg, callback) ->
-    @readyCheck =>
-      id = guid()
-      @listen id, (data) -> callback data
-      @post setMessage({id,msg})
+    cb = @listeners[data.id]
+    cb data.msg if cb
     return
 
   #confirm the connection to iframe
