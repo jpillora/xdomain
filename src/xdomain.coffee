@@ -24,7 +24,7 @@ guid = ->
   (Math.random()*Math.pow(2,32)).toString(16)
 
 parseUrl = (url) ->
-  if /(https?:\/\/[^\/]+)(\/.*)?/.test(url) then {origin: RegExp.$1, path: RegExp.$2} else null
+  if /(https?:\/\/[^\/\?]+)(\/.*)?/.test(url) then {origin: RegExp.$1, path: RegExp.$2} else null
 
 toRegExp = (obj) ->
   return obj if obj instanceof RegExp
