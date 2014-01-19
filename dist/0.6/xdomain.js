@@ -1,7 +1,6 @@
 // XDomain - v0.6.0 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,document,undefined) {
-// XHook - v1.1.0 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,document,undefined) {
 var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, xhook, _base;
@@ -742,4 +741,4 @@ for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
     }
   }
 }
-}(window,document));
+}(this));
