@@ -1,25 +1,15 @@
-## How to run XDomain locally
+## How to run locally
 
-* Install Node http://nodejs.org
+* Install [Node](http://nodejs.org)
 
-* `npm install -g grunt-source serve`
+* Fork and clone `git clone https://github.com/USERNAME/xdomain`
 
-* `git clone https://github.com/jpillora/xdomain`
+* Enter project `cd xdomain`
 
-* `cd xdomain`
+* Install [`grunt-source`](https://github.com/jpillora/grunt-source) with `npm install -g grunt-source` (Grunt Source allows the use of external Grunt environments)
 
-* `serve`
+* Serve and watch *src* for changes and will then compile and minify into *dist* with `grunt-source --server`
 
-This will create an HTTP server on 3000 inside the `xdomain` folder
+* Open Chrome `open http://localhost:3000/example/local`
 
-* New Tab `Command+T`
-
-* `grunt-source`
-
-This will start watching `src` for changes and will then compile and minify into `dist`
-
-* New Tab `Command+T`
-
-* `open http://localhost:3000/example/local`
-
-### Issues and Pull-requests welcome.
+  ### Issues and Pull-requests welcome!

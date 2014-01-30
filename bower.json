@@ -1,27 +1,11 @@
 {
-  "name": "xdomain",
+  "name": "jpillora/xdomain",
   "version": "0.6.0",
-  "homepage": "https://github.com/jpillora/xdomain",
-  "authors": [
-    "Jaime Pillora <dev@jpillora.com>"
-  ],
-  "description": "CORS support that rocks.",
-  "main": "dist/0.6/xdomain.min.js",
-  "keywords": [
-    "cors",
-    "cross",
-    "domain",
-    "requests"
-  ],
+  "main": "dist/0.6/xdomain.js",
   "license": "MIT",
   "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests",
-    "example",
-    "*.html",
-    "src"
-  ]
+    "./!(dist/0.6/xdomain.js)"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
 }

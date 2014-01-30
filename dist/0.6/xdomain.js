@@ -1,9 +1,8 @@
 // XDomain - v0.6.0 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.0 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.2 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,document,undefined) {
-var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, xhook, _base;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, xhook, _base;
 
 document = window.document;
 
@@ -133,21 +132,23 @@ EventEmitter = function(internal) {
 
 xhook = EventEmitter(true);
 
+xhook.EventEmitter = EventEmitter;
+
 xhook[BEFORE] = function(handler, i) {
   if (handler.length < 1 || handler.length > 2) {
-    throw "!";
+    throw "invalid hook";
   }
   return xhook[ON](BEFORE, handler, i);
 };
 
 xhook[AFTER] = function(handler, i) {
   if (handler.length < 2 || handler.length > 3) {
-    throw "!";
+    throw "invalid hook";
   }
   return xhook[ON](AFTER, handler, i);
 };
 
-convertHeaders = function(h, dest) {
+convertHeaders = xhook.headers = function(h, dest) {
   var header, headers, k, v, _i, _len;
   if (dest == null) {
     dest = {};
@@ -174,8 +175,6 @@ convertHeaders = function(h, dest) {
   }
 };
 
-xhook.headers = convertHeaders;
-
 xhook[XMLHTTP] = window[XMLHTTP];
 
 window[XMLHTTP] = function() {
@@ -199,11 +198,12 @@ window[XMLHTTP] = function() {
     }
   };
   readBody = function() {
-    response.type = xhr.responseType;
-    if (!response.type || response.type === 'document') {
+    try {
       response.text = xhr.responseText;
+    } catch (_error) {}
+    try {
       response.xml = xhr.responseXML;
-    }
+    } catch (_error) {}
     response.data = xhr.response || response.text;
   };
   writeHead = function() {
@@ -211,7 +211,6 @@ window[XMLHTTP] = function() {
     facade.statusText = response.statusText;
   };
   writeBody = function() {
-    facade.responseType = response.type || '';
     facade.response = response.data || response.text || null;
     facade.responseText = response.text || '';
     facade.responseXML = response.xml || null;
@@ -300,13 +299,14 @@ window[XMLHTTP] = function() {
     var hooks, process, send;
     request.body = body;
     send = function() {
-      var header, k, value, _i, _len, _ref, _ref1;
+      var header, k, modk, value, _i, _len, _ref, _ref1;
       transiting = true;
       xhr.open(request.method, request.url, true, request.user, request.pass);
-      _ref = ['responseType', 'timeout'];
+      _ref = ['type', 'timeout'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         k = _ref[_i];
-        xhr[k] = request[k] || facade[k];
+        modk = k === "type" ? "responseType" : k;
+        xhr[modk] = request[k] || facade[modk];
       }
       _ref1 = request.headers;
       for (header in _ref1) {
@@ -374,60 +374,9 @@ window[XMLHTTP] = function() {
 };
 
 (this.define || Object)((this.exports || this).xhook = xhook);
-}(window,document));
-'use strict';
-var CHECK_INTERVAL, COMPAT_VERSION, Frame, addMasters, addSlaves, attr, currentOrigin, feature, getMessage, guid, m, masters, onMessage, p, parseUrl, prefix, s, script, setMessage, setupReceiver, setupSender, slaves, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2,
+}(this));
+var CHECK_INTERVAL, COMPAT_VERSION, XD_ENCODE, XD_OBJ_TEST, addMasters, addSlaves, attr, connect, console, createSocket, currentOrigin, feature, frames, getFrame, guid, initMaster, initSlave, listen, log, m, masters, offMessage, onMessage, p, parseUrl, prefix, prep, s, script, server, slaves, slice, sockets, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2,
   __slice = [].slice;
-
-currentOrigin = location.protocol + '//' + location.host;
-
-warn = function(str) {
-  var console;
-  str = "xdomain (" + currentOrigin + "): " + str;
-  console = window.console = window.console || {};
-  if (console['warn']) {
-    return console.warn(str);
-  } else {
-    return alert(str);
-  }
-};
-
-_ref = ['postMessage', 'JSON'];
-for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-  feature = _ref[_i];
-  if (!window[feature]) {
-    warn("requires '" + feature + "' and this browser does not support it");
-    return;
-  }
-}
-
-COMPAT_VERSION = "V0";
-
-guid = function() {
-  return (Math.random() * Math.pow(2, 32)).toString(16);
-};
-
-parseUrl = function(url) {
-  if (/(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)) {
-    return {
-      origin: RegExp.$1,
-      path: RegExp.$2
-    };
-  } else {
-    return null;
-  }
-};
-
-toRegExp = function(obj) {
-  var str;
-  if (obj instanceof RegExp) {
-    return obj;
-  }
-  str = obj.toString().replace(/\W/g, function(str) {
-    return "\\" + str;
-  }).replace(/\\\*/g, ".+");
-  return new RegExp("^" + str + "$");
-};
 
 onMessage = function(fn) {
   if (document.addEventListener) {
@@ -437,12 +386,186 @@ onMessage = function(fn) {
   }
 };
 
-setMessage = function(obj) {
-  return JSON.stringify(obj);
+offMessage = function(fn) {
+  if (document.removeEventListener) {
+    return window.removeEventListener("message", fn);
+  } else {
+    return window.dettachEvent("onmessage", fn);
+  }
 };
 
-getMessage = function(str) {
-  return JSON.parse(str);
+server = null;
+
+sockets = {};
+
+XD_ENCODE = true;
+
+XD_OBJ_TEST = {
+  XD_OBJ: true
+};
+
+onMessage(function(e) {
+  var d, id, sock;
+  d = e.data;
+  switch (typeof d) {
+    case "string":
+      try {
+        d = JSON.parse(d);
+      } catch (_error) {
+        return;
+      }
+      break;
+    case "object":
+      if (XD_ENCODE) {
+        e.source.postMessage(XD_OBJ_TEST, "*");
+      }
+      XD_ENCODE = false;
+      if (d.XD_OBJ) {
+        return;
+      }
+  }
+  if (!(d instanceof Array)) {
+    return;
+  }
+  id = d.shift();
+  if (!/^xdomain-/.test(id)) {
+    return;
+  }
+  sock = sockets[id];
+  if (!sock) {
+    if (!server) {
+      return;
+    }
+    sock = server.handle(id, e.source);
+  }
+  sock.fire.apply(sock, d);
+  return {
+    readyCheck: function(callback) {
+      if (ready) {
+        return callback();
+      }
+      waiters.push(callback);
+      if (waiters.length !== 1) {
+        return;
+      }
+      check();
+    }
+  };
+});
+
+createSocket = function(id, frame) {
+  var check, pendingEmits, ready, sock, waits,
+    _this = this;
+  waits = 0;
+  ready = false;
+  pendingEmits = [];
+  sock = sockets[id] = xhook.EventEmitter(true);
+  check = function() {
+    frame.postMessage(XD_OBJ_TEST);
+    if (waits++ >= xdomain.timeout / CHECK_INTERVAL) {
+      throw "Timeout waiting on iframe socket";
+    } else {
+      return setTimeout(check, CHECK_INTERVAL);
+    }
+  };
+  check();
+  sock.once('xd_ready', function() {
+    sock.destroy();
+    return sock.close();
+  });
+  sock.once('close', function() {
+    sock.destroy();
+    return sock.close();
+  });
+  sock.emit = function() {
+    var args;
+    args = slice(arguments);
+    args.unshift(id);
+    if (XD_ENCODE) {
+      args = JSON.stringify(args);
+    }
+    return frame.postMessage(args, "*");
+  };
+  sock.close = function() {
+    return delete sockets[id];
+  };
+  return sock;
+};
+
+connect = function(target) {
+  var s;
+  s = new Socket(guid(), target);
+  return s;
+};
+
+listen = function(handler) {
+  server = function(e, id) {
+    var s;
+    s = new Socket(id, e.source);
+    handler(e, s);
+    return s;
+  };
+};
+
+slaves = null;
+
+addSlaves = function(s) {
+  var origin, path;
+  if (slaves === null) {
+    slaves = {};
+    initMaster();
+  }
+  for (origin in s) {
+    path = s[origin];
+    slaves[origin] = path;
+  }
+};
+
+frames = {};
+
+getFrame = function(origin, proxyPath) {
+  var frame;
+  if (frames[origin]) {
+    return frames[origin];
+  }
+  frame = document.createElement("iframe");
+  frame.id = frame.name = 'xdomain-' + guid();
+  frame.src = origin + proxyPath;
+  frame.setAttribute('style', 'display:none;');
+  document.body.appendChild(frame);
+  return frames[origin] = frame.contentWindow;
+};
+
+initMaster = function() {
+  return xhook.before(function(request, callback) {
+    var c, frame, p;
+    p = parseUrl(request.url);
+    if (!(p && slaves[p.origin])) {
+      log("no slave matching: '" + p.origin + "'");
+      return callback();
+    }
+    log("proxying request slave: '" + p.origin + "'");
+    if (request.async === false) {
+      warn("sync not supported");
+      return callback();
+    }
+    frame = getFrame(p.origin, slaves[p.origin]);
+    c = connect(frame);
+    c.on("response", function(resp) {
+      callback(resp);
+      return c.close();
+    });
+    request.on('abort', function() {
+      return c.emit("abort");
+    });
+    c.on("abort", function() {
+      return c.close();
+    });
+    c.on("xhr-event", function(args) {
+      return request.fire.apply(null, args);
+    });
+    c.emit("request", request);
+  });
 };
 
 masters = null;
@@ -451,7 +574,7 @@ addMasters = function(m) {
   var origin, path;
   if (masters === null) {
     masters = {};
-    setupReceiver();
+    initSlave();
   }
   for (origin in m) {
     path = m[origin];
@@ -459,10 +582,12 @@ addMasters = function(m) {
   }
 };
 
-setupReceiver = function() {
-  throw "TODO create id => proxy request map";
+initSlave = function() {
+  var proxy, proxyXhrs;
+  proxyXhrs = {};
+  proxy = function(id, msg) {};
   onMessage(function(event) {
-    var emit, frame, id, k, master, masterRegex, msg, origin, p, pathRegex, proxyXhr, regex, v, _ref1, _ref2;
+    var emit, frame, id, k, master, masterRegex, msg, origin, p, pathRegex, proxyXhr, regex, v, _ref, _ref1;
     origin = event.origin === "null" ? "*" : event.origin;
     pathRegex = null;
     for (master in masters) {
@@ -480,7 +605,7 @@ setupReceiver = function() {
       return;
     }
     frame = event.source;
-    _ref1 = getMessage(event.data), id = _ref1.id, msg = _ref1.msg;
+    _ref = getMessage(event.data), id = _ref.id, msg = _ref.msg;
     p = parseUrl(req.url);
     if (!(p && pathRegex.test(p.path))) {
       warn("blocked request to path: '" + p.path + "' by regex: " + regex);
@@ -516,7 +641,6 @@ setupReceiver = function() {
       resp = {
         status: proxyXhr.status,
         statusText: proxyXhr.statusText,
-        type: "",
         text: proxyXhr.responseText,
         headers: xhook.headers(proxyXhr.getAllResponseHeaders())
       };
@@ -525,9 +649,9 @@ setupReceiver = function() {
     if (req.timeout) {
       proxyXhr.timeout = req.timeout;
     }
-    _ref2 = req.headers;
-    for (k in _ref2) {
-      v = _ref2[k];
+    _ref1 = req.headers;
+    for (k in _ref1) {
+      v = _ref1[k];
       proxyXhr.setRequestHeader(k, v);
     }
     return proxyXhr.send(req.body || null);
@@ -535,162 +659,80 @@ setupReceiver = function() {
   if (window === window.parent) {
     return warn("slaves must be in an iframe");
   } else {
-    return window.parent.postMessage("XPING_" + COMPAT_VERSION, '*');
+    return window.parent.postMessage("XDPING_" + COMPAT_VERSION, '*');
   }
 };
 
-slaves = null;
+'use strict';
 
-addSlaves = function(s) {
-  var origin, path;
-  if (slaves === null) {
-    slaves = {};
-    setupSender();
+currentOrigin = location.protocol + '//' + location.host;
+
+guid = function() {
+  return (Math.random() * Math.pow(2, 32)).toString(16);
+};
+
+slice = function(o, n) {
+  return Array.prototype.slice.call(o, n);
+};
+
+prep = function(s) {
+  return "xdomain (" + currentOrigin + "): " + s;
+};
+
+console = window.console || {};
+
+log = function(str) {
+  if (!xdomain.debug) {
+    return;
   }
-  for (origin in s) {
-    path = s[origin];
-    slaves[origin] = path;
+  str = prep(str);
+  if ('log' in console) {
+    console.log(str);
   }
 };
 
-setupSender = function() {
-  onMessage(function(e) {
-    var _ref1;
-    return (_ref1 = Frame.prototype.frames[e.origin]) != null ? _ref1.recieve(e) : void 0;
-  });
-  return xhook.before(function(request, callback) {
-    var c, frame, p;
-    p = parseUrl(request.url);
-    if (!(p && slaves[p.origin])) {
-      return callback();
-    }
-    if (request.async === false) {
-      warn("sync not supported");
-    }
-    frame = new Frame(p.origin, slaves[p.origin]);
-    c = frame.channel(function(msg) {
-      if (msg.type === 'response') {
-        callback(msg.resp);
-        return c.close();
-      } else if (msg.type === 'event') {
-        return request.fire.apply(null, msg.event);
-      }
-    });
-    c.send({
-      type: 'request',
-      req: request
-    });
-    request.on('abort', function() {
-      return c.send({
-        type: 'abort'
-      });
-    });
-  });
+warn = function(str) {
+  str = prep(str);
+  if ('warn' in console) {
+    console.warn(str);
+  } else {
+    alert(str);
+  }
 };
 
-Frame = (function() {
-  Frame.prototype.frames = {};
-
-  function Frame(origin, proxyPath) {
-    this.origin = origin;
-    this.proxyPath = proxyPath;
-    if (this.frames[this.origin]) {
-      return this.frames[this.origin];
-    }
-    this.frames[this.origin] = this;
-    this.listeners = {};
-    this.frame = document.createElement("iframe");
-    this.frame.id = this.frame.name = 'xdomain-' + guid();
-    this.frame.src = this.origin + this.proxyPath;
-    this.frame.setAttribute('style', 'display:none;');
-    document.body.appendChild(this.frame);
-    this.waits = 0;
-    this.waiters = [];
-    this.ready = false;
+_ref = ['postMessage', 'JSON'];
+for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+  feature = _ref[_i];
+  if (!window[feature]) {
+    warn("requires '" + feature + "' and this browser does not support it");
+    return;
   }
+}
 
-  Frame.prototype.channel = function(handler) {
-    var id,
-      _this = this;
-    id = guid();
-    this.open(id, handler);
+COMPAT_VERSION = "V0";
+
+parseUrl = function(url) {
+  if (/(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)) {
     return {
-      send: function(msg) {
-        return _this.send(id, msg);
-      },
-      close: function() {
-        return _this.close(id);
-      }
+      origin: RegExp.$1,
+      path: RegExp.$2
     };
-  };
+  } else {
+    log("failed to parse url: " + url);
+    return null;
+  }
+};
 
-  Frame.prototype.open = function(id, callback) {
-    if (this.listeners[id]) {
-      throw "already open: " + id;
-    }
-    this.listeners[id] = callback;
-  };
-
-  Frame.prototype.close = function(id) {
-    delete this.listeners[id];
-  };
-
-  Frame.prototype.send = function(id, msg) {
-    var _this = this;
-    this.readyCheck(function() {
-      return _this.frame.contentWindow.postMessage(setMessage({
-        id: id,
-        msg: msg
-      }), _this.origin);
-    });
-  };
-
-  Frame.prototype.recieve = function(event) {
-    var cb, data;
-    if (/^XPING(_(V\d+))?$/.test(event.data)) {
-      if (RegExp.$2 !== COMPAT_VERSION) {
-        warn("your master is not compatible with your slave, check your xdomain.js verison");
-        return;
-      }
-      this.ready = true;
-      return;
-    }
-    data = getMessage(event.data);
-    cb = this.listeners[data.id];
-    if (cb) {
-      cb(data.msg);
-    }
-  };
-
-  Frame.prototype.readyCheck = function(callback) {
-    var check,
-      _this = this;
-    if (this.ready) {
-      return callback();
-    }
-    this.waiters.push(callback);
-    if (this.waiters.length !== 1) {
-      return;
-    }
-    check = function() {
-      if (_this.ready) {
-        while (_this.waiters.length) {
-          _this.waiters.shift()();
-        }
-        return;
-      }
-      if (_this.waits++ >= xdomain.timeout / CHECK_INTERVAL) {
-        throw "Timeout connecting to iframe: " + _this.origin;
-      } else {
-        return setTimeout(check, CHECK_INTERVAL);
-      }
-    };
-    check();
-  };
-
-  return Frame;
-
-})();
+toRegExp = function(obj) {
+  var str;
+  if (obj instanceof RegExp) {
+    return obj;
+  }
+  str = obj.toString().replace(/\W/g, function(str) {
+    return "\\" + str;
+  }).replace(/\\\*/g, ".+");
+  return new RegExp("^" + str + "$");
+};
 
 xdomain = function(o) {
   if (!o) {
@@ -703,6 +745,12 @@ xdomain = function(o) {
     addSlaves(o.slaves);
   }
 };
+
+xdomain.debug = false;
+
+xdomain.masters = addMasters;
+
+xdomain.slaves = addSlaves;
 
 xdomain.parseUrl = parseUrl;
 
