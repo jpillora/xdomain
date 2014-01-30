@@ -439,7 +439,11 @@ setupReceiver = function() {
       return;
     }
     frame = event.source;
-    message = getMessage(event.data);
+    try {
+      message = getMessage(event.data);
+    } catch (_error) {
+      return;
+    }
     req = message.msg;
     p = parseUrl(req.url);
     if (!(p && pathRegex.test(p.path))) {
@@ -561,7 +565,11 @@ Frame = (function() {
       this.ready = true;
       return;
     }
-    message = getMessage(event.data);
+    try {
+      message = getMessage(event.data);
+    } catch (_error) {
+      return;
+    }
     cb = this.listeners[message.id];
     if (!cb) {
       warn("unkown message (" + message.id + ")");
