@@ -3,7 +3,7 @@
 currentOrigin = location.protocol + '//' + location.host
 
 #helpers
-guid = -> (Math.random()*Math.pow(2,32)).toString(16)
+guid = -> 'xdomain-'+(Math.random()*Math.pow(2,32)).toString(16)
 slice = (o,n) -> Array::slice.call o,n
 
 prep = (s) ->
@@ -33,7 +33,7 @@ for feature in ['postMessage','JSON']
     return
 
 #master-slave compatibility version
-COMPAT_VERSION = "V0"
+COMPAT_VERSION = "V1"
 
 parseUrl = (url) ->
   return if /(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)
@@ -46,6 +46,16 @@ toRegExp = (obj) ->
   return obj if obj instanceof RegExp
   str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
   return new RegExp "^#{str}$"
+
+
+strip = (src) ->
+  dst = {}
+  for k of src
+    continue if k is "returnValue"
+    v = src[k]
+    if typeof v not in ["function","object"]
+      dst[k] = v
+  dst
 
 #public methods
 xdomain = (o) ->
@@ -74,8 +84,7 @@ for script in document.getElementsByTagName("script")
       attr = script.getAttribute prefix+'slave'
       if attr
         p = parseUrl attr
-        unless p
-          return 
+        break unless p
         s = {}
         s[p.origin] = p.path
         addSlaves s

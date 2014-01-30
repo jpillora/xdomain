@@ -1,6 +1,6 @@
-// XHook - v1.1.2 - https://github.com/jpillora/xhook
+// XHook - v1.1.3 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, xhook, _base;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
 
 document = window.document;
 
@@ -33,25 +33,36 @@ COMMON_EVENTS = ['progress', 'abort', 'error', 'timeout'];
   return -1;
 });
 
+slice = function(o, n) {
+  return Array.prototype.slice.call(o, n);
+};
+
 mergeObjects = function(src, dst) {
   var k, v;
   for (k in src) {
     v = src[k];
+    if (k === "returnValue") {
+      continue;
+    }
     try {
-      dst[k] = v;
+      dst[k] = src[k];
     } catch (_error) {}
   }
+  return dst;
 };
 
 proxyEvents = function(events, from, to) {
   var event, p, _i, _len;
   p = function(event) {
     return function(e) {
-      var clone, key, val;
+      var clone, k, val;
       clone = {};
-      for (key in e) {
-        val = e[key];
-        clone[key] = val === from ? to : val;
+      for (k in e) {
+        if (k === "returnValue") {
+          continue;
+        }
+        val = e[k];
+        clone[k] = val === from ? to : val;
       }
       clone;
       return to[FIRE](event, clone);
@@ -80,7 +91,7 @@ fakeEvent = function(type) {
   }
 };
 
-EventEmitter = function(internal) {
+EventEmitter = function(nodeStyle) {
   var emitter, events, listeners;
   events = {};
   listeners = function(event) {
@@ -103,27 +114,41 @@ EventEmitter = function(internal) {
     }
     listeners(event).splice(i, 1);
   };
-  emitter[FIRE] = function(event, obj) {
-    var e, i, legacylistener, listener, _i, _len, _ref;
-    e = fakeEvent(event);
-    mergeObjects(obj, e);
+  emitter[FIRE] = function() {
+    var args, event, i, legacylistener, listener, _i, _len, _ref;
+    args = slice(arguments);
+    event = args.shift();
+    if (!nodeStyle) {
+      args[0] = mergeObjects(args[0], fakeEvent(event));
+    }
     legacylistener = emitter["on" + event];
     if (legacylistener) {
-      legacylistener(e);
+      legacylistener.apply(undefined, args);
     }
-    _ref = listeners(event);
+    _ref = listeners(event).concat(listeners("*"));
     for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
       listener = _ref[i];
-      listener(e);
+      listener.apply(undefined, args);
     }
   };
-  if (internal) {
+  if (nodeStyle) {
     emitter.listeners = function(event) {
-      return Array.prototype.slice.call(listeners(event));
+      return slice(listeners(event));
     };
     emitter.on = emitter[ON];
     emitter.off = emitter[OFF];
     emitter.fire = emitter[FIRE];
+    emitter.once = function(e, fn) {
+      var fire;
+      fire = function() {
+        emitter.off(e, fire);
+        return fn.apply(null, arguments);
+      };
+      return emitter.on(e, fire);
+    };
+    emitter.destroy = function() {
+      return events = {};
+    };
   }
   return emitter;
 };
@@ -179,7 +204,7 @@ window[XMLHTTP] = function() {
   var currentState, facade, readBody, readHead, request, response, setReadyState, transiting, writeBody, writeHead, xhr;
   xhr = new xhook[XMLHTTP]();
   transiting = false;
-  request = EventEmitter(true);
+  request = {};
   request.headers = {};
   response = {};
   response.headers = {};
@@ -220,7 +245,7 @@ window[XMLHTTP] = function() {
       while (n > currentState && currentState < 4) {
         facade[READY_STATE] = ++currentState;
         if (currentState === 1) {
-          facade[FIRE]("loadstart", fakeEvent("loadstart"));
+          facade[FIRE]("loadstart", {});
         }
         if (currentState === 2) {
           writeHead();
@@ -229,10 +254,10 @@ window[XMLHTTP] = function() {
           writeHead();
           writeBody();
         }
-        facade[FIRE]("readystatechange", fakeEvent("readystatechange"));
+        facade[FIRE]("readystatechange", {});
         if (currentState === 4) {
-          facade[FIRE]("load", fakeEvent("load"));
-          facade[FIRE]("loadend", fakeEvent("loadend"));
+          facade[FIRE]("load", {});
+          facade[FIRE]("loadend", {});
         }
       }
     };
@@ -269,17 +294,11 @@ window[XMLHTTP] = function() {
     }
     setReadyState(xhr[READY_STATE]);
   };
-  facade = EventEmitter();
+  facade = request.xhr = EventEmitter();
   facade[ON]('progress', function() {
     return setReadyState(3);
   });
   proxyEvents(COMMON_EVENTS, xhr, facade);
-  request.on = function(event, fn) {
-    facade[ON](event, fn);
-  };
-  request.fire = function(event, obj) {
-    facade[FIRE](event, obj);
-  };
   facade.withCredentials = false;
   facade.response = null;
   facade.status = 0;
@@ -294,21 +313,27 @@ window[XMLHTTP] = function() {
     setReadyState(1);
   };
   facade.send = function(body) {
-    var hooks, process, send;
+    var hooks, k, modk, process, send, _i, _len, _ref;
+    _ref = ['type', 'timeout'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      k = _ref[_i];
+      modk = k === "type" ? "responseType" : k;
+      request[k] = facade[modk];
+    }
     request.body = body;
     send = function() {
-      var header, k, modk, value, _i, _len, _ref, _ref1;
+      var header, value, _j, _len1, _ref1, _ref2;
       transiting = true;
       xhr.open(request.method, request.url, true, request.user, request.pass);
-      _ref = ['type', 'timeout'];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        k = _ref[_i];
+      _ref1 = ['type', 'timeout'];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        k = _ref1[_j];
         modk = k === "type" ? "responseType" : k;
-        xhr[modk] = request[k] || facade[modk];
+        xhr[modk] = request[k];
       }
-      _ref1 = request.headers;
-      for (header in _ref1) {
-        value = _ref1[header];
+      _ref2 = request.headers;
+      for (header in _ref2) {
+        value = _ref2[header];
         xhr.setRequestHeader(header, value);
       }
       xhr.send(request.body);
@@ -331,8 +356,8 @@ window[XMLHTTP] = function() {
         mergeObjects(resp, response);
         return setReadyState(2);
       };
-      done.text = function(text) {
-        response.text = text;
+      done.progress = function(resp) {
+        mergeObjects(resp, response);
         return setReadyState(3);
       };
       hook = hooks.shift();
@@ -348,7 +373,7 @@ window[XMLHTTP] = function() {
     if (transiting) {
       xhr.abort();
     }
-    facade[FIRE]('abort', arguments);
+    facade[FIRE]('abort', {});
   };
   facade.setRequestHeader = function(header, value) {
     request.headers[header] = value;
@@ -364,8 +389,8 @@ window[XMLHTTP] = function() {
       return xhr.overrideMimeType.apply(xhr, arguments);
     };
   }
-  facade.upload = request.upload = EventEmitter();
   if (xhr.upload) {
+    facade.upload = request.upload = EventEmitter();
     proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
   }
   return facade;

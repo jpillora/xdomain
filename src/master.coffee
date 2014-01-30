@@ -14,13 +14,15 @@ getFrame = (origin, proxyPath) ->
   if frames[origin]
     return frames[origin]
   frame = document.createElement "iframe"
-  frame.id = frame.name = 'xdomain-'+guid()
+  frame.id = frame.name = guid()
   frame.src = origin + proxyPath
   frame.setAttribute 'style', 'display:none;'
   document.body.appendChild frame
   return frames[origin] = frame.contentWindow
 
 initMaster = ->
+
+
   #hook XHR  calls
   xhook.before (request, callback) ->
 
@@ -38,22 +40,25 @@ initMaster = ->
     #get or insert frame
     frame = getFrame p.origin, slaves[p.origin]
 
-    c = connect frame
+    socket = connect frame
 
-    c.on "response", (resp) ->
+    socket.on "response", (resp) ->
       callback resp
-      c.close()
+      socket.close()
 
     #client abort
-    request.on 'abort', ->
-      c.emit "abort"
+    # request.on 'abort', ->
+    #   socket.emit "abort"
     #server abort
-    c.on "abort", ->
-      c.close()
+    socket.on "abort", ->
+      request.abort()
+      socket.close()
 
-    c.on "xhr-event", (args) ->
-      request.fire.apply null, args
+    socket.on "xhr-event", ->
+      request.xhr.dispatchEvent.apply null, arguments
+    socket.on "xhr-upload-event", ->
+      request.xhr.upload.dispatchEvent.apply null, arguments
 
-    c.emit "request", request
+    socket.emit "request", strip request
     return
 

@@ -4,7 +4,7 @@
   "main": "dist/0.6/xdomain.js",
   "license": "MIT",
   "ignore": [
-    "./!(dist/0.6/xdomain.js)"
+    "!dist/0.6/xdomain.js"
   ],
   "dependencies": {},
   "devDependencies": {}
