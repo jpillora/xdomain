@@ -71,8 +71,11 @@ setupReceiver = ->
 
     frame = event.source
 
-    #extract data
-    message = getMessage event.data
+    #extract data - message data may not be in JSON format so lets drop it if not
+    try
+      message = getMessage event.data
+    catch
+      return
     req = message.msg
 
     p = parseUrl req.url
@@ -189,7 +192,11 @@ class Frame
       @ready = true
       return
 
-    message = getMessage event.data
+    #extract data - message data may not be in JSON format so lets drop it if not
+    try
+      message = getMessage event.data
+    catch
+      return
 
     #response
     cb = @listeners[message.id]
