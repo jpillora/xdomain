@@ -23,7 +23,7 @@ conjunction with any library.
 * Easy XHR access to file servers:
   * [Amazon](http://jpillora.com/xdomain)
   * Dropbox
-* Includes [XHook](http://jpillora.com/xhook) and its [Features](https://github.com/jpillora/xhook#features)
+* Includes [XHook](http://jpillora.com/xhook) and its [features](https://github.com/jpillora/xhook#features)
 * `proxy.html` files (slaves) may:
   * White-list domains
   * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
@@ -31,8 +31,8 @@ conjunction with any library.
 
 ## Download
 
-* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.5/xdomain.js) 16KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.5/xdomain.min.js) 7.5KB (1.8KB Gzip)
+* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.6/xdomain.js) 20KB
+* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.6/xdomain.min.js) 9.3KB (2.3KB Gzip)
 
 ## Live Demos
 
@@ -59,13 +59,13 @@ and uses that, XHook won't be able to intercept those requests.
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -93,16 +93,14 @@ and uses that, XHook won't be able to intercept those requests.
 The following two snippets are equivalent:
 
 ``` html
-<script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js" master="http://abc.example.com"></script>
+<script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
 ```
 
 ``` html
-<script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js"></script>
+<script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
 <script>
-xdomain({
-  masters: {
-    'http://abc.example.com': /.*/
-  }
+xdomain.masters({
+  'http://abc.example.com': /.*/
 });
 </script>
 ```
@@ -112,36 +110,29 @@ in the `object`, see API below.
 
 ## API
 
-### `xdomain`(`object`)
+### `xdomain.slaves`(`slaves`)
 
-If object contains:
-
-* ### `slaves`
-
-  Then `xdomain` will load as a master
+  Will initialize as a master
   
-  Each slave must be defined as: `origin` -> `proxy file`
+  Each of the `slaves` must be defined as: `origin`: `proxy file`
   
-  An object is used to *list* slaves to reinforce the idea
-  that we need one proxy file per origin.
+  The `slaves` object is used as a *list* slaves to force one proxy file per origin.
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="http://jpillora.com/xdomain/dist/0.5/xdomain.min.js"></script>
+  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
   <script>
-    xdomain({
-      slaves: {
-        "http://xyz.example.com": "/proxy.html"
-      }
+    xdomain.slaves({
+      "http://xyz.example.com": "/proxy.html"
     });
   </script>
   ```
 
-* ### `masters`
+### `xdomain.masters`(`masters`)
 
-  Then `xdomain` will load as a slave
+  Will initialize as a master
   
-  Each master must be defined as: `origin` -> `allowed path` (RegExp) 
+  Each of the `masters` must be defined as: `origin`: `allowed path` (RegExp) 
   
   `origin` will also be converted to a regular expression by escaping all
   non alphanumeric chars, converting `*` into `.+` and wrapping with `^` and `$`.
@@ -152,27 +143,29 @@ If object contains:
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/0.5/xdomain.min.js" data-master="http://*.example.com"></script>
+  <script src="/dist/0.6/xdomain.min.js" data-master="http://*.example.com"></script>
   ```
   
   Which is equivalent to:
   ```html
-  <script src="/dist/0.5/xdomain.min.js"></script>
+  <script src="/dist/0.6/xdomain.min.js"></script>
   <script>
-    xdomain({
-      masters: {
-        "http://*.example.com": /.*/
-      }
+    xdomain.masters({
+      "http://*.example.com": /.*/
     });
   </script>
   ```
   
   Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
-  <script src="/dist/0.5/xdomain.min.js" master="*"></script>
+  <!-- BEWARE: VERY INSECURE -->
+  <script src="/dist/0.6/xdomain.min.js" master="*"></script>
   ```
-  
-  Though this is NOT recommended.
+
+
+### `xdomain.debug` = `false`
+
+  When `true`, XDomain will log actions to console
 
 ## Conceptual Overview
 
@@ -224,7 +217,9 @@ See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDo
 
 ## Change Log
 
-v0.5.0 - Upgraded to XHook v1.
+v0.6.0 - Implements XHR2 functionality
+
+v0.6.0 - Upgraded to XHook v1.
 
 v0.4.0 - Now setting request body, duh.
 
@@ -236,7 +231,7 @@ v0.1.0 - Alpha
 
 #### MIT License
 
-Copyright © 2013 Jaime Pillora &lt;dev@jpillora.com&gt;
+Copyright © 2014 Jaime Pillora &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
