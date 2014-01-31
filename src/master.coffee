@@ -59,6 +59,7 @@ initMaster = ->
     socket.on "xhr-upload-event", ->
       request.xhr.upload.dispatchEvent.apply null, arguments
 
-    socket.emit "request", strip request
+    socket.emit "request", strip request  
     return
+
 

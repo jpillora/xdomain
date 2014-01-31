@@ -3,7 +3,7 @@
 currentOrigin = location.protocol + '//' + location.host
 
 #helpers
-guid = -> 'xdomain-'+(Math.random()*Math.pow(2,32)).toString(16)
+guid = -> 'xdomain-'+Math.round(Math.random()*Math.pow(2,32)).toString(16)
 slice = (o,n) -> Array::slice.call o,n
 
 prep = (s) ->
@@ -94,3 +94,7 @@ for script in document.getElementsByTagName("script")
         m = {}
         m[attr] = /./
         addMasters m
+
+#init
+startPostMessage()
+

@@ -63,6 +63,10 @@ initSlave = ->
       for k,v of req.headers
         xhr.setRequestHeader k, v
       xhr.send req.body or null
+      return
+
+    log "slave listening for requests on socket: #{socket.id}"
+    return
 
   #ping master
   if window is window.parent
