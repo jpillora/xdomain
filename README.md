@@ -22,7 +22,7 @@ conjunction with any library.
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
 * Easy XHR access to file servers:
   * [Amazon](http://jpillora.com/xdomain)
-  * Dropbox
+  * [Dropbox](http://jpillora.com/xdomain/example/dropbox)
 * Includes [XHook](http://jpillora.com/xhook) and its [features](https://github.com/jpillora/xhook#features)
 * `proxy.html` files (slaves) may:
   * White-list domains
@@ -41,8 +41,6 @@ conjunction with any library.
 * [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
 
 * [Serverless S3 Client](http://jpillora.com/s3hook)
-
-* [XDomain Playground](http://jpillora.com/xdomain/example/echo)
 
 ## Browser Support
 

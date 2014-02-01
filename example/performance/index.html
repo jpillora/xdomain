@@ -14,7 +14,7 @@
  -->
 
   <script src="http://s3.amazonaws.com/jpillora-usa/xdomain/0.6.min.js"
-          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/proxy.html"></script>
+          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/0.6/proxy.html"></script>
 
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
@@ -25,10 +25,10 @@
     //show current origin
     $("#host").html(xdomain.origin);
     //jquery ajax call
-    for(var i = 0; i < 100; i++)
+    for(var i = 0, c = 1; i < 100; i++)
       $.get('http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json?v='+i)
         .always(function(data, success, xhr) {
-          $("#output").append(success + "\n");
+          $("#output").append(c++ + ": " + success + "\n");
         });
   </script>
 

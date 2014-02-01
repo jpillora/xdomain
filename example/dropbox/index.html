@@ -25,10 +25,17 @@
 
     document.getElementById("file").innerHTML = url;
 
+
+
+
     var xhr = new XMLHttpRequest()
     xhr.open('GET', url);
     xhr.responseType = 'blob'
     xhr.onreadystatechange = function(e) {
+
+      if(!window.FileReader)
+        return alert("FileReader not supported in this browser");
+
       if(xhr.readyState === 4) {
         var reader = new window.FileReader();
         reader.readAsDataURL(xhr.response); 
