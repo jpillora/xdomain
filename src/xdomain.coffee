@@ -32,6 +32,10 @@ for feature in ['postMessage','JSON']
     warn "requires '#{feature}' and this browser does not support it"
     return
 
+instOf = (obj, global) ->
+  return false unless typeof window[global] is "function"
+  return obj instanceof window[global]
+
 #master-slave compatibility version
 COMPAT_VERSION = "V1"
 
@@ -46,7 +50,6 @@ toRegExp = (obj) ->
   return obj if obj instanceof RegExp
   str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
   return new RegExp "^#{str}$"
-
 
 strip = (src) ->
   dst = {}
@@ -77,23 +80,28 @@ CHECK_INTERVAL = 100
 #publicise
 window.xdomain = xdomain
 
-#auto init
+#auto init with attributes
+attrs =
+  slave: (value) ->
+    p = parseUrl value
+    return unless p
+    s = {}
+    s[p.origin] = p.path
+    addSlaves s
+  master: (value) ->
+    return unless value
+    m = {}
+    m[value] = /./
+    addMasters m
+  debug: (value) ->
+    return unless typeof value is "string"
+    xdomain.debug = value isnt "false"
+
 for script in document.getElementsByTagName("script")
   if /xdomain/.test(script.src)
     for prefix in ['','data-']
-      attr = script.getAttribute prefix+'slave'
-      if attr
-        p = parseUrl attr
-        break unless p
-        s = {}
-        s[p.origin] = p.path
-        addSlaves s
-        break
-      attr = script.getAttribute prefix+'master'
-      if attr
-        m = {}
-        m[attr] = /./
-        addMasters m
+      for k,fn of attrs
+        fn script.getAttribute prefix+k
 
 #init
 startPostMessage()

@@ -49,7 +49,8 @@ startPostMessage = -> onMessage (e) ->
     sock = createSocket id, e.source
     handler e.origin, sock
 
-  log "receive socket: #{id}: '#{d[0]}'"
+  extra = if typeof d[1] is "string" then ": '#{d[1]}'" else ""
+  log "receive socket: #{id}: '#{d[0]}'#{extra}"
   #emit data
   sock.fire.apply sock, d
   return
@@ -67,22 +68,22 @@ createSocket = (id, frame) ->
   pendingEmits = []
   sock.emit = ->
     args = slice arguments
-      
-    log "send socket: #{id}: #{args[0]}"
 
+    extra = if typeof args[1] is "string" then ": '#{args[1]}'" else ""
+    log "send socket: #{id}: #{args[0]}#{extra}"
     args.unshift id
-    #convert to string when necessary
-    args = JSON.stringify args if jsonEncode
-
     if ready
       emit args
     else
       pendingEmits.push args
     return
-
   emit = (args) ->
+    #convert to string when necessary
+    args = JSON.stringify args if jsonEncode
+    #send!
     frame.postMessage args, "*"
     return
+
   sock.close = ->
     sock.emit 'close'
     log "close socket: #{id}"
@@ -101,7 +102,7 @@ createSocket = (id, frame) ->
   checks = 0
   check = =>
     # send test message NO ENCODING
-    emit [id, XD_CHECK, ready, {}]
+    frame.postMessage [id, XD_CHECK, ready, {}], "*"
     if ready
       return
     if checks++ is xdomain.timeout/CHECK_INTERVAL

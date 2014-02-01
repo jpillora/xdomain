@@ -1,6 +1,7 @@
 // XHook - v1.1.3 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
+  __slice = [].slice;
 
 document = window.document;
 
@@ -17,6 +18,8 @@ OFF = 'removeEventListener';
 FIRE = 'dispatchEvent';
 
 XMLHTTP = 'XMLHttpRequest';
+
+FormData = 'FormData';
 
 UPLOAD_EVENTS = ['load', 'loadend', 'loadstart'];
 
@@ -198,6 +201,20 @@ convertHeaders = xhook.headers = function(h, dest) {
   }
 };
 
+xhook[FormData] = window[FormData];
+
+window[FormData] = function() {
+  var _this = this;
+  this.fd = new xhook[FormData];
+  this.entries = [];
+  this.append = function() {
+    var args;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    _this.entries.push(args);
+    return _this.fd.append.apply(_this.fd, args);
+  };
+};
+
 xhook[XMLHTTP] = window[XMLHTTP];
 
 window[XMLHTTP] = function() {
@@ -335,6 +352,9 @@ window[XMLHTTP] = function() {
       for (header in _ref2) {
         value = _ref2[header];
         xhr.setRequestHeader(header, value);
+      }
+      if (request.body instanceof window[FormData]) {
+        request.body = request.body.fd;
       }
       xhr.send(request.body);
     };

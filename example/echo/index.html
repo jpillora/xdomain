@@ -57,7 +57,10 @@
 
     <pre id="output"></pre>
 
-    <script src='../../dist/0.6/xdomain.js' slave='http://echo.jpillora.com/proxy.html?src=http://jpillora.com/xdomain/dist/0.6/xdomain.js'></script>
+    <script>
+      var src = window.location.protocol+"//"+window.location.host+'/dist/0.6/xdomain.js';
+      document.write("<script src='"+src+"' slave='http://echo.jpillora.com/proxy.html?src="+src+"'><"+"/script>");
+    </script>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
@@ -65,19 +68,35 @@
             type="text/javascript" charset="utf-8"></script>
 
     <script type="awesome/template" id="init-code">//cross domain ajax to echo.jpillora.com
-$.ajax({
-  type: 'POST',
-  url: 'http://echo.jpillora.com/foo-bar',
-  data: {
-    'Some': 'Data'
-  },
-  headers: {
-    'Foo': 'Bar'
-  },
-  timeout: 5000
-}).always(function(data, result, xhr) {
-  $("#output").html(result === 'success' ? xhr.responseText : result);
-});</script>
+var fd = new FormData();
+fd.append("test","42");
+fd.append("test2",new Blob(['<a id="a"><b id="b">hey!</b></a>'],{type:'text/html'}));
+
+var xhr = new XMLHttpRequest()
+
+xhr.open("POST", "http://echo.jpillora.com/foo-bar");
+
+xhr.onreadystatechange = function() {
+  if(xhr.readyState === 4)
+    $("#output").html(xhr.responseText);
+};
+
+xhr.send(fd);
+
+// $.ajax({
+//   type: 'POST',
+//   url: 'http://echo.jpillora.com/foo-bar',
+//   data: {
+//     'Some': 'Data'
+//   },
+//   headers: {
+//     'Foo': 'Bar'
+//   },
+//   timeout: 5000
+// }).always(function(data, result, xhr) {
+//   $("#output").html(result === 'success' ? xhr.responseText : result);
+// });
+</script>
 
     <script type="text/javascript">
 
@@ -100,6 +119,7 @@ $.ajax({
           window.editor = ace.edit("ace");
           editor.setTheme("ace/theme/textmate");
           editor.getSession().setMode("ace/mode/javascript");
+          editor.getSession().setUseWorker(false);
           editor.session.setTabSize(2);
           editor.session.setUseSoftTabs(true);
           editor.setShowPrintMargin(false);

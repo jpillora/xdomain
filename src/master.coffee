@@ -22,7 +22,6 @@ getFrame = (origin, proxyPath) ->
 
 initMaster = ->
 
-
   #hook XHR  calls
   xhook.before (request, callback) ->
 
@@ -46,20 +45,25 @@ initMaster = ->
       callback resp
       socket.close()
 
-    #client abort
-    # request.on 'abort', ->
-    #   socket.emit "abort"
-    #server abort
-    socket.on "abort", ->
-      request.abort()
-      socket.close()
+    #user wants to abort
+    request.xhr.addEventListener 'abort', ->
+      socket.emit "abort"
 
     socket.on "xhr-event", ->
       request.xhr.dispatchEvent.apply null, arguments
     socket.on "xhr-upload-event", ->
       request.xhr.upload.dispatchEvent.apply null, arguments
 
-    socket.emit "request", strip request  
+    obj = strip request
+    obj.headers = request.headers
+
+    if instOf(request.body, 'FormData')
+      obj.body = ["XD_FD",request.body.entries]
+
+    if instOf(request.body, 'Uint8Array')
+      obj.body = request.body
+
+    socket.emit "request", obj
     return
 
 

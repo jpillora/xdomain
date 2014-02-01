@@ -43,8 +43,8 @@ initSlave = ->
         xhr.upload.addEventListener "*", (e) ->
           socket.emit 'xhr-upload-event', e.type, strip e
 
-      xhr.onabort = ->
-        socket.emit 'abort'
+      socket.once "abort", ->
+        xhr.abort()
 
       xhr.onreadystatechange = ->
         return unless xhr.readyState is 4
@@ -55,13 +55,22 @@ initSlave = ->
           data: xhr.response
           headers: xhook.headers xhr.getAllResponseHeaders()
         try resp.text = xhr.responseText
-        try resp.xml = xhr.responseXML
+        # XML over postMessage not supported
+        # try resp.xml = xhr.responseXML
         socket.emit 'response', resp
       
       xhr.timeout = req.timeout if req.timeout
       xhr.responseType = req.type if req.type
       for k,v of req.headers
         xhr.setRequestHeader k, v
+
+      #deserialize FormData
+      if req.body instanceof Array and req.body[0] is "XD_FD"
+        fd = new xhook.FormData()
+        for args in req.body[1]
+          fd.append.apply fd, args
+        req.body = fd
+
       xhr.send req.body or null
       return
 

@@ -2,7 +2,8 @@
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.1.3 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
+  __slice = [].slice;
 
 document = window.document;
 
@@ -19,6 +20,8 @@ OFF = 'removeEventListener';
 FIRE = 'dispatchEvent';
 
 XMLHTTP = 'XMLHttpRequest';
+
+FormData = 'FormData';
 
 UPLOAD_EVENTS = ['load', 'loadend', 'loadstart'];
 
@@ -200,6 +203,20 @@ convertHeaders = xhook.headers = function(h, dest) {
   }
 };
 
+xhook[FormData] = window[FormData];
+
+window[FormData] = function() {
+  var _this = this;
+  this.fd = new xhook[FormData];
+  this.entries = [];
+  this.append = function() {
+    var args;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    _this.entries.push(args);
+    return _this.fd.append.apply(_this.fd, args);
+  };
+};
+
 xhook[XMLHTTP] = window[XMLHTTP];
 
 window[XMLHTTP] = function() {
@@ -338,6 +355,9 @@ window[XMLHTTP] = function() {
         value = _ref2[header];
         xhr.setRequestHeader(header, value);
       }
+      if (request.body instanceof window[FormData]) {
+        request.body = request.body.fd;
+      }
       xhr.send(request.body);
     };
     hooks = xhook.listeners(BEFORE);
@@ -400,7 +420,7 @@ window[XMLHTTP] = function() {
 
 (this.define || Object)((this.exports || this).xhook = xhook);
 }(this));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, attr, connect, console, createSocket, currentOrigin, feature, frames, getFrame, guid, handler, initMaster, initSlave, jsonEncode, listen, log, m, masters, onMessage, p, parseUrl, prefix, prep, s, script, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, attrs, connect, console, createSocket, currentOrigin, feature, fn, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, k, listen, log, masters, onMessage, parseUrl, prefix, prep, script, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
 
 slaves = null;
 
@@ -433,7 +453,7 @@ getFrame = function(origin, proxyPath) {
 
 initMaster = function() {
   return xhook.before(function(request, callback) {
-    var frame, p, socket;
+    var frame, obj, p, socket;
     p = parseUrl(request.url);
     if (!(p && slaves[p.origin])) {
       log("no slave matching: '" + p.origin + "'");
@@ -450,9 +470,8 @@ initMaster = function() {
       callback(resp);
       return socket.close();
     });
-    socket.on("abort", function() {
-      request.abort();
-      return socket.close();
+    request.xhr.addEventListener('abort', function() {
+      return socket.emit("abort");
     });
     socket.on("xhr-event", function() {
       return request.xhr.dispatchEvent.apply(null, arguments);
@@ -460,7 +479,15 @@ initMaster = function() {
     socket.on("xhr-upload-event", function() {
       return request.xhr.upload.dispatchEvent.apply(null, arguments);
     });
-    socket.emit("request", strip(request));
+    obj = strip(request);
+    obj.headers = request.headers;
+    if (instOf(request.body, 'FormData')) {
+      obj.body = ["XD_FD", request.body.entries];
+    }
+    if (instOf(request.body, 'Uint8Array')) {
+      obj.body = request.body;
+    }
+    socket.emit("request", obj);
   });
 };
 
@@ -500,7 +527,7 @@ initSlave = function() {
       return;
     }
     socket.once("request", function(req) {
-      var k, p, v, xhr, _ref;
+      var args, fd, k, p, v, xhr, _i, _len, _ref, _ref1;
       log("request: " + req.method + " " + req.url);
       p = parseUrl(req.url);
       if (!(p && pathRegex.test(p.path))) {
@@ -518,9 +545,9 @@ initSlave = function() {
           return socket.emit('xhr-upload-event', e.type, strip(e));
         });
       }
-      xhr.onabort = function() {
-        return socket.emit('abort');
-      };
+      socket.once("abort", function() {
+        return xhr.abort();
+      });
       xhr.onreadystatechange = function() {
         var resp;
         if (xhr.readyState !== 4) {
@@ -535,9 +562,6 @@ initSlave = function() {
         try {
           resp.text = xhr.responseText;
         } catch (_error) {}
-        try {
-          resp.xml = xhr.responseXML;
-        } catch (_error) {}
         return socket.emit('response', resp);
       };
       if (req.timeout) {
@@ -550,6 +574,15 @@ initSlave = function() {
       for (k in _ref) {
         v = _ref[k];
         xhr.setRequestHeader(k, v);
+      }
+      if (req.body instanceof Array && req.body[0] === "XD_FD") {
+        fd = new xhook.FormData();
+        _ref1 = req.body[1];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          args = _ref1[_i];
+          fd.append.apply(fd, args);
+        }
+        req.body = fd;
       }
       xhr.send(req.body || null);
     });
@@ -580,7 +613,7 @@ XD_CHECK = "XD_CHECK";
 
 startPostMessage = function() {
   return onMessage(function(e) {
-    var d, id, sock;
+    var d, extra, id, sock;
     d = e.data;
     if (typeof d === "string") {
       if (/^XPING_/.test(d)) {
@@ -613,7 +646,8 @@ startPostMessage = function() {
       sock = createSocket(id, e.source);
       handler(e.origin, sock);
     }
-    log("receive socket: " + id + ": '" + d[0] + "'");
+    extra = typeof d[1] === "string" ? ": '" + d[1] + "'" : "";
+    log("receive socket: " + id + ": '" + d[0] + "'" + extra);
     sock.fire.apply(sock, d);
   });
 };
@@ -630,13 +664,11 @@ createSocket = function(id, frame) {
   });
   pendingEmits = [];
   sock.emit = function() {
-    var args;
+    var args, extra;
     args = slice(arguments);
-    log("send socket: " + id + ": " + args[0]);
+    extra = typeof args[1] === "string" ? ": '" + args[1] + "'" : "";
+    log("send socket: " + id + ": " + args[0] + extra);
     args.unshift(id);
-    if (jsonEncode) {
-      args = JSON.stringify(args);
-    }
     if (ready) {
       emit(args);
     } else {
@@ -644,6 +676,9 @@ createSocket = function(id, frame) {
     }
   };
   emit = function(args) {
+    if (jsonEncode) {
+      args = JSON.stringify(args);
+    }
     frame.postMessage(args, "*");
   };
   sock.close = function() {
@@ -661,7 +696,7 @@ createSocket = function(id, frame) {
   });
   checks = 0;
   check = function() {
-    emit([id, XD_CHECK, ready, {}]);
+    frame.postMessage([id, XD_CHECK, ready, {}], "*");
     if (ready) {
       return;
     }
@@ -732,6 +767,13 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
   }
 }
 
+instOf = function(obj, global) {
+  if (typeof window[global] !== "function") {
+    return false;
+  }
+  return obj instanceof window[global];
+};
+
 COMPAT_VERSION = "V1";
 
 parseUrl = function(url) {
@@ -800,6 +842,34 @@ CHECK_INTERVAL = 100;
 
 window.xdomain = xdomain;
 
+attrs = {
+  slave: function(value) {
+    var p, s;
+    p = parseUrl(value);
+    if (!p) {
+      return;
+    }
+    s = {};
+    s[p.origin] = p.path;
+    return addSlaves(s);
+  },
+  master: function(value) {
+    var m;
+    if (!value) {
+      return;
+    }
+    m = {};
+    m[value] = /./;
+    return addMasters(m);
+  },
+  debug: function(value) {
+    if (typeof value !== "string") {
+      return;
+    }
+    return xdomain.debug = value !== "false";
+  }
+};
+
 _ref1 = document.getElementsByTagName("script");
 for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
   script = _ref1[_j];
@@ -807,22 +877,9 @@ for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
     _ref2 = ['', 'data-'];
     for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
       prefix = _ref2[_k];
-      attr = script.getAttribute(prefix + 'slave');
-      if (attr) {
-        p = parseUrl(attr);
-        if (!p) {
-          break;
-        }
-        s = {};
-        s[p.origin] = p.path;
-        addSlaves(s);
-        break;
-      }
-      attr = script.getAttribute(prefix + 'master');
-      if (attr) {
-        m = {};
-        m[attr] = /./;
-        addMasters(m);
+      for (k in attrs) {
+        fn = attrs[k];
+        fn(script.getAttribute(prefix + k));
       }
     }
   }
