@@ -1,4 +1,4 @@
-// XDomain - v0.6.0 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.1 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.1.4 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -456,7 +456,9 @@ initMaster = function() {
     var frame, obj, p, socket;
     p = parseUrl(request.url);
     if (!(p && slaves[p.origin])) {
-      log("no slave matching: '" + p.origin + "'");
+      if (p) {
+        log("no slave matching: '" + p.origin + "'");
+      }
       return callback();
     }
     log("proxying request slave: '" + p.origin + "'");
