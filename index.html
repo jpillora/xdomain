@@ -9,7 +9,6 @@
   <p>
     Cross-domain XHR access to Amazon (http://s3.amazonaws.com)<br>
     From '<span id="host"></span>'<br>
-    To 'http://s3.amazonaws.com/jpillora-usa/data1.json'<br>
   </p>
 
   <script src="http://s3.amazonaws.com/jpillora-usa/xdomain/0.6.min.js"
@@ -17,13 +16,20 @@
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
-  <pre id='output'></pre>
+
+  <h5>Same domain: 'example/data1.json'</h5>
+  <pre id='same'>Loading...</pre>
+
+  <h5>Cross domain 'http://s3.amazonaws.com/jpillora-usa/data2.json'</h5>
+  <p><i>Will be intercepted and silently sent over to the hidden iframe</i></p>
+  <pre id='cross'>Loading...</pre>
 
   <script type="text/javascript">
     //show current origin
     $("#host").html(xdomain.origin);
     //jquery ajax call
-    $("#output").load('http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json');
+    $("#same").load('example/s3/data1.json');
+    $("#cross").load('http://s3.amazonaws.com/jpillora-usa/xdomain/data2.json');
   </script>
 
   <script>
