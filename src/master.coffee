@@ -1,4 +1,3 @@
-
 slaves = null
 addSlaves = (s) ->
   if slaves is null
@@ -27,7 +26,10 @@ initMaster = ->
 
     #allow unless we have a slave domain
     p = parseUrl request.url
-    unless p and slaves[p.origin]
+    unless p 
+      log "URL not matching an external HTTP request..ignored"
+      return callback()
+    unless slaves[p.origin]
       log "no slave matching: '#{p.origin}'" if p
       return callback()
     log "proxying request slave: '#{p.origin}'"
