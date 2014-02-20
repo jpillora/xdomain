@@ -1,6 +1,6 @@
-// XDomain - v0.6.1 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.2 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.4 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __slice = [].slice;
@@ -176,6 +176,8 @@ xhook[AFTER] = function(handler, i) {
   return xhook[ON](AFTER, handler, i);
 };
 
+xhook.addWithCredentials = true;
+
 convertHeaders = xhook.headers = function(h, dest) {
   var header, headers, k, v, _i, _len;
   if (dest == null) {
@@ -318,7 +320,9 @@ window[XMLHTTP] = function() {
     return setReadyState(3);
   });
   proxyEvents(COMMON_EVENTS, xhr, facade);
-  facade.withCredentials = false;
+  if (xhook.addWithCredentials) {
+    facade.withCredentials = false;
+  }
   facade.response = null;
   facade.status = 0;
   facade.open = function(method, url, async, user, pass) {
@@ -347,8 +351,10 @@ window[XMLHTTP] = function() {
       _ref1 = ['type', 'timeout'];
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         k = _ref1[_j];
-        modk = k === "type" ? "responseType" : k;
-        xhr[modk] = request[k];
+        if (k in request) {
+          modk = k === "type" ? "responseType" : k;
+          xhr[modk] = request[k];
+        }
       }
       _ref2 = request.headers;
       for (header in _ref2) {
@@ -420,7 +426,7 @@ window[XMLHTTP] = function() {
 
 (this.define || Object)((this.exports || this).xhook = xhook);
 }(this));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, attrs, connect, console, createSocket, currentOrigin, feature, fn, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, k, listen, log, masters, onMessage, parseUrl, prefix, prep, script, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, masters, onMessage, parseUrl, prep, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
 
 slaves = null;
 
@@ -725,6 +731,8 @@ listen = function(h) {
 
 'use strict';
 
+location = window.location;
+
 currentOrigin = location.protocol + '//' + location.host;
 
 guid = function() {
@@ -779,13 +787,13 @@ instOf = function(obj, global) {
 COMPAT_VERSION = "V1";
 
 parseUrl = function(url) {
-  if (/(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)) {
+  if (/^((https?:)?\/\/[^\/\?]+)(\/.*)?/.test(url)) {
     return {
-      origin: RegExp.$1,
-      path: RegExp.$2
+      origin: (RegExp.$2 ? '' : location.protocol) + RegExp.$1,
+      path: RegExp.$3
     };
   } else {
-    log("failed to parse url: " + url);
+    log("failed to parse absolute url: " + url);
     return null;
   }
 };
@@ -844,48 +852,50 @@ CHECK_INTERVAL = 100;
 
 window.xdomain = xdomain;
 
-attrs = {
-  slave: function(value) {
-    var p, s;
-    p = parseUrl(value);
-    if (!p) {
-      return;
+(function() {
+  var attrs, fn, k, prefix, script, _j, _k, _len1, _len2, _ref1, _ref2;
+  attrs = {
+    slave: function(value) {
+      var p, s;
+      p = parseUrl(value);
+      if (!p) {
+        return;
+      }
+      s = {};
+      s[p.origin] = p.path;
+      return addSlaves(s);
+    },
+    master: function(value) {
+      var m;
+      if (!value) {
+        return;
+      }
+      m = {};
+      m[value] = /./;
+      return addMasters(m);
+    },
+    debug: function(value) {
+      if (typeof value !== "string") {
+        return;
+      }
+      return xdomain.debug = value !== "false";
     }
-    s = {};
-    s[p.origin] = p.path;
-    return addSlaves(s);
-  },
-  master: function(value) {
-    var m;
-    if (!value) {
-      return;
-    }
-    m = {};
-    m[value] = /./;
-    return addMasters(m);
-  },
-  debug: function(value) {
-    if (typeof value !== "string") {
-      return;
-    }
-    return xdomain.debug = value !== "false";
-  }
-};
-
-_ref1 = document.getElementsByTagName("script");
-for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-  script = _ref1[_j];
-  if (/xdomain/.test(script.src)) {
-    _ref2 = ['', 'data-'];
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      prefix = _ref2[_k];
-      for (k in attrs) {
-        fn = attrs[k];
-        fn(script.getAttribute(prefix + k));
+  };
+  _ref1 = document.getElementsByTagName("script");
+  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+    script = _ref1[_j];
+    if (/xdomain/.test(script.src)) {
+      _ref2 = ['', 'data-'];
+      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+        prefix = _ref2[_k];
+        for (k in attrs) {
+          fn = attrs[k];
+          fn(script.getAttribute(prefix + k));
+        }
       }
     }
   }
-}
+})();
 
 startPostMessage();
 }(this));

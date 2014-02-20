@@ -1,4 +1,4 @@
-// XHook - v1.1.4 - https://github.com/jpillora/xhook
+// XHook - v1.1.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __slice = [].slice;
@@ -174,6 +174,8 @@ xhook[AFTER] = function(handler, i) {
   return xhook[ON](AFTER, handler, i);
 };
 
+xhook.addWithCredentials = true;
+
 convertHeaders = xhook.headers = function(h, dest) {
   var header, headers, k, v, _i, _len;
   if (dest == null) {
@@ -316,7 +318,9 @@ window[XMLHTTP] = function() {
     return setReadyState(3);
   });
   proxyEvents(COMMON_EVENTS, xhr, facade);
-  facade.withCredentials = false;
+  if (xhook.addWithCredentials) {
+    facade.withCredentials = false;
+  }
   facade.response = null;
   facade.status = 0;
   facade.open = function(method, url, async, user, pass) {
@@ -345,8 +349,10 @@ window[XMLHTTP] = function() {
       _ref1 = ['type', 'timeout'];
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         k = _ref1[_j];
-        modk = k === "type" ? "responseType" : k;
-        xhr[modk] = request[k];
+        if (k in request) {
+          modk = k === "type" ? "responseType" : k;
+          xhr[modk] = request[k];
+        }
       }
       _ref2 = request.headers;
       for (header in _ref2) {

@@ -1,5 +1,6 @@
 'use strict'
 
+location = window.location
 currentOrigin = location.protocol + '//' + location.host
 
 #helpers
@@ -39,11 +40,12 @@ instOf = (obj, global) ->
 #master-slave compatibility version
 COMPAT_VERSION = "V1"
 
+#absolute url parser (relative urls aren't crossdomain)
 parseUrl = (url) ->
-  return if /(https?:\/\/[^\/\?]+)(\/.*)?/.test(url)
-    {origin: RegExp.$1, path: RegExp.$2}
+  return if /^((https?:)?\/\/[^\/\?]+)(\/.*)?/.test(url)
+    {origin: (if RegExp.$2 then '' else location.protocol)+RegExp.$1, path: RegExp.$3}
   else
-    log "failed to parse url: #{url}"
+    log "failed to parse absolute url: #{url}"
     null
 
 toRegExp = (obj) ->
@@ -51,6 +53,7 @@ toRegExp = (obj) ->
   str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
   return new RegExp "^#{str}$"
 
+#strip functions and objects from an object
 strip = (src) ->
   dst = {}
   for k of src
@@ -76,33 +79,34 @@ xdomain.parseUrl = parseUrl
 xdomain.origin = currentOrigin
 xdomain.timeout = 15e3
 CHECK_INTERVAL = 100
-
 #publicise
 window.xdomain = xdomain
 
 #auto init with attributes
-attrs =
-  slave: (value) ->
-    p = parseUrl value
-    return unless p
-    s = {}
-    s[p.origin] = p.path
-    addSlaves s
-  master: (value) ->
-    return unless value
-    m = {}
-    m[value] = /./
-    addMasters m
-  debug: (value) ->
-    return unless typeof value is "string"
-    xdomain.debug = value isnt "false"
+(->
+  attrs =
+    slave: (value) ->
+      p = parseUrl value
+      return unless p
+      s = {}
+      s[p.origin] = p.path
+      addSlaves s
+    master: (value) ->
+      return unless value
+      m = {}
+      m[value] = /./
+      addMasters m
+    debug: (value) ->
+      return unless typeof value is "string"
+      xdomain.debug = value isnt "false"
 
-for script in document.getElementsByTagName("script")
-  if /xdomain/.test(script.src)
-    for prefix in ['','data-']
-      for k,fn of attrs
-        fn script.getAttribute prefix+k
-
+  for script in document.getElementsByTagName("script")
+    if /xdomain/.test(script.src)
+      for prefix in ['','data-']
+        for k,fn of attrs
+          fn script.getAttribute prefix+k
+  return
+)()
 #init
 startPostMessage()
 
