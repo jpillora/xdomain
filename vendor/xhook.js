@@ -339,7 +339,9 @@ window[XMLHTTP] = function() {
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       k = _ref[_i];
       modk = k === "type" ? "responseType" : k;
-      request[k] = facade[modk];
+      if (modk in facade) {
+        request[k] = facade[modk];
+      }
     }
     request.body = body;
     send = function() {
@@ -349,8 +351,8 @@ window[XMLHTTP] = function() {
       _ref1 = ['type', 'timeout'];
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         k = _ref1[_j];
+        modk = k === "type" ? "responseType" : k;
         if (k in request) {
-          modk = k === "type" ? "responseType" : k;
           xhr[modk] = request[k];
         }
       }
