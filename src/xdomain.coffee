@@ -104,7 +104,10 @@ window.xdomain = xdomain
       addSlaves s
     master: (value) ->
       return unless value
-      p = parseUrl value
+      if value is "*"
+        p = {origin:"*",path:"*"}
+      else
+        p = parseUrl value
       return unless p
       m = {}
       m[p.origin] = if p.path.replace(/^\//,"") then p.path else "*"
