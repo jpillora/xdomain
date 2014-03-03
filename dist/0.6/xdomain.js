@@ -1,6 +1,6 @@
-// XDomain - v0.6.2 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.3 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.5 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.6 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __slice = [].slice;
@@ -337,7 +337,7 @@ window[XMLHTTP] = function() {
   };
   facade.send = function(body) {
     var hooks, k, modk, process, send, _i, _len, _ref;
-    _ref = ['type', 'timeout'];
+    _ref = ['type', 'timeout', 'withCredentials'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       k = _ref[_i];
       modk = k === "type" ? "responseType" : k;
@@ -350,7 +350,7 @@ window[XMLHTTP] = function() {
       var header, value, _j, _len1, _ref1, _ref2;
       transiting = true;
       xhr.open(request.method, request.url, true, request.user, request.pass);
-      _ref1 = ['type', 'timeout'];
+      _ref1 = ['type', 'timeout', 'withCredentials'];
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         k = _ref1[_j];
         modk = k === "type" ? "responseType" : k;
@@ -428,7 +428,7 @@ window[XMLHTTP] = function() {
 
 (this.define || Object)((this.exports || this).xhook = xhook);
 }(this));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, masters, onMessage, parseUrl, prep, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, masters, onMessage, parseUrl, prep, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
 
 slaves = null;
 
@@ -453,7 +453,7 @@ getFrame = function(origin, proxyPath) {
   }
   frame = document.createElement("iframe");
   frame.id = frame.name = guid();
-  frame.src = origin + proxyPath;
+  frame.src = "" + origin + proxyPath;
   frame.setAttribute('style', 'display:none;');
   document.body.appendChild(frame);
   return frames[origin] = frame.contentWindow;
@@ -496,6 +496,9 @@ initMaster = function() {
     }
     if (instOf(request.body, 'Uint8Array')) {
       obj.body = request.body;
+    }
+    if (request.withCredentials) {
+      obj.credentials = document.cookie;
     }
     socket.emit("request", obj);
   });
@@ -541,7 +544,7 @@ initSlave = function() {
       log("request: " + req.method + " " + req.url);
       p = parseUrl(req.url);
       if (!(p && pathRegex.test(p.path))) {
-        warn("blocked request to path: '" + p.path + "' by regex: " + regex);
+        warn("blocked request to path: '" + p.path + "' by regex: " + pathRegex);
         socket.close();
         return;
       }
@@ -574,6 +577,9 @@ initSlave = function() {
         } catch (_error) {}
         return socket.emit('response', resp);
       };
+      if (req.withCredentials) {
+        req.headers['XDomain-Cookie'] = req.credentials;
+      }
       if (req.timeout) {
         xhr.timeout = req.timeout;
       }
@@ -732,6 +738,8 @@ listen = function(h) {
 };
 
 'use strict';
+
+document = window.document;
 
 location = window.location;
 

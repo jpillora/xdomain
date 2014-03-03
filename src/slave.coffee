@@ -9,6 +9,7 @@ addMasters = (m) ->
   return
 
 initSlave = ->
+
   listen (origin, socket) ->
     origin = "*" if origin is "null"
     pathRegex = null
@@ -29,7 +30,7 @@ initSlave = ->
 
       p = parseUrl req.url
       unless p and pathRegex.test p.path
-        warn "blocked request to path: '#{p.path}' by regex: #{regex}"
+        warn "blocked request to path: '#{p.path}' by regex: #{pathRegex}"
         socket.close()
         return
 
@@ -59,6 +60,11 @@ initSlave = ->
         # try resp.xml = xhr.responseXML
         socket.emit 'response', resp
       
+      # document.cookie (Cookie header) can't be set inside an iframe
+      # as many browsers have 3rd party cookies disabled
+      if req.withCredentials
+        req.headers['XDomain-Cookie'] = req.credentials
+
       xhr.timeout = req.timeout if req.timeout
       xhr.responseType = req.type if req.type
       for k,v of req.headers
@@ -71,7 +77,9 @@ initSlave = ->
           fd.append.apply fd, args
         req.body = fd
 
+      #fire off request
       xhr.send req.body or null
+
       return
 
     log "slave listening for requests on socket: #{socket.id}"

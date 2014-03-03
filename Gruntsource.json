@@ -1,7 +1,7 @@
 {
   "name": "xdomain",
   "title": "XDomain",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "homepage": "https://github.com/jpillora/xdomain",
   "author": "Jaime Pillora <dev@jpillora.com>",
   "license": "MIT",
@@ -11,5 +11,6 @@
     "webget": {
       "http://jpillora.com/xhook/dist/1/xhook.js": "vendor/xhook.js"
     }
-  }
+  },
+  "bower": true
 }

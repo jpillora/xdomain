@@ -1,5 +1,6 @@
 'use strict'
 
+document = window.document
 location = window.location
 currentOrigin = location.protocol + '//' + location.host
 
@@ -62,6 +63,12 @@ strip = (src) ->
     if typeof v not in ["function","object"]
       dst[k] = v
   dst
+
+#cookies helper (disabled - 3rd party cookie issue)
+# cookies = (set, cookieString) ->
+#   for c in cookieString.split /; /
+#     document.cookie = c + (if set then "" else "; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+#   return
 
 #public methods
 xdomain = (o) ->

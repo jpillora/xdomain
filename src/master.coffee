@@ -15,7 +15,7 @@ getFrame = (origin, proxyPath) ->
     return frames[origin]
   frame = document.createElement "iframe"
   frame.id = frame.name = guid()
-  frame.src = origin + proxyPath
+  frame.src = "#{origin}#{proxyPath}"
   frame.setAttribute 'style', 'display:none;'
   document.body.appendChild frame
   return frames[origin] = frame.contentWindow
@@ -62,6 +62,9 @@ initMaster = ->
 
     if instOf(request.body, 'Uint8Array')
       obj.body = request.body
+
+    if request.withCredentials
+      obj.credentials = document.cookie
 
     socket.emit "request", obj
     return

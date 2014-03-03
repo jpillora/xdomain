@@ -130,10 +130,11 @@ in the `object`, see API below.
 
   Will initialize as a master
   
-  Each of the `masters` must be defined as: `origin`: `allowed path` (RegExp) 
-  
-  `origin` will also be converted to a regular expression by escaping all
-  non alphanumeric chars, converting `*` into `.+` and wrapping with `^` and `$`.
+  Each of the `masters` must be defined as: `origin`: `path`
+
+  `origin` and `path` are converted to a regular expression by escaping all
+  non-alphanumeric chars, then converting `*` into `.+` and finally wrapping it
+  with `^` and `$`. `path` can also be a `RegExp` literal.
   
   Requests that do not match **both** the `origin` and the `path` regular
   expressions will be blocked.
@@ -149,7 +150,7 @@ in the `object`, see API below.
   <script src="/dist/0.6/xdomain.min.js"></script>
   <script>
     xdomain.masters({
-      "http://*.example.com": /.*/
+      "http://*.example.com": "*"
     });
   </script>
   ```
@@ -173,19 +174,17 @@ in the `object`, see API below.
 
 XHR interception is done seemlessly via [XHook](https://github.com/jpillora/xhook#overview).
 
-## Internet Explorer
-
-Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
-from going into quirks mode. If you don't do this, XDomain will warn you about
-the missing `JSON` and/or `postMessage` globals and will exit.
-
 ## FAQ
 
 Q: But I love CORS
 
 A: You shouldn't. You should use XDomain because:
 
-* IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness.
+* IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness. XDomainRequest also has many restrictions:
+    * Requests must be `GET` or `POST`
+    * Requests must must use the same protocol as the page `http` -> `http`
+    * Requests only emit `progress`,`timeout` and `error`
+    * Requests may only use the `Content-Type` header
 * The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
 * On RESTful JSON API server, CORS will generating superfluous traffic by sending a
   preflight OPTIONS request on all requests, except for GET and HEAD.
@@ -197,7 +196,19 @@ A: You shouldn't. You should use XDomain because:
   src="https://accounts.google.com/o/oauth2/postmessageRelay?..."> </iframe>
   ```
 
+## Internet Explorer
+
+Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
+from going into quirks mode. If you don't do this, XDomain will warn you about
+the missing `JSON` and/or `postMessage` globals and will exit.
+
+If you need CORS and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try. Keep the restrictions listed above in mind and note, this polyfill is still proof of concept so it may have bugs.
+
 ## Troubleshooting
+
+Q: In IE, I'm seeing `Access Denied` error
+
+A: This is a CORS error. See below.
 
 Q: The browser is still sending a CORS request.
 
