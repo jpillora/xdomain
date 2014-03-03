@@ -5,6 +5,7 @@ addMasters = (m) ->
     masters = {}
     initSlave()
   for origin, path of m
+    log "adding master: #{origin}"
     masters[origin] = path
   return
 

@@ -53,7 +53,7 @@
     </div>
 
     <div id="ace"></div>
-    <textarea id="ta" readonly="readonly"></textarea>
+    <textarea id="ta"></textarea>
 
     <pre id="output"></pre>
 
@@ -67,7 +67,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"
             type="text/javascript" charset="utf-8"></script>
 
-    <script type="awesome/template" id="init-code">//cross domain ajax to echo.jpillora.com
+<!-- 
 var fd = new FormData();
 fd.append("test","42");
 fd.append("test2",new Blob(['<a id="a"><b id="b">hey!</b></a>'],{type:'text/html'}));
@@ -82,20 +82,22 @@ xhr.onreadystatechange = function() {
 };
 
 xhr.send(fd);
+ -->
 
-// $.ajax({
-//   type: 'POST',
-//   url: 'http://echo.jpillora.com/foo-bar',
-//   data: {
-//     'Some': 'Data'
-//   },
-//   headers: {
-//     'Foo': 'Bar'
-//   },
-//   timeout: 5000
-// }).always(function(data, result, xhr) {
-//   $("#output").html(result === 'success' ? xhr.responseText : result);
-// });
+    <script type="awesome/template" id="init-code">//cross domain ajax to echo.jpillora.com
+$.ajax({
+  type: 'POST',
+  url: 'http://echo.jpillora.com/foo-bar',
+  data: {
+    'Some': 'Data'
+  },
+  headers: {
+    'Foo': 'Bar'
+  },
+  timeout: 5000
+}).always(function(data, result, xhr) {
+  $("#output").html(result === 'success' ? xhr.responseText : result);
+});
 </script>
 
     <script type="text/javascript">

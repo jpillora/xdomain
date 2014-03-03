@@ -21,11 +21,14 @@ startPostMessage = -> onMessage (e) ->
   d = e.data
   #return if not a json string
   if typeof d is "string"
+    #only old versions of xdomain send XPINGs...
     if /^XPING_/.test d
       return warn "your master is not compatible with your slave, check your xdomain.js verison"
+    #IE will "toString()" the array, this reverses that action
     else if /^xdomain-/.test d
       d = d.split ","
-    else
+    #this browser must json encode postmessages
+    else if jsonEncode
       try d = JSON.parse d
       catch
         return
@@ -36,13 +39,12 @@ startPostMessage = -> onMessage (e) ->
   id = d.shift()
   unless /^xdomain-/.test id
     return
-
   #finally, create/get socket
   sock = sockets[id]
   #closed
   if sock is null
     return
-
+  #needs creation
   if sock is `undefined`
     #send unsolicited requests to the listening server
     return unless handler
@@ -102,7 +104,7 @@ createSocket = (id, frame) ->
   checks = 0
   check = =>
     # send test message NO ENCODING
-    frame.postMessage [id, XD_CHECK, ready, {}], "*"
+    frame.postMessage [id, XD_CHECK, {}], "*"
     if ready
       return
     if checks++ is xdomain.timeout/CHECK_INTERVAL

@@ -1,4 +1,4 @@
-// XDomain - v0.6.3 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.4 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.1.6 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -440,6 +440,7 @@ addSlaves = function(s) {
   }
   for (origin in s) {
     path = s[origin];
+    log("adding slave: " + origin);
     slaves[origin] = path;
   }
 };
@@ -453,6 +454,7 @@ getFrame = function(origin, proxyPath) {
   }
   frame = document.createElement("iframe");
   frame.id = frame.name = guid();
+  log("creating iframe " + frame.id);
   frame.src = "" + origin + proxyPath;
   frame.setAttribute('style', 'display:none;');
   document.body.appendChild(frame);
@@ -469,7 +471,7 @@ initMaster = function() {
       }
       return callback();
     }
-    log("proxying request slave: '" + p.origin + "'");
+    log("proxying request to slave: '" + p.origin + "'");
     if (request.async === false) {
       warn("sync not supported");
       return callback();
@@ -514,6 +516,7 @@ addMasters = function(m) {
   }
   for (origin in m) {
     path = m[origin];
+    log("adding master: " + origin);
     masters[origin] = path;
   }
 };
@@ -636,7 +639,7 @@ startPostMessage = function() {
         return warn("your master is not compatible with your slave, check your xdomain.js verison");
       } else if (/^xdomain-/.test(d)) {
         d = d.split(",");
-      } else {
+      } else if (jsonEncode) {
         try {
           d = JSON.parse(d);
         } catch (_error) {
@@ -712,7 +715,7 @@ createSocket = function(id, frame) {
   });
   checks = 0;
   check = function() {
-    frame.postMessage([id, XD_CHECK, ready, {}], "*");
+    frame.postMessage([id, XD_CHECK, {}], "*");
     if (ready) {
       return;
     }
@@ -815,7 +818,7 @@ toRegExp = function(obj) {
   }
   str = obj.toString().replace(/\W/g, function(str) {
     return "\\" + str;
-  }).replace(/\\\*/g, ".+");
+  }).replace(/\\\*/g, ".*");
   return new RegExp("^" + str + "$");
 };
 
@@ -865,8 +868,17 @@ window.xdomain = xdomain;
 (function() {
   var attrs, fn, k, prefix, script, _j, _k, _len1, _len2, _ref1, _ref2;
   attrs = {
+    debug: function(value) {
+      if (typeof value !== "string") {
+        return;
+      }
+      return xdomain.debug = value !== "false";
+    },
     slave: function(value) {
       var p, s;
+      if (!value) {
+        return;
+      }
       p = parseUrl(value);
       if (!p) {
         return;
@@ -876,19 +888,17 @@ window.xdomain = xdomain;
       return addSlaves(s);
     },
     master: function(value) {
-      var m;
+      var m, p;
       if (!value) {
         return;
       }
-      m = {};
-      m[value] = /./;
-      return addMasters(m);
-    },
-    debug: function(value) {
-      if (typeof value !== "string") {
+      p = parseUrl(value);
+      if (!p) {
         return;
       }
-      return xdomain.debug = value !== "false";
+      m = {};
+      m[p.origin] = p.path.replace(/^\//, "") ? p.path : "*";
+      return addMasters(m);
     }
   };
   _ref1 = document.getElementsByTagName("script");

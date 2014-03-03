@@ -88,23 +88,23 @@ and uses that, XHook won't be able to intercept those requests.
 
 ### Using multiple masters and slaves
 
-The following two snippets are equivalent:
+  The following two snippets are equivalent:
 
-``` html
-<script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
-```
+  ``` html
+  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  ```
 
-``` html
-<script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
-<script>
-xdomain.masters({
-  'http://abc.example.com': /.*/
-});
-</script>
-```
+  ``` html
+  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
+  <script>
+  xdomain.masters({
+    'http://abc.example.com': '/api/*'
+  });
+  </script>
+  ```
 
-So, we can then add more `masters` or (`slaves`) by simply including them
-in the `object`, see API below.
+  So, we can then add more `masters` or (`slaves`) by simply including them
+  in the `object`, see API below.
 
 ## API
 
@@ -133,7 +133,7 @@ in the `object`, see API below.
   Each of the `masters` must be defined as: `origin`: `path`
 
   `origin` and `path` are converted to a regular expression by escaping all
-  non-alphanumeric chars, then converting `*` into `.+` and finally wrapping it
+  non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it
   with `^` and `$`. `path` can also be a `RegExp` literal.
   
   Requests that do not match **both** the `origin` and the `path` regular
@@ -142,7 +142,7 @@ in the `object`, see API below.
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/0.6/xdomain.min.js" data-master="http://*.example.com"></script>
+  <script src="/dist/0.6/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
   ```
   
   Which is equivalent to:
@@ -150,17 +150,18 @@ in the `object`, see API below.
   <script src="/dist/0.6/xdomain.min.js"></script>
   <script>
     xdomain.masters({
-      "http://*.example.com": "*"
+      "http://*.example.com": "/api/*.json"
     });
   </script>
   ```
+
+  Where `"/api/*.json"` becomes the RegExp `/^\/api\/.*\.json$/`
   
   Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
   <!-- BEWARE: VERY INSECURE -->
   <script src="/dist/0.6/xdomain.min.js" master="*"></script>
   ```
-
 
 ### `xdomain.debug` = `false`
 
@@ -202,13 +203,13 @@ Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
 from going into quirks mode. If you don't do this, XDomain will warn you about
 the missing `JSON` and/or `postMessage` globals and will exit.
 
-If you need CORS and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try. Keep the restrictions listed above in mind and note, this polyfill is still proof of concept so it may have bugs.
+If you need CORS and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
 
 ## Troubleshooting
 
 Q: In IE, I'm seeing `Access Denied` error
 
-A: This is a CORS error. See below.
+A: This is an IE CORS error. See below.
 
 Q: The browser is still sending a CORS request.
 
@@ -219,6 +220,10 @@ The safest way to fix it is to include XDomain **first**, it has no dependancies
 it only modifies `window.XMLHttpRequest`. If you can't, break where `xhr.send()`
 is called and if you're using the original `XMLHttpRequest`,
 `xhr.constructor == window.XMLHttpRequest` will be false.
+
+Q: It's still not working!
+
+A: Enable `xdomain.debug = true;` and copy the `console.logs` to a new issue
 
 ## Contributing
 

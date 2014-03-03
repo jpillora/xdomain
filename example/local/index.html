@@ -1,36 +1,43 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <script type="text/javascript">
-
-  </script>
 </head>
 <body>
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://127.0.0.1:3000/CONTRIBUTING.md'</h5>
-
-  <script src="../../dist/0.6/xdomain.js"
-    slave="http://127.0.0.1:3000/example/local/proxy2.html"></script>
-
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <h5>To 'http://<span id="target"></span>:3000/CONTRIBUTING.md'</h5>
 
   <pre id='output'></pre>
 
   <script type="text/javascript">
-    var href = 'http://localhost:3000/example/local/index.html';
-    if(window.location.href !== href)
-      window.location.href = href;
+    
+    var origins = {
+      'localhost': '127.0.0.1',
+      'abc.lvho.st': 'xyz.lvho.st',
+    };
 
-    xhook.before(function(req) {
-      req.withCredentials = true;
-      console.log(req)
-    }, 0);
+    var src = location.hostname;
+    var target = origins[src];
+    if(!target)
+      alert("this is a local test only");
+
+    //create xdomain script tag usign target
+    document.write("<script src='../../dist/0.6/xdomain.js' debug='false' "+
+      " slave='http://"+target+":3000/example/local/proxy1.html'><\/script>");
+  </script>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script type="text/javascript">
+    // xhook.before(function(req) {
+    //   req.withCredentials = true;
+    //   console.log(req)
+    // }, 0);
 
     //show current origin
     $("#host").html(xdomain.origin);
+    $("#target").html(target);
     //jquery ajax call
-    $("#output").load('http://127.0.0.1:3000/CONTRIBUTING.md');
+    $("#output").load('http://'+target+':3000/CONTRIBUTING.md');
   </script>
 
 </body>

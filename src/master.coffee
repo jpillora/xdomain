@@ -5,6 +5,7 @@ addSlaves = (s) ->
     slaves = {}
     initMaster()
   for origin, path of s
+    log "adding slave: #{origin}"
     slaves[origin] = path
   return
 
@@ -15,6 +16,7 @@ getFrame = (origin, proxyPath) ->
     return frames[origin]
   frame = document.createElement "iframe"
   frame.id = frame.name = guid()
+  log "creating iframe #{frame.id}"
   frame.src = "#{origin}#{proxyPath}"
   frame.setAttribute 'style', 'display:none;'
   document.body.appendChild frame
@@ -24,13 +26,13 @@ initMaster = ->
 
   #hook XHR  calls
   xhook.before (request, callback) ->
-
+    
     #allow unless we have a slave domain
     p = parseUrl request.url
     unless p and slaves[p.origin]
       log "no slave matching: '#{p.origin}'" if p
       return callback()
-    log "proxying request slave: '#{p.origin}'"
+    log "proxying request to slave: '#{p.origin}'"
 
     if request.async is false
       warn "sync not supported"

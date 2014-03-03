@@ -51,7 +51,7 @@ parseUrl = (url) ->
 
 toRegExp = (obj) ->
   return obj if obj instanceof RegExp
-  str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
+  str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".*")
   return new RegExp "^#{str}$"
 
 #strip functions and objects from an object
@@ -92,7 +92,11 @@ window.xdomain = xdomain
 #auto init with attributes
 (->
   attrs =
+    debug: (value) ->
+      return unless typeof value is "string"
+      xdomain.debug = value isnt "false"
     slave: (value) ->
+      return unless value
       p = parseUrl value
       return unless p
       s = {}
@@ -100,12 +104,11 @@ window.xdomain = xdomain
       addSlaves s
     master: (value) ->
       return unless value
+      p = parseUrl value
+      return unless p
       m = {}
-      m[value] = /./
+      m[p.origin] = if p.path.replace(/^\//,"") then p.path else "*"
       addMasters m
-    debug: (value) ->
-      return unless typeof value is "string"
-      xdomain.debug = value isnt "false"
 
   for script in document.getElementsByTagName("script")
     if /xdomain/.test(script.src)
