@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "grunt": "^0.4.2",
+    "grunt-saucelabs": "^5.0.1",
+    "grunt-contrib-connect": "^0.7.1"
+  }
+}

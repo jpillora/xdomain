@@ -29,9 +29,14 @@ initMaster = ->
     
     #allow unless we have a slave domain
     p = parseUrl request.url
-    unless p and slaves[p.origin]
+
+    if not p or p.origin is currentOrigin
+      return callback()
+
+    unless slaves[p.origin]
       log "no slave matching: '#{p.origin}'" if p
       return callback()
+    
     log "proxying request to slave: '#{p.origin}'"
 
     if request.async is false

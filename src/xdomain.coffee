@@ -1,8 +1,23 @@
 'use strict'
 
+#public methods
+xdomain = (o) ->
+  return unless o
+  if o.masters
+    addMasters o.masters
+  if o.slaves
+    addSlaves o.slaves
+  return
+
+xdomain.masters = addMasters
+xdomain.slaves = addSlaves
+xdomain.debug = false
+xdomain.timeout = 15e3
+CHECK_INTERVAL = 100
+
 document = window.document
 location = window.location
-currentOrigin = location.protocol + '//' + location.host
+currentOrigin = xdomain.origin = location.protocol + '//' + location.host
 
 #helpers
 guid = -> 'xdomain-'+Math.round(Math.random()*Math.pow(2,32)).toString(16)
@@ -16,12 +31,16 @@ console = window.console || {}
 log = (str) ->
   return unless xdomain.debug
   str = prep str
+  if 'log' of xdomain
+    xdomain.log str
   if 'log' of console
     console.log str
   return
 
 warn = (str) ->
   str = prep str
+  if 'warn' of xdomain
+    xdomain.warn str
   if 'warn' of console
     console.warn str
   else
@@ -42,7 +61,7 @@ instOf = (obj, global) ->
 COMPAT_VERSION = "V1"
 
 #absolute url parser (relative urls aren't crossdomain)
-parseUrl = (url) ->
+parseUrl = xdomain.parseUrl = (url) ->
   return if /^((https?:)?\/\/[^\/\?]+)(\/.*)?/.test(url)
     {origin: (if RegExp.$2 then '' else location.protocol)+RegExp.$1, path: RegExp.$3}
   else
@@ -70,24 +89,6 @@ strip = (src) ->
 #     document.cookie = c + (if set then "" else "; expires=Thu, 01 Jan 1970 00:00:00 GMT")
 #   return
 
-#public methods
-xdomain = (o) ->
-  return unless o
-  if o.masters
-    addMasters o.masters
-  if o.slaves
-    addSlaves o.slaves
-  return
-
-xdomain.debug = false
-xdomain.masters = addMasters
-xdomain.slaves = addSlaves
-xdomain.parseUrl = parseUrl
-xdomain.origin = currentOrigin
-xdomain.timeout = 15e3
-CHECK_INTERVAL = 100
-#publicise
-window.xdomain = xdomain
 
 #auto init with attributes
 (->
@@ -123,3 +124,5 @@ window.xdomain = xdomain
 #init
 startPostMessage()
 
+#publicise
+window.xdomain = xdomain

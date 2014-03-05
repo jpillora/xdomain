@@ -465,7 +465,10 @@ initMaster = function() {
   return xhook.before(function(request, callback) {
     var frame, obj, p, socket;
     p = parseUrl(request.url);
-    if (!(p && slaves[p.origin])) {
+    if (!p || p.origin === currentOrigin) {
+      return callback();
+    }
+    if (!slaves[p.origin]) {
       if (p) {
         log("no slave matching: '" + p.origin + "'");
       }
@@ -742,11 +745,33 @@ listen = function(h) {
 
 'use strict';
 
+xdomain = function(o) {
+  if (!o) {
+    return;
+  }
+  if (o.masters) {
+    addMasters(o.masters);
+  }
+  if (o.slaves) {
+    addSlaves(o.slaves);
+  }
+};
+
+xdomain.masters = addMasters;
+
+xdomain.slaves = addSlaves;
+
+xdomain.debug = false;
+
+xdomain.timeout = 15e3;
+
+CHECK_INTERVAL = 100;
+
 document = window.document;
 
 location = window.location;
 
-currentOrigin = location.protocol + '//' + location.host;
+currentOrigin = xdomain.origin = location.protocol + '//' + location.host;
 
 guid = function() {
   return 'xdomain-' + Math.round(Math.random() * Math.pow(2, 32)).toString(16);
@@ -767,6 +792,9 @@ log = function(str) {
     return;
   }
   str = prep(str);
+  if ('log' in xdomain) {
+    xdomain.log(str);
+  }
   if ('log' in console) {
     console.log(str);
   }
@@ -774,6 +802,9 @@ log = function(str) {
 
 warn = function(str) {
   str = prep(str);
+  if ('warn' in xdomain) {
+    xdomain.warn(str);
+  }
   if ('warn' in console) {
     console.warn(str);
   } else {
@@ -799,7 +830,7 @@ instOf = function(obj, global) {
 
 COMPAT_VERSION = "V1";
 
-parseUrl = function(url) {
+parseUrl = xdomain.parseUrl = function(url) {
   if (/^((https?:)?\/\/[^\/\?]+)(\/.*)?/.test(url)) {
     return {
       origin: (RegExp.$2 ? '' : location.protocol) + RegExp.$1,
@@ -836,34 +867,6 @@ strip = function(src) {
   }
   return dst;
 };
-
-xdomain = function(o) {
-  if (!o) {
-    return;
-  }
-  if (o.masters) {
-    addMasters(o.masters);
-  }
-  if (o.slaves) {
-    addSlaves(o.slaves);
-  }
-};
-
-xdomain.debug = false;
-
-xdomain.masters = addMasters;
-
-xdomain.slaves = addSlaves;
-
-xdomain.parseUrl = parseUrl;
-
-xdomain.origin = currentOrigin;
-
-xdomain.timeout = 15e3;
-
-CHECK_INTERVAL = 100;
-
-window.xdomain = xdomain;
 
 (function() {
   var attrs, fn, k, prefix, script, _j, _k, _len1, _len2, _ref1, _ref2;
@@ -925,4 +928,6 @@ window.xdomain = xdomain;
 })();
 
 startPostMessage();
+
+window.xdomain = xdomain;
 }(this));
