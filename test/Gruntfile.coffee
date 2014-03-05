@@ -14,14 +14,6 @@ browsers = [
     browserName: "internet explorer"
     version: "8"
   ,
-    platform: "Windows 2003"
-    browserName: "internet explorer"
-    version: "7"
-  ,
-    platform: "Windows 2003"
-    browserName: "internet explorer"
-    version: "6"
-  ,
     browserName: 'safari'
     version: '6'
   ,
@@ -44,6 +36,8 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-saucelabs'
 
+  runId = crypto.randomBytes(4).toString('hex')
+
   grunt.initConfig
 
     # Cross-browser testing
@@ -61,8 +55,8 @@ module.exports = (grunt) ->
           key: process.env.SAUCELABS_KEY
           urls: ['http://127.0.0.1:3000/test/runner.html']
           browsers: browsers
-          build: process.env.TRAVIS_JOB_ID or crypto.randomBytes(4).toString('hex')
-          testname: 'XDomain Cross Browser Tests'
+          build: process.env.TRAVIS_JOB_ID or runId
+          testname: 'XDomain #' + runId
           concurrency: 8
 
   grunt.registerTask 'default', ['connect', 'saucelabs-mocha']
