@@ -1,6 +1,43 @@
 #for running tests only!
-
 crypto = require 'crypto'
+
+browsers = [
+    platform: "Windows 2012"
+    browserName: "internet explorer"
+    version: "10"
+  ,
+    platform: "Windows 2008"
+    browserName: "internet explorer"
+    version: "9"
+  ,
+    platform: "Windows 2003"
+    browserName: "internet explorer"
+    version: "8"
+  ,
+    platform: "Windows 2003"
+    browserName: "internet explorer"
+    version: "7"
+  ,
+    platform: "Windows 2003"
+    browserName: "internet explorer"
+    version: "6"
+  ,
+    browserName: 'safari'
+    version: '6'
+  ,
+    browserName: 'safari'
+    version: '5'
+  ,
+    browserName: 'ipad'
+  ,
+    browserName: 'iphone'
+  ,
+    browserName: 'android'
+  ,
+    browserName: 'chrome'
+  ,
+    browserName: 'firefox'
+]
 
 module.exports = (grunt) ->
 
@@ -20,32 +57,10 @@ module.exports = (grunt) ->
     'saucelabs-mocha':
       all:
         options:
-          username: 'jpillora-xdomain'
-          key: '245c03d5-d041-446d-b7b9-d7b2a9a08890'
+          username: process.env.SAUCELABS_USERNAME
+          key: process.env.SAUCELABS_KEY
           urls: ['http://127.0.0.1:3000/test/runner.html']
-          browsers: [
-            browserName: 'googlechrome'
-          ,
-            browserName: 'firefox'
-          ,
-            browserName: 'safari'
-            version: '6'
-          ,
-            browserName: 'safari'
-            version: '5'
-          ,
-            browserName: 'opera'
-            version: '12'
-          ,
-            browserName: 'internet explorer'
-            version: '10'
-          ,
-            browserName: 'internet explorer'
-            version: '9'
-          ,
-            browserName: 'internet explorer'
-            version: '8'
-          ]
+          browsers: browsers
           build: process.env.TRAVIS_JOB_ID or crypto.randomBytes(4).toString('hex')
           testname: 'XDomain Cross Browser Tests'
           concurrency: 8
