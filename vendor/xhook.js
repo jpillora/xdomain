@@ -1,6 +1,6 @@
-// XHook - v1.1.6 - https://github.com/jpillora/xhook
+// XHook - v1.1.7 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __slice = [].slice;
 
 document = window.document;
@@ -176,6 +176,14 @@ xhook[AFTER] = function(handler, i) {
 
 xhook.addWithCredentials = true;
 
+xhook.enable = function() {
+  window[XMLHTTP] = XHookHttpRequest;
+};
+
+xhook.disable = function() {
+  window[XMLHTTP] = xhook[XMLHTTP];
+};
+
 convertHeaders = xhook.headers = function(h, dest) {
   var header, headers, k, v, _i, _len;
   if (dest == null) {
@@ -219,7 +227,7 @@ window[FormData] = function() {
 
 xhook[XMLHTTP] = window[XMLHTTP];
 
-window[XMLHTTP] = function() {
+XHookHttpRequest = window[XMLHTTP] = function() {
   var currentState, facade, readBody, readHead, request, response, setReadyState, transiting, writeBody, writeHead, xhr;
   xhr = new xhook[XMLHTTP]();
   transiting = false;
@@ -253,9 +261,13 @@ window[XMLHTTP] = function() {
     facade.statusText = response.statusText;
   };
   writeBody = function() {
-    facade.response = response.data || response.text || null;
-    facade.responseText = response.text || '';
-    facade.responseXML = response.xml || null;
+    if (response.hasOwnProperty('text')) {
+      facade.responseText = response.text;
+    } else if (response.hasOwnProperty('xml')) {
+      facade.responseXML = response.xml;
+    } else {
+      facade.response = response.data || null;
+    }
   };
   currentState = 0;
   setReadyState = function(n) {
@@ -321,7 +333,6 @@ window[XMLHTTP] = function() {
   if (xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
-  facade.response = null;
   facade.status = 0;
   facade.open = function(method, url, async, user, pass) {
     request.method = method;
