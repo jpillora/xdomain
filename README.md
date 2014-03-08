@@ -46,6 +46,8 @@ conjunction with any library.
 
 All except IE6/7 as they don't have `postMessage`
 
+[![Build Status](https://travis-ci.org/jpillora/xdomain.png)](https://travis-ci.org/jpillora/xdomain)
+
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/jpillora-xdomain.svg)](https://saucelabs.com/u/jpillora-xdomain)
 
 ## Quick Usage
