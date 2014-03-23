@@ -4,6 +4,10 @@
   <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
 </a>
 
+<a href="bitcoin:1AxEWoz121JSC3rV8e9MkaN9GAc5Jxvs4?label=Jaime%20Pillora">
+  <img src="https://dl.dropboxusercontent.com/u/14376395/Pictures/bitcoin.png"></img>
+</a>
+
 ## Summary
 
 A pure JavaScript CORS alternative/polyfill. No server configuration required - 
