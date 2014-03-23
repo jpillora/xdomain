@@ -274,5 +274,4 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/522b80b35a6636fe47e616dd63c90ca6 "githalytics.com")](http://githalytics.com/jpillora/xdomain)
+[![Analytics](https://ga-beacon.appspot.com/UA-38709761-8/xdomain/readme)](https://github.com/igrigorik/ga-beacon)
