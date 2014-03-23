@@ -4,10 +4,6 @@
   <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
 </a>
 
-<a href="bitcoin:1AxEWoz121JSC3rV8e9MkaN9GAc5Jxvs4?label=Jaime%20Pillora">
-  <img src="https://dl.dropboxusercontent.com/u/14376395/Pictures/bitcoin.png"></img>
-</a>
-
 ## Summary
 
 A pure JavaScript CORS alternative/polyfill. No server configuration required - 
@@ -250,6 +246,10 @@ v0.3.0 - Moved to vanilla, using XHook to hook XHR instead of `$.ajax`
 v0.2.0 - Removed PortHole, using pure postMessage, IE6/7 NOT supported
 
 v0.1.0 - Alpha
+
+#### Donate
+
+BTC 1AxEWoz121JSC3rV8e9MkaN9GAc5Jxvs4
 
 #### MIT License
 
