@@ -1,4 +1,4 @@
-// XDomain - v0.6.7 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.8 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.1.7 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -663,8 +663,8 @@ startPostMessage = function() {
     var d, extra, id, sock;
     d = e.data;
     if (typeof d === "string") {
-      if (/^XPING_/.test(d)) {
-        return warn("your master is not compatible with your slave, check your xdomain.js verison");
+      if (/^XDPING(_(V\d+))?$/.test(d) && RegExp.$2 !== COMPAT_VERSION) {
+        return warn("your master is not compatible with your slave, check your xdomain.js version");
       } else if (/^xdomain-/.test(d)) {
         d = d.split(",");
       } else if (jsonEncode) {
