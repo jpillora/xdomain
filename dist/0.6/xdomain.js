@@ -474,7 +474,7 @@ getFrame = function(origin, proxyPath) {
 
 initMaster = function() {
   return xhook.before(function(request, callback) {
-    var frame, obj, p, socket;
+    var frame, obj, p, reader, socket;
     p = parseUrl(request.url);
     if (!p || p.origin === currentOrigin) {
       return callback();
@@ -507,14 +507,25 @@ initMaster = function() {
     });
     obj = strip(request);
     obj.headers = request.headers;
+    if (request.withCredentials) {
+      obj.credentials = document.cookie;
+    }
     if (instOf(request.body, 'FormData')) {
-      obj.body = ["XD_FD", request.body.entries];
+      reader = new FileReader();
+      reader.onload = function(e) {
+        obj.body = [
+          "XD_FD", {
+            file: e.target.result,
+            type: request.body.entries[0][1].type,
+            fileName: request.body.entries[0][1].name
+          }
+        ];
+        return socket.emit("request", obj);
+      };
+      return reader.readAsArrayBuffer(request.body.entries[0][1]);
     }
     if (instOf(request.body, 'Uint8Array')) {
       obj.body = request.body;
-    }
-    if (request.withCredentials) {
-      obj.credentials = document.cookie;
     }
     socket.emit("request", obj);
   });
@@ -557,7 +568,7 @@ initSlave = function() {
       return;
     }
     socket.once("request", function(req) {
-      var args, fd, k, p, v, xhr, _i, _len, _ref, _ref1;
+      var args, blob, body, fd, k, p, v, xhr, _i, _len, _ref;
       log("request: " + req.method + " " + req.url);
       p = parseUrl(req.url);
       if (!(p && pathRegex.test(p.path))) {
@@ -609,10 +620,13 @@ initSlave = function() {
         xhr.setRequestHeader(k, v);
       }
       if (req.body instanceof Array && req.body[0] === "XD_FD") {
+        blob = new Blob([req.body[1].file], {
+          type: req.body[1].type
+        });
+        body = [["files[]", blob, req.body[1].fileName]];
         fd = new xhook.FormData();
-        _ref1 = req.body[1];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          args = _ref1[_i];
+        for (_i = 0, _len = body.length; _i < _len; _i++) {
+          args = body[_i];
           fd.append.apply(fd, args);
         }
         req.body = fd;
