@@ -439,7 +439,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
 
 (this.define || Object)((this.exports || this).xhook = xhook);
 }(this));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, masters, onMessage, parseUrl, prep, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, convertBlob, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, sendTest, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
 
 slaves = null;
 
@@ -474,7 +474,7 @@ getFrame = function(origin, proxyPath) {
 
 initMaster = function() {
   return xhook.before(function(request, callback) {
-    var frame, obj, p, reader, socket;
+    var entries, frame, obj, p, ready, socket;
     p = parseUrl(request.url);
     if (!p || p.origin === currentOrigin) {
       return callback();
@@ -507,27 +507,19 @@ initMaster = function() {
     });
     obj = strip(request);
     obj.headers = request.headers;
+    ready = function() {
+      return socket.emit("request", obj);
+    };
     if (request.withCredentials) {
       obj.credentials = document.cookie;
     }
-    if (instOf(request.body, 'FormData')) {
-      reader = new FileReader();
-      reader.onload = function(e) {
-        obj.body = [
-          "XD_FD", {
-            file: e.target.result,
-            type: request.body.entries[0][1].type,
-            fileName: request.body.entries[0][1].name
-          }
-        ];
-        return socket.emit("request", obj);
-      };
-      return reader.readAsArrayBuffer(request.body.entries[0][1]);
-    }
     if (instOf(request.body, 'Uint8Array')) {
       obj.body = request.body;
+    } else if (instOf(request.body, 'FormData')) {
+      entries = request.body.entries;
+      obj.body = ["XD_FD", entries];
     }
-    socket.emit("request", obj);
+    ready();
   });
 };
 
@@ -568,7 +560,7 @@ initSlave = function() {
       return;
     }
     socket.once("request", function(req) {
-      var args, blob, body, fd, k, p, v, xhr, _i, _len, _ref;
+      var args, fd, k, p, v, xhr, _i, _len, _ref, _ref1;
       log("request: " + req.method + " " + req.url);
       p = parseUrl(req.url);
       if (!(p && pathRegex.test(p.path))) {
@@ -620,13 +612,10 @@ initSlave = function() {
         xhr.setRequestHeader(k, v);
       }
       if (req.body instanceof Array && req.body[0] === "XD_FD") {
-        blob = new Blob([req.body[1].file], {
-          type: req.body[1].type
-        });
-        body = [["files[]", blob, req.body[1].fileName]];
         fd = new xhook.FormData();
-        for (_i = 0, _len = body.length; _i < _len; _i++) {
-          args = body[_i];
+        _ref1 = req.body[1];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          args = _ref1[_i];
           fd.append.apply(fd, args);
         }
         req.body = fd;
@@ -650,18 +639,26 @@ onMessage = function(fn) {
   }
 };
 
+XD_CHECK = "XD_CHECK";
+
 handler = null;
 
 sockets = {};
 
 jsonEncode = true;
 
-XD_CHECK = "XD_CHECK";
+convertBlob = true;
+
+sendTest = function(source) {};
 
 startPostMessage = function() {
   return onMessage(function(e) {
     var d, extra, id, sock;
     d = e.data;
+    if (sendTest) {
+      sendTest(e.source);
+      sendTest = null;
+    }
     if (typeof d === "string") {
       if (/^XDPING(_(V\d+))?$/.test(d) && RegExp.$2 !== COMPAT_VERSION) {
         return warn("your master is not compatible with your slave, check your xdomain.js version");
@@ -806,36 +803,28 @@ slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
 };
 
-prep = function(s) {
-  return "xdomain (" + currentOrigin + "): " + s;
-};
-
 console = window.console || {};
 
-log = function(str) {
-  if (!xdomain.debug) {
-    return;
-  }
-  str = prep(str);
-  if ('log' in xdomain) {
-    xdomain.log(str);
-  }
-  if ('log' in console) {
-    console.log(str);
-  }
+logger = function(type) {
+  return function(str) {
+    str = "xdomain (" + currentOrigin + "): " + str;
+    if (type in xdomain) {
+      xdomain[type](str);
+    }
+    if (type === 'log' && !xdomain.debug) {
+      return;
+    }
+    if (type in console) {
+      console[type](str);
+    } else if (type === 'warn') {
+      alert(str);
+    }
+  };
 };
 
-warn = function(str) {
-  str = prep(str);
-  if ('warn' in xdomain) {
-    xdomain.warn(str);
-  }
-  if ('warn' in console) {
-    console.warn(str);
-  } else {
-    alert(str);
-  }
-};
+log = logger('log');
+
+warn = logger('warn');
 
 _ref = ['postMessage', 'JSON'];
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -954,5 +943,5 @@ strip = function(src) {
 
 startPostMessage();
 
-window.xdomain = xdomain;
-}(this));
+(this.define || Object)((this.exports || this).xdomain = xdomain);
+}.call(this,window));

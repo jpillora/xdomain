@@ -6,11 +6,18 @@ onMessage = (fn) ->
   else
     window.attachEvent "onmessage", fn
 
+#constants
+XD_CHECK = "XD_CHECK"
+#state
 handler = null
 sockets = {}
 jsonEncode = true
-#constants
-XD_CHECK = "XD_CHECK"
+convertBlob = true
+
+sendTest = (source) ->
+  # return unless window.Blob
+  # try
+  #   source.postMessage
 
 #ONE WINDOW LISTENER!
 #double purpose:
@@ -18,7 +25,14 @@ XD_CHECK = "XD_CHECK"
 #  passes events to existing sockets (created by connect or by the server)
 
 startPostMessage = -> onMessage (e) ->
+
   d = e.data
+
+  #perform send test on first message
+  if sendTest
+    sendTest(e.source)
+    sendTest = null
+
   #return if not a json string
   if typeof d is "string"
     #only old versions of xdomain send XPINGs...
@@ -32,6 +46,7 @@ startPostMessage = -> onMessage (e) ->
       try d = JSON.parse d
       catch
         return
+
   #return if not an array
   unless d instanceof Array
     return

@@ -26,7 +26,7 @@ initMaster = ->
 
   #hook XHR  calls
   xhook.before (request, callback) ->
-
+    
     #allow unless we have a slave domain
     p = parseUrl request.url
 
@@ -36,7 +36,7 @@ initMaster = ->
     unless slaves[p.origin]
       log "no slave matching: '#{p.origin}'" if p
       return callback()
-
+    
     log "proxying request to slave: '#{p.origin}'"
 
     if request.async is false
@@ -64,26 +64,37 @@ initMaster = ->
     obj = strip request
     obj.headers = request.headers
 
+    ready = ->
+      socket.emit "request", obj
+
+
     if request.withCredentials
       obj.credentials = document.cookie
 
-    if instOf(request.body, 'FormData')
-      reader = new FileReader()
-      reader.onload = (e) ->
-        obj.body = ["XD_FD",
-          file: e.target.result
-          type: request.body.entries[0][1].type
-          fileName: request.body.entries[0][1].name
-        ]
-
-        return socket.emit("request", obj);
-
-      return reader.readAsArrayBuffer(request.body.entries[0][1]);
-
+    #prepare the xhr body for postMessaging
     if instOf(request.body, 'Uint8Array')
       obj.body = request.body
+    else if instOf(request.body, 'FormData')
+      #this FormData is actually XHooks custom FormData,
+      #which exposes all entries added, where each entry
+      #is the arguments object
 
-    socket.emit "request", obj
+      entries = request.body.entries
+      obj.body = ["XD_FD", entries]
+
+      # convert = (args, i) ->
+
+      # for args, i in entries
+      #   if instOf(args, 'File')
+
+
+
+      # if POSTMESSAGE_FILE
+      #   ready()
+      #   return
+
+    ready()
+    
     return
 
 

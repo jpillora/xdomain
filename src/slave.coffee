@@ -60,7 +60,7 @@ initSlave = ->
         # XML over postMessage not supported
         # try resp.xml = xhr.responseXML
         socket.emit 'response', resp
-
+      
       # document.cookie (Cookie header) can't be set inside an iframe
       # as many browsers have 3rd party cookies disabled
       if req.withCredentials
@@ -73,12 +73,8 @@ initSlave = ->
 
       #deserialize FormData
       if req.body instanceof Array and req.body[0] is "XD_FD"
-        blob = new Blob([req.body[1].file], type: req.body[1].type)
-
-        body = [["files[]", blob, req.body[1].fileName]]
-
         fd = new xhook.FormData()
-        for args in body
+        for args in req.body[1]
           fd.append.apply fd, args
         req.body = fd
 

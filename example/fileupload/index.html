@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+</head>
+<body>
+  <h3>XDomain File Upload Demo</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://<span id="target"></span>'</h5>
+  <hr>
+  <form id="fooform">
+    <label>Foo:</label>
+    <input type="text" name="foo"/><br/>
+    <label>Files:</label>
+    <input type="file" name="file" required multiple/><br/>
+    <input type="submit" value="Send the file!" />
+  </form>
+  <hr>
+  <pre id='output'></pre>
+
+  <script type="text/javascript">
+    var src = location.origin;
+    var target = 'echo.jpillora.com';
+    var script = src+'/dist/0.6/xdomain.js';
+    //provide echo.jpillora with -our- (dev?) version of xdomain
+    var proxy = "http://echo.jpillora.com/proxy.html?src="+script;
+    //create xdomain script tag usign target
+    document.write("<script src='"+script+"' debug='false' slave='"+proxy+"'><\/script>");
+  </script>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script type="text/javascript">
+    //show current origin
+    $("#host").html(xdomain.origin);
+    $("#target").html(target);
+
+    var fd = new FormData(document.getElementById("fooform"));
+    fd.append("bazz", "42");
+    fd.append("ping", "pong");
+
+    $.ajax({
+      type: "POST",
+      url: 'http://'+target+'/foo',
+      data: fd,
+      processData: false,
+      contentType: false
+    }).done(function() {
+      $("#output").html('done')
+    });
+  </script>
+
+</body>
+</html>

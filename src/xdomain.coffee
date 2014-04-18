@@ -22,30 +22,24 @@ currentOrigin = xdomain.origin = location.protocol + '//' + location.host
 #helpers
 guid = -> 'xdomain-'+Math.round(Math.random()*Math.pow(2,32)).toString(16)
 slice = (o,n) -> Array::slice.call o,n
-
-prep = (s) ->
-  "xdomain (#{currentOrigin}): #{s}"
-
 console = window.console || {}
 
-log = (str) ->
-  return unless xdomain.debug
-  str = prep str
-  if 'log' of xdomain
-    xdomain.log str
-  if 'log' of console
-    console.log str
-  return
+logger = (type) ->
+  (str) ->
+    str = "xdomain (#{currentOrigin}): #{str}"
+    #user provided log/warn functions
+    if type of xdomain
+      xdomain[type] str
+    if type is 'log' and not xdomain.debug
+      return
+    if type of console
+      console[type] str
+    else if type is 'warn'
+      alert str
+    return
 
-warn = (str) ->
-  str = prep str
-  if 'warn' of xdomain
-    xdomain.warn str
-  if 'warn' of console
-    console.warn str
-  else
-    alert str
-  return
+log = logger 'log'
+warn = logger 'warn'
 
 #feature detect
 for feature in ['postMessage','JSON']
@@ -124,5 +118,5 @@ strip = (src) ->
 #init
 startPostMessage()
 
-#publicise
-window.xdomain = xdomain
+#publicise with mini-UMD
+(@define or Object) (@exports or @).xdomain = xdomain
