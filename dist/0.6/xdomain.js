@@ -1,9 +1,8 @@
 // XDomain - v0.6.8 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.7 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.8 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
-  __slice = [].slice;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
 
 document = window.document;
 
@@ -213,19 +212,36 @@ convertHeaders = xhook.headers = function(h, dest) {
   }
 };
 
-xhook[FormData] = window[FormData];
-
-window[FormData] = function() {
-  var _this = this;
-  this.fd = new xhook[FormData];
-  this.entries = [];
-  this.append = function() {
-    var args;
-    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    _this.entries.push(args);
-    return _this.fd.append.apply(_this.fd, args);
+if (xhook[FormData] = window[FormData]) {
+  window[FormData] = function(form) {
+    var entries,
+      _this = this;
+    this.fd = new xhook[FormData](form);
+    this.form = form;
+    entries = [];
+    Object.defineProperty(this, 'entries', {
+      get: function() {
+        var fentries;
+        fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
+          var _ref;
+          return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+        }).map(function(e) {
+          if (e.type === "file") {
+            return [e.name, e.files];
+          }
+          return [e.name, e.value];
+        });
+        return fentries.concat(entries);
+      }
+    });
+    this.append = function() {
+      var args;
+      args = slice(arguments);
+      entries.push(args);
+      return _this.fd.append.apply(_this.fd, args);
+    };
   };
-};
+}
 
 xhook[XMLHTTP] = window[XMLHTTP];
 
@@ -438,8 +454,8 @@ XHookHttpRequest = window[XMLHTTP] = function() {
 };
 
 (this.define || Object)((this.exports || this).xhook = xhook);
-}(this));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, convertBlob, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, sendTest, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
+}.call(this,window));
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, _i, _len, _ref;
 
 slaves = null;
 
@@ -473,8 +489,81 @@ getFrame = function(origin, proxyPath) {
 };
 
 initMaster = function() {
+  var convertFormData, convertToArrayBuffer, handleRequest;
+  convertToArrayBuffer = function(args, done) {
+    var isBlob, isFile, name, obj, reader;
+    name = args[0], obj = args[1];
+    isBlob = instOf(obj, 'Blob');
+    isFile = instOf(obj, 'File');
+    if (!(isBlob || isFile)) {
+      return 0;
+    }
+    reader = new FileReader();
+    reader.onload = function() {
+      args[1] = null;
+      if (isFile) {
+        args[2] = obj.name;
+      }
+      return done(['XD_BLOB', args, this.result, obj.type]);
+    };
+    reader.readAsArrayBuffer(obj);
+    return 1;
+  };
+  convertFormData = function(entries, send) {
+    var c;
+    entries.forEach(function(args, i) {
+      var file, name, value, _i, _len;
+      name = args[0], value = args[1];
+      if (instOf(value, 'FileList')) {
+        entries.splice(i, 1);
+        for (_i = 0, _len = value.length; _i < _len; _i++) {
+          file = value[_i];
+          entries.splice(i, 0, [name, file]);
+        }
+      }
+    });
+    c = 0;
+    entries.forEach(function(args, i) {
+      return c += convertToArrayBuffer(args, function(newargs) {
+        entries[i] = newargs;
+        if (--c === 0) {
+          send();
+        }
+      });
+    });
+  };
+  handleRequest = function(request, socket) {
+    var entries, obj, send;
+    request.xhr.addEventListener('abort', function() {
+      return socket.emit("abort");
+    });
+    socket.on("xhr-event", function() {
+      return request.xhr.dispatchEvent.apply(null, arguments);
+    });
+    socket.on("xhr-upload-event", function() {
+      return request.xhr.upload.dispatchEvent.apply(null, arguments);
+    });
+    obj = strip(request);
+    obj.headers = request.headers;
+    if (request.withCredentials) {
+      obj.credentials = document.cookie;
+    }
+    send = function() {
+      return socket.emit("request", obj);
+    };
+    if (request.body) {
+      obj.body = request.body;
+      if (instOf(obj.body, 'FormData')) {
+        entries = obj.body.entries;
+        obj.body = ["XD_FD", entries];
+        convertFormData(entries, send);
+        return;
+      }
+    }
+    send();
+  };
   return xhook.before(function(request, callback) {
-    var entries, frame, obj, p, ready, socket;
+    var frame, p, socket;
     p = parseUrl(request.url);
     if (!p || p.origin === currentOrigin) {
       return callback();
@@ -496,30 +585,13 @@ initMaster = function() {
       callback(resp);
       return socket.close();
     });
-    request.xhr.addEventListener('abort', function() {
-      return socket.emit("abort");
-    });
-    socket.on("xhr-event", function() {
-      return request.xhr.dispatchEvent.apply(null, arguments);
-    });
-    socket.on("xhr-upload-event", function() {
-      return request.xhr.upload.dispatchEvent.apply(null, arguments);
-    });
-    obj = strip(request);
-    obj.headers = request.headers;
-    ready = function() {
-      return socket.emit("request", obj);
-    };
-    if (request.withCredentials) {
-      obj.credentials = document.cookie;
+    if (socket.ready) {
+      handleRequest(request, socket);
+    } else {
+      socket.once('ready', function() {
+        return handleRequest(request, socket);
+      });
     }
-    if (instOf(request.body, 'Uint8Array')) {
-      obj.body = request.body;
-    } else if (instOf(request.body, 'FormData')) {
-      entries = request.body.entries;
-      obj.body = ["XD_FD", entries];
-    }
-    ready();
   });
 };
 
@@ -560,7 +632,7 @@ initSlave = function() {
       return;
     }
     socket.once("request", function(req) {
-      var args, fd, k, p, v, xhr, _i, _len, _ref, _ref1;
+      var args, blob, entries, fd, k, p, v, xhr, _i, _len, _ref;
       log("request: " + req.method + " " + req.url);
       p = parseUrl(req.url);
       if (!(p && pathRegex.test(p.path))) {
@@ -613,9 +685,16 @@ initSlave = function() {
       }
       if (req.body instanceof Array && req.body[0] === "XD_FD") {
         fd = new xhook.FormData();
-        _ref1 = req.body[1];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          args = _ref1[_i];
+        entries = req.body[1];
+        for (_i = 0, _len = entries.length; _i < _len; _i++) {
+          args = entries[_i];
+          if (args[0] === "XD_BLOB" && args.length === 4) {
+            blob = new Blob([args[2]], {
+              type: args[3]
+            });
+            args = args[1];
+            args[1] = blob;
+          }
           fd.append.apply(fd, args);
         }
         req.body = fd;
@@ -647,18 +726,10 @@ sockets = {};
 
 jsonEncode = true;
 
-convertBlob = true;
-
-sendTest = function(source) {};
-
 startPostMessage = function() {
   return onMessage(function(e) {
     var d, extra, id, sock;
     d = e.data;
-    if (sendTest) {
-      sendTest(e.source);
-      sendTest = null;
-    }
     if (typeof d === "string") {
       if (/^XDPING(_(V\d+))?$/.test(d) && RegExp.$2 !== COMPAT_VERSION) {
         return warn("your master is not compatible with your slave, check your xdomain.js version");
@@ -732,7 +803,8 @@ createSocket = function(id, frame) {
   };
   sock.once(XD_CHECK, function(obj) {
     jsonEncode = typeof obj === "string";
-    ready = true;
+    ready = sock.ready = true;
+    sock.emit('ready');
     log("ready socket: " + id);
     while (pendingEmits.length) {
       emit(pendingEmits.shift());

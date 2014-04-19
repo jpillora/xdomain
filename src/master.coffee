@@ -24,6 +24,71 @@ getFrame = (origin, proxyPath) ->
 
 initMaster = ->
 
+  convertToArrayBuffer = (args, done) ->
+    [name, obj] = args
+    isBlob = instOf(obj, 'Blob')
+    isFile = instOf(obj, 'File')
+    unless isBlob or isFile
+      return 0
+    reader = new FileReader()
+    reader.onload = ->
+      # clear value
+      args[1] = null
+      # formdata.append(name, value, **filename**)
+      args[2] = obj.name if isFile
+      done ['XD_BLOB', args, @result, obj.type]
+    reader.readAsArrayBuffer obj
+    return 1
+
+  #this FormData is actually XHooks custom FormData `fd`,
+  #which exposes all `entries` added, where each entry
+  #is the arguments object
+  convertFormData = (entries, send) ->
+    #expand FileList -> [File, File, File]
+    entries.forEach (args, i) ->
+      [name, value] = args
+      if instOf(value, 'FileList')
+        entries.splice i, 1
+        for file in value
+          entries.splice i, 0, [name, file]
+      return
+    #basically: async.parallel([filter:files], send)
+    c = 0
+    entries.forEach (args, i) ->
+      c += convertToArrayBuffer args, (newargs) ->
+        entries[i] = newargs
+        send() if --c is 0
+        return
+    return
+
+  handleRequest = (request, socket) ->
+    #user wants to abort
+    request.xhr.addEventListener 'abort', ->
+      socket.emit "abort"
+
+    socket.on "xhr-event", ->
+      request.xhr.dispatchEvent.apply null, arguments
+    socket.on "xhr-upload-event", ->
+      request.xhr.upload.dispatchEvent.apply null, arguments
+
+    obj = strip request
+    obj.headers = request.headers
+    if request.withCredentials
+      obj.credentials = document.cookie
+
+    send = -> socket.emit "request", obj
+
+    if request.body
+      obj.body = request.body
+      #async serialize formdata
+      if instOf(obj.body, 'FormData')
+        entries = obj.body.entries
+        obj.body = ["XD_FD", entries]
+        convertFormData entries, send
+        return
+    send()
+    return
+
   #hook XHR  calls
   xhook.before (request, callback) ->
     
@@ -46,55 +111,23 @@ initMaster = ->
     #get or insert frame
     frame = getFrame p.origin, slaves[p.origin]
 
+    #connect to slave
     socket = connect frame
 
+    #queue callback
     socket.on "response", (resp) ->
       callback resp
       socket.close()
 
-    #user wants to abort
-    request.xhr.addEventListener 'abort', ->
-      socket.emit "abort"
-
-    socket.on "xhr-event", ->
-      request.xhr.dispatchEvent.apply null, arguments
-    socket.on "xhr-upload-event", ->
-      request.xhr.upload.dispatchEvent.apply null, arguments
-
-    obj = strip request
-    obj.headers = request.headers
-
-    ready = ->
-      socket.emit "request", obj
-
-
-    if request.withCredentials
-      obj.credentials = document.cookie
-
-    #prepare the xhr body for postMessaging
-    if instOf(request.body, 'Uint8Array')
-      obj.body = request.body
-    else if instOf(request.body, 'FormData')
-      #this FormData is actually XHooks custom FormData,
-      #which exposes all entries added, where each entry
-      #is the arguments object
-
-      entries = request.body.entries
-      obj.body = ["XD_FD", entries]
-
-      # convert = (args, i) ->
-
-      # for args, i in entries
-      #   if instOf(args, 'File')
-
-
-
-      # if POSTMESSAGE_FILE
-      #   ready()
-      #   return
-
-    ready()
-    
+    #kick off
+    if socket.ready
+      handleRequest(request, socket)
+    else
+      socket.once 'ready', ->
+        handleRequest(request, socket)
     return
+
+
+
 
 

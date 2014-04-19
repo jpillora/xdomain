@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>FormData Demo</title>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+</head>
+<body>
+  <h3><a id="toggle" title="Toggle XDomain/CORS" href="?cors">XDomain</a> FormData Demo</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://<span id="target"></span>'</h5>
+  <hr>
+  <form id="form">
+    <label>Text:</label>
+    <input type="text" name="text" value="zero"/><br/>
+
+    <label>Select:</label>
+    <select name="select">
+      <option value="1">One</option>
+      <option value="2">Two</option>
+    </select><br/>
+
+    <label>Checkbox:</label>
+    <input type="checkbox" name="check1" value="3">Three
+    <input type="checkbox" name="check2" value="4">Four<br>
+
+    <label>Radio:</label>
+    <input type="radio" name="radio1" value="5">Five
+    <input type="radio" name="radio1" value="6">Six<br>
+    <!-- Hidden: -->
+    <input type="hidden" name="hidden" value="8!"/>
+
+    <label>Files:</label>
+    <input type="file" name="file" multiple/><br/>
+    
+    <input id="submit" type="submit" value="Submit form" />
+  </form>
+  <hr>
+  Received headers:<br/>
+  <pre id='outhead'>Awaiting form data...</pre>
+
+  Received body:<br/>
+  <pre id='outbody'>Awaiting form data...</pre>
+
+  <script type="text/javascript">
+
+    var search = '';
+    var url = location.href;
+    var i = url.indexOf('?');
+    if(i > 0) {
+      search = url.substr(i+1);
+      url = url.substr(0, i);
+    }
+
+    //consts
+    var target = 'echo.jpillora.com';
+    var src = url;
+
+    //set mode
+    if(/^cors/.test(search)) {
+      $("#toggle").attr('href','?').html('CORS');
+    } else {
+      //setup xdomain
+      var script = src+'../../../dist/0.6/xdomain.js';
+      //provide echo.jpillora with -our- (dev?) version of xdomain
+      var proxy = "http://"+target+"/proxy.html?src="+script;
+      //create xdomain script tag using target
+      document.write("<script src='"+script+"' debug='false' slave='"+proxy+"'><\/script>");
+    }
+
+    //show current origin
+    $("#host").html(location.origin);
+    $("#target").html(target);
+
+    $("#form").on('submit', function() {
+
+      var formElem = document.getElementById("form");
+
+      var fd = new FormData(formElem);
+      fd.append("js-zip", "zop");
+      fd.append("js-ping", "pong");
+      fd.append("js-blob", new Blob(["Foo"], {type:"text/plain"}), "foo.txt");
+
+      $.ajax({
+        type: "POST",
+        url: 'http://'+target+'/foo',
+        data: fd,
+        processData: false,
+        contentType: false
+      }).always(function(obj, success, xhr) {
+        if(typeof obj !== 'object')
+          alert('???');
+        $("#outhead").html(
+          JSON.stringify(obj.headers,null,2)
+            .replace(/["\{\}]/g,'')
+            .replace(/,\n/g,'\n')
+            .replace(/(referer.*)/,"<b>$1</b>")
+        );
+        $("#outbody").html(obj.body)
+      });
+
+      return false;
+    });
+
+
+  </script>
+
+</body>
+</html>

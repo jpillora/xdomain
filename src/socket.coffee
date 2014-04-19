@@ -12,12 +12,19 @@ XD_CHECK = "XD_CHECK"
 handler = null
 sockets = {}
 jsonEncode = true
-convertBlob = true
 
-sendTest = (source) ->
-  # return unless window.Blob
-  # try
-  #   source.postMessage
+# TODO: determine if its worth while performing this test
+
+# sendBlobSupport = false
+# sendBlobTest = (source) ->
+#   return unless window.Blob
+#   try
+#     source.postMessage new Blob([XD_CHECK], type:'text/plain'), "*"
+#   catch
+#     return
+#   sendBlobSupport = true
+
+
 
 #ONE WINDOW LISTENER!
 #double purpose:
@@ -27,11 +34,11 @@ sendTest = (source) ->
 startPostMessage = -> onMessage (e) ->
 
   d = e.data
-
-  #perform send test on first message
-  if sendTest
-    sendTest(e.source)
-    sendTest = null
+  #perform send blob test once on first message
+  # if sendBlobTest
+  #   sendBlobTest e.source
+  #   sendBlobTest = null
+  #   log "browser support for sending blobs: #{sendBlobSupport}"
 
   #return if not a json string
   if typeof d is "string"
@@ -85,7 +92,6 @@ createSocket = (id, frame) ->
   pendingEmits = []
   sock.emit = ->
     args = slice arguments
-
     extra = if typeof args[1] is "string" then ": '#{args[1]}'" else ""
     log "send socket: #{id}: #{args[0]}#{extra}"
     args.unshift id
@@ -109,7 +115,8 @@ createSocket = (id, frame) ->
 
   sock.once XD_CHECK, (obj)->
     jsonEncode = typeof obj is "string"
-    ready = true
+    ready = sock.ready = true
+    sock.emit 'ready'
     log "ready socket: #{id}"
     while pendingEmits.length
       emit pendingEmits.shift()

@@ -1,7 +1,6 @@
-// XHook - v1.1.7 - https://github.com/jpillora/xhook
+// XHook - v1.1.8 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
-  __slice = [].slice;
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
 
 document = window.document;
 
@@ -211,19 +210,36 @@ convertHeaders = xhook.headers = function(h, dest) {
   }
 };
 
-xhook[FormData] = window[FormData];
-
-window[FormData] = function() {
-  var _this = this;
-  this.fd = new xhook[FormData];
-  this.entries = [];
-  this.append = function() {
-    var args;
-    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    _this.entries.push(args);
-    return _this.fd.append.apply(_this.fd, args);
+if (xhook[FormData] = window[FormData]) {
+  window[FormData] = function(form) {
+    var entries,
+      _this = this;
+    this.fd = new xhook[FormData](form);
+    this.form = form;
+    entries = [];
+    Object.defineProperty(this, 'entries', {
+      get: function() {
+        var fentries;
+        fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
+          var _ref;
+          return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+        }).map(function(e) {
+          if (e.type === "file") {
+            return [e.name, e.files];
+          }
+          return [e.name, e.value];
+        });
+        return fentries.concat(entries);
+      }
+    });
+    this.append = function() {
+      var args;
+      args = slice(arguments);
+      entries.push(args);
+      return _this.fd.append.apply(_this.fd, args);
+    };
   };
-};
+}
 
 xhook[XMLHTTP] = window[XMLHTTP];
 
@@ -436,4 +452,4 @@ XHookHttpRequest = window[XMLHTTP] = function() {
 };
 
 (this.define || Object)((this.exports || this).xhook = xhook);
-}(this));
+}.call(this,window));

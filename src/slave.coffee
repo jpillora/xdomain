@@ -74,7 +74,15 @@ initSlave = ->
       #deserialize FormData
       if req.body instanceof Array and req.body[0] is "XD_FD"
         fd = new xhook.FormData()
-        for args in req.body[1]
+
+        entries = req.body[1]
+        for args in entries
+          #deserialize blobs from arraybuffs
+          #[0:marker, 1:real-args, 2:arraybuffer, 3:type]
+          if args[0] is "XD_BLOB" and args.length is 4
+            blob = new Blob([args[2]], type:args[3])
+            args = args[1]
+            args[1] = blob
           fd.append.apply fd, args
         req.body = fd
 
