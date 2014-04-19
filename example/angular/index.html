@@ -19,10 +19,11 @@
   </div>
 
   <script type="text/javascript">
-    //show current origin
-    document.getElementById('host').innerHTML = '...';//xdomain.origin;
     //angular ajax call
     angular.module('xd', []).run(function($rootScope, $http) {
+      //show current origin
+      document.getElementById('host').innerHTML = xdomain.origin;
+      //perform cross-domain request
       $http.get('http://echo.jpillora.com/foo/bar').then(function(result) {
         $rootScope.output = result.data;
       })
