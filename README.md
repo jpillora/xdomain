@@ -28,11 +28,12 @@ conjunction with any library.
   * White-list domains
   * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
 * Highly [performant](http://jpillora.com/xdomain/example/performance/)
+* Seamless integration with [FormData](http://jpillora.com/xdomain/example/formdata/)
 
 ## Download
 
-* Development [xdomain.js](http://jpillora.com/xdomain/dist/0.6/xdomain.js) 20KB
-* Production [xdomain.min.js](http://jpillora.com/xdomain/dist/0.6/xdomain.min.js) 9.3KB (2.3KB Gzip)
+* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js) 25KB
+* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js) 12KB (2.8KB Gzip)
 
 ## Live Demos
 
@@ -211,9 +212,9 @@ If you need CORS and you're here because of IE, give this XHook [CORS polyfill](
 
 ## Troubleshooting
 
-Q: In IE, I'm seeing `Access Denied` error
+Q: In IE, I'm getting an `Access Denied` error
 
-A: This is an IE CORS error. See below.
+A: This is error occurs when IE attempts CORS request. Read on.
 
 Q: The browser is still sending a CORS request.
 
@@ -221,9 +222,7 @@ A: Double check your slaves configuration against the examples.
 If your slaves configuration is correct, double check that you're
 including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
 The safest way to fix it is to include XDomain **first**, it has no dependancies,
-it only modifies `window.XMLHttpRequest`. If you can't, break where `xhr.send()`
-is called and if you're using the original `XMLHttpRequest`,
-`xhr.constructor == window.XMLHttpRequest` will be false.
+it only modifies `window.XMLHttpRequest`.
 
 Q: It's still not working!
 
@@ -234,6 +233,8 @@ A: Enable `xdomain.debug = true;` and copy the `console.logs` to a new issue
 See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDomain locally.
 
 ## Change Log
+
+v0.6.8 - Implements FormData
 
 v0.6.0 - Implements XHR2 functionality
 
