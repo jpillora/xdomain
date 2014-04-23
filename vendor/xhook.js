@@ -448,5 +448,11 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   return facade;
 };
 
-(this.define || Object)((this.exports || this).xhook = xhook);
+if (typeof define === "function" && define.amd) {
+  define("xhook", [], function() {
+    return xhook;
+  })
+} else {
+  (this.define || Object)((this.exports || this).xhook = xhook);
+}
 }.call(this,window));
