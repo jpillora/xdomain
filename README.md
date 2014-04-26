@@ -188,7 +188,7 @@ A: You shouldn't. You should use XDomain because:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness. XDomainRequest also has many restrictions:
     * Requests must be `GET` or `POST`
-    * Requests must must use the same protocol as the page `http` -> `http`
+    * Requests must use the same protocol as the page `http` -> `http`
     * Requests only emit `progress`,`timeout` and `error`
     * Requests may only use the `Content-Type` header
 * The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
