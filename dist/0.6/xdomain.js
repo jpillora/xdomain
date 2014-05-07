@@ -1,4 +1,4 @@
-// XDomain - v0.6.8 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.9 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.1.10 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
