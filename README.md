@@ -15,8 +15,8 @@ conjunction with any library.
 
 * Simple
 * Library Agnostic
-  * Tested with [jQuery](http://jpillora.com/xdomain)  `$.ajax` (and subsequently `$.get`, `$.post`)
-  * Tested with [Angular](http://jpillora.com/xdomain/example/angular) `$http` service
+  * With [jQuery](http://jpillora.com/xdomain)  `$.ajax` (and subsequently `$.get`, `$.post`)
+  * With [Angular](http://jpillora.com/xdomain/example/angular) `$http` service
 * Cross domain XHR just magically works
   * No need to modify the server code
   * No need to use IE's silly [XDomainRequest Object](http://msdn.microsoft.com/en-us/library/ie/cc288060.aspx)
@@ -39,7 +39,7 @@ conjunction with any library.
 
 * [Simple GET from S3](http://jpillora.com/xdomain) 
 
-* [XHR from file:// or data://](http://jpillora.com/xdomain/example/file/data-uri.html) 
+* [XHR from file:// or data://](http://jpillora.com/xdomain/example/datauri/data-uri.html) 
 
 * [Serverless S3 Client](http://jpillora.com/s3hook)
 
@@ -180,7 +180,16 @@ and uses that, XHook won't be able to intercept those requests.
 
 XHR interception is done seemlessly via [XHook](https://github.com/jpillora/xhook#overview).
 
-## FAQ
+
+## Internet Explorer
+
+Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
+from going into quirks mode. If you don't do this, XDomain will warn you about
+the missing `JSON` and/or `postMessage` globals and will exit.
+
+**If you need CORS** and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
+
+## FAQ / Troubleshooting
 
 Q: But I love CORS
 
@@ -202,15 +211,22 @@ A: You shouldn't. You should use XDomain because:
   src="https://accounts.google.com/o/oauth2/postmessageRelay?..."> </iframe>
   ```
 
-## Internet Explorer
+Q: XDomain is interfering with another library!
 
-Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
-from going into quirks mode. If you don't do this, XDomain will warn you about
-the missing `JSON` and/or `postMessage` globals and will exit.
-
-If you need CORS and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
-
-## Troubleshooting
+A: XDomain attempts to perfectly implement [XMLHttpRequest2](http://www.w3.org/TR/XMLHttpRequest2/)
+so there *should* be no differences. If there is a difference, create an issue. Note however, one purposeful
+difference affects some some libraries under IE. Many use the presence of `XMLHttpRequest.prototype.withCredentials`
+to determine if the browser supports CORS. The most notable is jQuery, so [XHook](https://github.com/jpillora/xhook) purposefully defines `withCredentials` to trick jQuery into thinking the browser supports
+CORS, thereby allowing XDomain to function seamlessly in IE. However, this fix is detrimental to
+other libraries like: MixPanel, FB SDK, Intercom as they will incorrectly attempt CORS on domains
+which don't have a `proxy.html`. So, if you are using any of these libraries, you can do the
+following to manually disable defining `withCredentials` and manually reenable CORS on jQuery:
+``` js
+//fix trackers
+xhook.addWithCredentials = false;
+//fix jquery cors
+jQuery.support.cors = true;
+```
 
 Q: In IE, I'm getting an `Access Denied` error
 
@@ -226,7 +242,9 @@ it only modifies `window.XMLHttpRequest`.
 
 Q: It's still not working!
 
-A: Enable `xdomain.debug = true;` and copy the `console.logs` to a new issue
+A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to script tag)
+and copy the `console.logs` to a new issue. If possible, a live demo of the issue would
+be greatly appreciated.
 
 ## Contributing
 
