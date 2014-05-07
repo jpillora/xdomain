@@ -2,10 +2,10 @@
 <html>
 <head>
   <title>FormData Demo</title>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 </head>
 <body>
-  <h3><a id="toggle" title="Toggle XDomain/CORS" href="?cors">XDomain</a> FormData Demo</h3>
+  <h3><span id="mode">XDomain</span> FormData Demo</h3>
+  <a id="toggle" title="Toggle XDomain/CORS" href="?cors"><button>Toggle XDomain/CORS</button></a>
   <h5>From '<span id="host"></span>'</h5>
   <h5>To 'http://<span id="target"></span>'</h5>
   <hr>
@@ -35,12 +35,21 @@
     <input id="submit" type="submit" value="Submit form" />
   </form>
   <hr>
+
+  <div id="xdomaininfo">
+    <p>Note: See the referer header, the server sees the
+      request as coming from the same domain.</p>
+    <hr>
+  </div>  
+
   Received headers:<br/>
   <pre id='outhead'>Awaiting form data...</pre>
 
   Received body:<br/>
   <pre id='outbody'>Awaiting form data...</pre>
 
+  <!-- NOTE: XDOMAIN SCRIPT IS BEING DOCUMENT WRITTEN FOR DEBUGGING -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
   <script type="text/javascript">
 
     var search = '';
@@ -54,18 +63,21 @@
     //consts
     var target = 'echo.jpillora.com';
     var src = url;
-
+    var toggle;
     //set mode
     if(/^cors/.test(search)) {
-      $("#toggle").attr('href','?').html('CORS');
+      $("#xdomaininfo").hide();
+      $("#mode").html('CORS');
+      $("#toggle").attr('href','?xdomain');
     } else {
       //setup xdomain
-      var script = src+'../../../dist/0.6/xdomain.js';
+      var script = src+'../../dist/0.6/xdomain.js';
       //provide echo.jpillora with -our- (dev?) version of xdomain
       var proxy = "http://"+target+"/proxy.html?src="+script;
       //create xdomain script tag using target
       document.write("<script src='"+script+"' debug='false' slave='"+proxy+"'><\/script>");
     }
+
 
     //show current origin
     $("#host").html(location.origin);

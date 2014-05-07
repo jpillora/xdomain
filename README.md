@@ -8,8 +8,8 @@
 
 A pure JavaScript CORS alternative/polyfill. No server configuration required - 
 just add a `proxy.html` on the domain you wish to communicate with. This
-library utilizes [XHook](http://jpillora.com/xhook) to hook all XHR, so XDomain should work in
-conjunction with any library.
+library utilizes [XHook](http://jpillora.com/xhook) to hook all XHR, so XDomain
+will work seamlessly with any library.
 
 ## Features
 
@@ -133,7 +133,7 @@ and uses that, XHook won't be able to intercept those requests.
 
 ### `xdomain.masters`(`masters`)
 
-  Will initialize as a master
+  Will initialize as a slave
   
   Each of the `masters` must be defined as: `origin`: `path`
 
@@ -178,8 +178,7 @@ and uses that, XHook won't be able to intercept those requests.
 2. Master will communicate to slave iframe using postMessage.
 3. Slave will create XHRs on behalf of master then return the results.
 
-XHR interception is done seemlessly via [XHook](https://github.com/jpillora/xhook#overview).
-
+XHR interception is done seamlessly via [XHook](https://github.com/jpillora/xhook#overview).
 
 ## Internet Explorer
 
@@ -221,6 +220,7 @@ CORS, thereby allowing XDomain to function seamlessly in IE. However, this fix i
 other libraries like: MixPanel, FB SDK, Intercom as they will incorrectly attempt CORS on domains
 which don't have a `proxy.html`. So, if you are using any of these libraries, you can do the
 following to manually disable defining `withCredentials` and manually reenable CORS on jQuery:
+
 ``` js
 //fix trackers
 xhook.addWithCredentials = false;
@@ -242,9 +242,8 @@ it only modifies `window.XMLHttpRequest`.
 
 Q: It's still not working!
 
-A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to script tag)
-and copy the `console.logs` to a new issue. If possible, a live demo of the issue would
-be greatly appreciated.
+A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag)
+and copy the `console.logs` to a new issue. If possible, please a live example demonstrating the issue.
 
 ## Contributing
 
