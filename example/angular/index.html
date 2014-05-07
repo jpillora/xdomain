@@ -9,10 +9,11 @@
   <h5>From '<span id="host"></span>'</h5>
   <h5>To 'http://echo.jpillora.com/foo/bar'</h5>
 
-  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.js" debug="true"
-          slave="http://echo.jpillora.com/proxy.html"></script>
+  <script src="http://abc.example.com:3000/dist/0.6/xdomain.js" debug="true"
+          slave="http://echo.jpillora.com/proxy.html?src=http://abc.example.com:3000/dist/0.6/xdomain.js"></script>
 
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-route.js"></script>
 
   <div ng-app="xd">
     <pre ng-bind='output | json'></pre>
@@ -20,7 +21,15 @@
 
   <script type="text/javascript">
     //angular ajax call
-    angular.module('xd', []).run(function($rootScope, $http) {
+    var App = angular.module('xd', ['ngRoute']);
+
+    //confirm router still works
+    App.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+      $routeProvider.otherwise({redirectTo: '/test-route'});
+      $locationProvider.html5Mode(false);
+    }]);
+
+    App.run(function($rootScope, $http, $route) {
       //show current origin
       document.getElementById('host').innerHTML = xdomain.origin;
       //perform cross-domain request
@@ -28,7 +37,6 @@
         $rootScope.output = result.data;
       })
     });
-
   </script>
 
   <script>

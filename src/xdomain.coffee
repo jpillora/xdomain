@@ -118,5 +118,8 @@ strip = (src) ->
 #init
 startPostMessage()
 
-#publicise with mini-UMD
-(@define or Object) (@exports or @).xdomain = xdomain
+#publicise (mini-umd)
+if typeof @define is "function" and @define.amd
+  define "xdomain", ["xhook"], -> xdomain
+else
+  (@exports or @).xdomain = xdomain

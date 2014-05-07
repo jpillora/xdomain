@@ -62,9 +62,6 @@ initMaster = ->
     return
 
   handleRequest = (request, socket) ->
-    #user wants to abort
-    request.xhr.addEventListener 'abort', ->
-      socket.emit "abort"
 
     socket.on "xhr-event", ->
       request.xhr.dispatchEvent.apply null, arguments
@@ -118,6 +115,10 @@ initMaster = ->
     socket.on "response", (resp) ->
       callback resp
       socket.close()
+
+    #user wants to abort
+    request.xhr.addEventListener 'abort', ->
+      socket.emit "abort"
 
     #kick off
     if socket.ready

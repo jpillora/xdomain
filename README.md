@@ -234,6 +234,9 @@ See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDo
 
 ## Change Log
 
+v0.6.9 - Update XHook to 1.1.10 to support case insensitive header access
+         using `getResponseHeader`.
+
 v0.6.8 - Implements FormData
 
 v0.6.0 - Implements XHR2 functionality
