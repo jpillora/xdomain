@@ -6,7 +6,8 @@
   "ignore": [
     "*",
     "!bower.json",
-    "!dist/0.6/xdomain.js"
+    "!dist/0.6/xdomain.js",
+    "!dist/0.6/xdomain.min.js"
   ],
   "dependencies": {},
   "devDependencies": {}
