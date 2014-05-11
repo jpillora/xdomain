@@ -1,6 +1,6 @@
 // XDomain - v0.6.10 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.11 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.2.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
 
@@ -55,7 +55,7 @@ mergeObjects = function(src, dst) {
   return dst;
 };
 
-proxyEvents = function(events, from, to) {
+proxyEvents = function(events, src, dst) {
   var event, p, _i, _len;
   p = function(event) {
     return function(e) {
@@ -66,15 +66,15 @@ proxyEvents = function(events, from, to) {
           continue;
         }
         val = e[k];
-        clone[k] = val === from ? to : val;
+        clone[k] = val === src ? dst : val;
       }
       clone;
-      return to[FIRE](event, clone);
+      return dst[FIRE](event, clone);
     };
   };
   for (_i = 0, _len = events.length; _i < _len; _i++) {
     event = events[_i];
-    from["on" + event] = p(event);
+    src["on" + event] = p(event);
   }
 };
 
@@ -244,8 +244,9 @@ if (xhook[FormData] = window[FormData]) {
 xhook[XMLHTTP] = window[XMLHTTP];
 
 XHookHttpRequest = window[XMLHTTP] = function() {
-  var currentState, facade, readBody, readHead, request, response, setReadyState, transiting, writeBody, writeHead, xhr;
+  var currentState, emitFinal, emitReadyState, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, transiting, writeBody, writeHead, xhr;
   xhr = new xhook[XMLHTTP]();
+  hasError = false;
   transiting = false;
   request = {};
   request.headers = {};
@@ -286,40 +287,46 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
     facade.response = response.data || null;
   };
+  emitReadyState = function(n) {
+    while (n > currentState && currentState < 4) {
+      facade[READY_STATE] = ++currentState;
+      if (currentState === 1) {
+        facade[FIRE]("loadstart", {});
+      }
+      if (currentState === 2) {
+        writeHead();
+      }
+      if (currentState === 4) {
+        writeHead();
+        writeBody();
+      }
+      facade[FIRE]("readystatechange", {});
+      if (currentState === 4) {
+        setTimeout(emitFinal, 0);
+      }
+    }
+  };
+  emitFinal = function() {
+    if (!hasError) {
+      facade[FIRE]("load", {});
+    }
+    facade[FIRE]("loadend", {});
+    if (hasError) {
+      facade[READY_STATE] = 0;
+    }
+  };
   currentState = 0;
   setReadyState = function(n) {
-    var checkReadyState, hooks, process;
-    checkReadyState = function() {
-      while (n > currentState && currentState < 4) {
-        facade[READY_STATE] = ++currentState;
-        if (currentState === 1) {
-          facade[FIRE]("loadstart", {});
-        }
-        if (currentState === 2) {
-          writeHead();
-        }
-        if (currentState === 4) {
-          writeHead();
-          writeBody();
-        }
-        facade[FIRE]("readystatechange", {});
-        if (currentState === 4) {
-          if (("" + facade.status).charAt(0) === "2") {
-            facade[FIRE]("load", {});
-          }
-          facade[FIRE]("loadend", {});
-        }
-      }
-    };
-    if (n < 4) {
-      checkReadyState();
+    var hooks, process;
+    if (n !== 4) {
+      emitReadyState(n);
       return;
     }
     hooks = xhook.listeners(AFTER);
     process = function() {
       var hook;
       if (!hooks.length) {
-        return checkReadyState();
+        return emitReadyState(4);
       }
       hook = hooks.shift();
       if (hook.length === 2) {
@@ -331,6 +338,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     };
     process();
   };
+  facade = request.xhr = EventEmitter();
   xhr.onreadystatechange = function(event) {
     try {
       if (xhr[READY_STATE] === 2) {
@@ -344,9 +352,18 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
     setReadyState(xhr[READY_STATE]);
   };
-  facade = request.xhr = EventEmitter();
+  hasErrorHandler = function() {
+    hasError = true;
+  };
+  facade[ON]('error', hasErrorHandler);
+  facade[ON]('timeout', hasErrorHandler);
+  facade[ON]('abort', hasErrorHandler);
   facade[ON]('progress', function() {
-    return setReadyState(3);
+    if (currentState < 3) {
+      setReadyState(3);
+    } else {
+      facade[FIRE]("readystatechange", {});
+    }
   });
   proxyEvents(COMMON_EVENTS, xhr, facade);
   if ('withCredentials' in xhr || xhook.addWithCredentials) {
@@ -431,8 +448,9 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   facade.abort = function() {
     if (transiting) {
       xhr.abort();
+    } else {
+      facade[FIRE]('abort', {});
     }
-    facade[FIRE]('abort', {});
   };
   facade.setRequestHeader = function(header, value) {
     var name;

@@ -56,33 +56,19 @@
     <textarea id="ta"></textarea>
 
     <pre id="output"></pre>
-
-    <script>
-      var src = window.location.protocol+"//"+window.location.host+'/dist/0.6/xdomain.js';
-      document.write("<script src='"+src+"' slave='http://echo.jpillora.com/proxy.html?src="+src+"'><"+"/script>");
-    </script>
-
+    
+    <script src="https://rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js"
+            slave="http://echo.jpillora.com/proxy.html"></script>
+            
+    <!-- LOCAL TESTING -->
+<!-- 
+    <script src="http://localhost:3000/dist/0.6/xdomain.js" debug="true"
+            slave="http://echo.jpillora.com/proxy.html?src=http://localhost:3000/dist/0.6/xdomain.js"></script>
+ -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"
             type="text/javascript" charset="utf-8"></script>
-
-<!-- 
-var fd = new FormData();
-fd.append("test","42");
-fd.append("test2",new Blob(['<a id="a"><b id="b">hey!</b></a>'],{type:'text/html'}));
-
-var xhr = new XMLHttpRequest()
-
-xhr.open("POST", "http://echo.jpillora.com/foo-bar");
-
-xhr.onreadystatechange = function() {
-  if(xhr.readyState === 4)
-    $("#output").html(xhr.responseText);
-};
-
-xhr.send(fd);
- -->
 
     <script type="awesome/template" id="init-code">//cross domain ajax to echo.jpillora.com
 $.ajax({
@@ -103,9 +89,7 @@ $.ajax({
     <script type="text/javascript">
 
       (function() {
-
         if(/MSIE [678]/.test(window.navigator.userAgent)) {
-
           $("#ace").remove();
           var set = function(code) {
             $("#ta").val(code);
@@ -113,11 +97,8 @@ $.ajax({
           var get = function() {
             return $("#ta").val()
           }
-
         } else {
-
           $("#ta").remove();
-
           window.editor = ace.edit("ace");
           editor.setTheme("ace/theme/textmate");
           editor.getSession().setMode("ace/mode/javascript");
@@ -125,11 +106,9 @@ $.ajax({
           editor.session.setTabSize(2);
           editor.session.setUseSoftTabs(true);
           editor.setShowPrintMargin(false);
-
           var set = function(code) {
             editor.session.setValue(code);
           }
-
           var get = function() {
             return editor.session.getValue()
           }
