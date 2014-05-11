@@ -1,6 +1,6 @@
-// XDomain - v0.6.9 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.10 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.1.10 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.1.11 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base;
 
@@ -174,8 +174,6 @@ xhook[AFTER] = function(handler, i) {
   }
   return xhook[ON](AFTER, handler, i);
 };
-
-xhook.addWithCredentials = true;
 
 xhook.enable = function() {
   window[XMLHTTP] = XHookHttpRequest;
@@ -351,7 +349,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     return setReadyState(3);
   });
   proxyEvents(COMMON_EVENTS, xhr, facade);
-  if (xhook.addWithCredentials) {
+  if ('withCredentials' in xhr || xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
   facade.status = 0;
@@ -852,6 +850,8 @@ listen = function(h) {
 };
 
 'use strict';
+
+xhook.addWithCredentials = true;
 
 xdomain = function(o) {
   if (!o) {

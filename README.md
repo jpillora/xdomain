@@ -214,11 +214,13 @@ Q: XDomain is interfering with another library!
 
 A: XDomain attempts to perfectly implement [XMLHttpRequest2](http://www.w3.org/TR/XMLHttpRequest2/)
 so there *should* be no differences. If there is a difference, create an issue. Note however, one purposeful
-difference affects some some libraries under IE. Many use the presence of `XMLHttpRequest.prototype.withCredentials`
-to determine if the browser supports CORS. The most notable is jQuery, so [XHook](https://github.com/jpillora/xhook) purposefully defines `withCredentials` to trick jQuery into thinking the browser supports
+difference affects some some libraries under IE. Many use the presence of `'withCredentials' in new XMLHttpRequest()`
+to determine if the browser supports CORS.
+
+The most notable library that does this is jQuery, so [XHook](https://github.com/jpillora/xhook) purposefully defines `withCredentials` to trick jQuery into thinking the browser supports
 CORS, thereby allowing XDomain to function seamlessly in IE. However, this fix is detrimental to
 other libraries like: MixPanel, FB SDK, Intercom as they will incorrectly attempt CORS on domains
-which don't have a `proxy.html`. So, if you are using any of these libraries, you can do the
+which don't have a `proxy.html`. So, if you are using any of these libraries which implement their own CORS work arounds, you can do the
 following to manually disable defining `withCredentials` and manually reenable CORS on jQuery:
 
 ``` js
@@ -227,6 +229,8 @@ xhook.addWithCredentials = false;
 //fix jquery cors
 jQuery.support.cors = true;
 ```
+
+Note: In newer browsers `xhook.addWithCredentials` has no effect as they already support `withCredentials`.
 
 Q: In IE, I'm getting an `Access Denied` error
 
