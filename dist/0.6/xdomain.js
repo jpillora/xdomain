@@ -869,9 +869,8 @@ listen = function(h) {
 
 'use strict';
 
-xhook.addWithCredentials = true;
-
 xdomain = function(o) {
+  xhook.addWithCredentials = true;
   if (!o) {
     return;
   }
