@@ -1,11 +1,10 @@
 'use strict'
 
-#add withCredentials to xhr to trick jquery
-#in older browsers into thinking cors is allowed
-xhook.addWithCredentials = true
-
 #public methods
 xdomain = (o) ->
+  #add withCredentials to xhr to trick jquery
+  #in older browsers into thinking cors is allowed
+  xhook.addWithCredentials = true
   return unless o
   if o.masters
     addMasters o.masters
