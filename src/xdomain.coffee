@@ -52,7 +52,7 @@ for feature in ['postMessage','JSON']
     return
 
 instOf = (obj, global) ->
-  return false unless typeof window[global] is "function"
+  return false unless global of window
   return obj instanceof window[global]
 
 #master-slave compatibility version

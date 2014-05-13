@@ -117,7 +117,7 @@ createSocket = (id, frame) ->
     jsonEncode = typeof obj is "string"
     ready = sock.ready = true
     sock.emit 'ready'
-    log "ready socket: #{id}"
+    log "ready socket: #{id} (emit ##{pendingEmits.length} pending)"
     while pendingEmits.length
       emit pendingEmits.shift()
     return
