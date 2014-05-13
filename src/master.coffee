@@ -59,6 +59,8 @@ initMaster = ->
         entries[i] = newargs
         send() if --c is 0
         return
+      return
+    send() if c is 0
     return
 
   handleRequest = (request, socket) ->
@@ -73,7 +75,8 @@ initMaster = ->
     if request.withCredentials
       obj.credentials = document.cookie
 
-    send = -> socket.emit "request", obj
+    send = ->
+      socket.emit "request", obj
 
     if request.body
       obj.body = request.body

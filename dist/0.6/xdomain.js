@@ -1,4 +1,4 @@
-// XDomain - v0.6.10 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.11 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.2.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -554,13 +554,16 @@ initMaster = function() {
     });
     c = 0;
     entries.forEach(function(args, i) {
-      return c += convertToArrayBuffer(args, function(newargs) {
+      c += convertToArrayBuffer(args, function(newargs) {
         entries[i] = newargs;
         if (--c === 0) {
           send();
         }
       });
     });
+    if (c === 0) {
+      send();
+    }
   };
   handleRequest = function(request, socket) {
     var entries, obj, send;
@@ -835,7 +838,7 @@ createSocket = function(id, frame) {
     jsonEncode = typeof obj === "string";
     ready = sock.ready = true;
     sock.emit('ready');
-    log("ready socket: " + id);
+    log("ready socket: " + id + " (emit #" + pendingEmits.length + " pending)");
     while (pendingEmits.length) {
       emit(pendingEmits.shift());
     }
@@ -940,7 +943,7 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 }
 
 instOf = function(obj, global) {
-  if (typeof window[global] !== "function") {
+  if (!(global in window)) {
     return false;
   }
   return obj instanceof window[global];
