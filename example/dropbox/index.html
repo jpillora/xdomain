@@ -15,17 +15,19 @@
   <img id="pic"></img>
 
   <script src="../../dist/0.6/xdomain.js"
-          slave="http://dl.dropboxusercontent.com/u/14376395/html/proxy.html"></script>
+          slave="https://dl.dropboxusercontent.com/u/14376395/html/proxy.html"></script>
 
   <script type="text/javascript">
+
+    //enforce https
+    if(window.location.href !== 'https://rawgit.com/jpillora/xdomain/gh-pages/example/dropbox/index.html')
+      window.location.href = 'https://rawgit.com/jpillora/xdomain/gh-pages/example/dropbox/index.html';
+
     //show current origin
     document.getElementById("host").innerHTML = xdomain.origin;
 
-    var url = 'http://dl.dropboxusercontent.com/u/14376395/Pictures/leaves.jpeg';
-
+    var url = 'https://dl.dropboxusercontent.com/u/14376395/Pictures/leaves.jpeg';
     document.getElementById("file").innerHTML = url;
-
-
 
 
     var xhr = new XMLHttpRequest()
