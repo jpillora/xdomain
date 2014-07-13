@@ -5,9 +5,9 @@
 <body>
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://<span id="target"></span>:3000/CONTRIBUTING.md'</h5>
+  <h5>To 'http://<span id="target"></span>/CONTRIBUTING.md'</h5>
 
-  <img id='pic'></img>
+  <img id='pic' style='display:none'></img>
   <pre id='output'></pre>
 
   <script type="text/javascript">
@@ -44,28 +44,30 @@
     //jquery ajax call
     $("#output").load('http://'+target+'/CONTRIBUTING.md');
 
-    //vanilla ajax - with response type
-    var xhr = new XMLHttpRequest()
-    xhr.open('GET', 'http://'+target+'/example/files/octocat.jpg');
-    xhr.responseType = 'blob';
-    xhr.onreadystatechange = function(e) {
-      if(!window.FileReader)
-        return alert("FileReader not supported in this browser");
-      if(xhr.readyState === 4) {
+    if(window.FileReader) {
+      //vanilla ajax - with response type
+      var xhr = new XMLHttpRequest()
+      xhr.open('GET', 'http://'+target+'/example/files/octocat.jpg');
+      xhr.responseType = 'blob';
+      xhr.onreadystatechange = function(e) {
+        if(xhr.readyState !== 4) return;
         var reader = new window.FileReader();
         reader.readAsDataURL(xhr.response); 
         reader.onloadend = function() {
-          document.getElementById("pic").src = reader.result;
+          var pic = document.getElementById("pic");
+          pic.src = reader.result;
+          pic.style.display = 'block';
         }
-      }
-    };
-    xhr.onprogress = function(e) {
-      console.log("download",e.loaded,e.total);
-    };
-    xhr.onerror = function(err) {
-      console.info("error",err);
-    };
-    xhr.send();
+      };
+      xhr.onprogress = function(e) {
+        console.log("download",e.loaded,e.total);
+      };
+      xhr.onerror = function(err) {
+        console.info("error",err);
+      };
+      xhr.send();
+    }
+
   </script>
 
 </body>
