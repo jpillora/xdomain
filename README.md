@@ -6,7 +6,7 @@
 
 ## Summary
 
-A pure JavaScript CORS alternative/polyfill. No server configuration required - 
+A pure JavaScript CORS alternative. No server configuration required - 
 just add a `proxy.html` on the domain you wish to communicate with. This
 library utilizes [XHook](http://jpillora.com/xhook) to hook all XHR, so XDomain
 will work seamlessly with any library.
