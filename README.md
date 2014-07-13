@@ -203,7 +203,7 @@ A: You shouldn't. You should use XDomain because:
 * On RESTful JSON API server, CORS will generating superfluous traffic by sending a
   preflight OPTIONS request on all requests, except for GET and HEAD.
 * Not everyone is able to modify HTTP headers on the server, but most can upload a `proxy.html` file.
-* Google also uses iframes as postMessage proxies instead of CORS in it's Google API JS SDK:
+* Google also uses iframes as postMessage proxies instead of CORS in its Google API JS SDK:
 
   ```html
   <iframe name="oauth2relay564752183" id="oauth2relay564752183"
@@ -214,13 +214,13 @@ Q: XDomain is interfering with another library!
 
 A: XDomain attempts to perfectly implement [XMLHttpRequest2](http://www.w3.org/TR/XMLHttpRequest2/)
 so there *should* be no differences. If there is a difference, create an issue. Note however, one purposeful
-difference affects some some libraries under IE. Many use the presence of `'withCredentials' in new XMLHttpRequest()`
+difference affects some libraries under IE. Many use the presence of `'withCredentials' in new XMLHttpRequest()`
 to determine if the browser supports CORS.
 
 The most notable library that does this is jQuery, so [XHook](https://github.com/jpillora/xhook) purposefully defines `withCredentials` to trick jQuery into thinking the browser supports
 CORS, thereby allowing XDomain to function seamlessly in IE. However, this fix is detrimental to
 other libraries like: MixPanel, FB SDK, Intercom as they will incorrectly attempt CORS on domains
-which don't have a `proxy.html`. So, if you are using any of these libraries which implement their own CORS work arounds, you can do the
+which don't have a `proxy.html`. So, if you are using any of these libraries which implement their own CORS workarounds, you can do the
 following to manually disable defining `withCredentials` and manually reenable CORS on jQuery:
 
 ``` js
@@ -239,9 +239,9 @@ A: This is error occurs when IE attempts CORS request. Read on.
 Q: The browser is still sending a CORS request.
 
 A: Double check your slaves configuration against the examples.
-If your slaves configuration is correct, double check that you're
+If your slaves configuration is correct, double-check that you're
 including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
-The safest way to fix it is to include XDomain **first**, it has no dependancies,
+The safest way to fix it is to include XDomain **first**, it has no dependencies,
 it only modifies `window.XMLHttpRequest`.
 
 Q: It's still not working!
@@ -255,7 +255,7 @@ See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDo
 
 ## Change Log
 
-v0.6.9 - Update XHook to 1.1.10 to support case insensitive header access
+v0.6.9 - Update XHook to 1.1.10 to support case-insensitive header access
          using `getResponseHeader`.
 
 v0.6.8 - Implements FormData
