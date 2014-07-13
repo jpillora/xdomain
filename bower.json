@@ -4,10 +4,18 @@
   "main": "dist/0.6/xdomain.js",
   "license": "MIT",
   "ignore": [
-    "*",
-    "!bower.json",
-    "!dist/0.6/xdomain.js",
-    "!dist/0.6/xdomain.min.js"
+    "example",
+    "src",
+    "test",
+    "vendor",
+    ".gitignore",
+    ".travis.yml",
+    "CONTRIBUTING.md",
+    "Gruntsource.json",
+    "README.md",
+    "index.html",
+    "dist/0.4",
+    "dist/0.5"
   ],
   "dependencies": {},
   "devDependencies": {}
