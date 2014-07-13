@@ -1,3 +1,4 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 // XDomain - v0.6.12 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.2.1 - https://github.com/jpillora/xhook
@@ -1063,3 +1064,22 @@ if (typeof this.define === "function" && this.define.amd) {
   (this.exports || this).xdomain = xdomain;
 }
 }.call(this,window));
+},{}],2:[function(require,module,exports){
+//require latest XDomain distribution
+var xdomain = require("../../dist/0.6/xdomain").xdomain;
+
+xdomain.debug = true;
+
+xdomain.slaves({
+  'http://s3.amazonaws.com':'/jpillora-usa/xdomain/0.6/proxy.html'
+});
+
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "http://s3.amazonaws.com/jpillora-usa/xdomain/data2.json");
+xhr.onreadystatechange = function() {
+  if(xhr.readyState === 4)
+    document.querySelector("pre").innerHTML = xhr.responseText;
+};
+xhr.send();
+
+},{"../../dist/0.6/xdomain":1}]},{},[2])

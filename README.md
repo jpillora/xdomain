@@ -29,6 +29,7 @@ will work seamlessly with any library.
   * White-list paths using regular expressions (e.g. only allow API calls: `/^\/api/`)
 * Highly [performant](http://jpillora.com/xdomain/example/performance/)
 * Seamless integration with [FormData](http://jpillora.com/xdomain/example/formdata/)
+* Supports [RequiresJS](http://jpillora.com/xdomain/example/requirejs) and [Browserify](http://jpillora.com/xdomain/example/browserify)
 
 ## Download
 
@@ -62,13 +63,13 @@ and uses that, XHook won't be able to intercept those requests.
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -96,11 +97,11 @@ and uses that, XHook won't be able to intercept those requests.
   The following two snippets are equivalent:
 
   ``` html
-  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  <script src="//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js" master="http://abc.example.com/api/*"></script>
   ```
 
   ``` html
-  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
+  <script src="//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js"></script>
   <script>
   xdomain.masters({
     'http://abc.example.com': '/api/*'
@@ -123,7 +124,7 @@ and uses that, XHook won't be able to intercept those requests.
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="http://jpillora.com/xdomain/dist/0.6/xdomain.min.js"></script>
+  <script src="//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js"></script>
   <script>
     xdomain.slaves({
       "http://xyz.example.com": "/proxy.html"
@@ -186,7 +187,7 @@ Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
 from going into quirks mode. If you don't do this, XDomain will warn you about
 the missing `JSON` and/or `postMessage` globals and will exit.
 
-**If you need CORS** and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
+If you need a **CORS Polyfill** and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
 
 ## FAQ / Troubleshooting
 
@@ -234,9 +235,9 @@ Note: In newer browsers `xhook.addWithCredentials` has no effect as they already
 
 Q: In IE, I'm getting an `Access Denied` error
 
-A: This is error occurs when IE attempts CORS request. Read on.
+A: This is error occurs when IE attempts a CORS request. Read on.
 
-Q: The browser is still sending a CORS request.
+Q: The browser is still sending CORS requests.
 
 A: Double check your slaves configuration against the examples.
 If your slaves configuration is correct, double-check that you're
@@ -246,7 +247,7 @@ it only modifies `window.XMLHttpRequest`.
 
 Q: It's still not working!
 
-A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag)
+A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag) on both the master and the slave
 and copy the `console.logs` to a new issue. If possible, please a live example demonstrating the issue.
 
 ## Contributing
@@ -254,6 +255,10 @@ and copy the `console.logs` to a new issue. If possible, please a live example d
 See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDomain locally.
 
 ## Change Log
+
+v0.6.12 - Fixed AMD/CommonJS loading
+
+v0.6.10-11 - Fixing minor issues
 
 v0.6.9 - Update XHook to 1.1.10 to support case-insensitive header access
          using `getResponseHeader`.

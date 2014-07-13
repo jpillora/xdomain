@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "browserify app.js > bundle.js"
+  },
+  "dependencies": {
+    "browserify": "^4.2.0"
+  }
+}

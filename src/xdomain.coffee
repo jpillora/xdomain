@@ -1,8 +1,7 @@
 'use strict'
 
-#add withCredentials to xhr to trick jquery
-#in older browsers into thinking cors is allowed
-xhook.addWithCredentials = true
+#commonjs/globally defined xhook
+xhook = (@exports or @).xhook
 
 #public methods
 xdomain = (o) ->
@@ -124,6 +123,9 @@ startPostMessage()
 
 #publicise (mini-umd)
 if typeof @define is "function" and @define.amd
-  define "xdomain", ["xhook"], -> xdomain
+  define "xdomain", ["xhook"], (xh) ->
+    #require defined xhook
+    xhook = xh
+    return xdomain
 else
   (@exports or @).xdomain = xdomain

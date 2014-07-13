@@ -7,6 +7,7 @@
   <h5>From '<span id="host"></span>'</h5>
   <h5>To 'http://<span id="target"></span>:3000/CONTRIBUTING.md'</h5>
 
+  <img id='pic'></img>
   <pre id='output'></pre>
 
   <script type="text/javascript">
@@ -22,9 +23,12 @@
     if(!target)
       alert("this is a local test only");
 
+    //add port
+    target += ":" + location.port;
+
     //create xdomain script tag usign target
     document.write("<script src='../../dist/0.6/xdomain.js' debug='true' "+
-      " slave='http://"+target+":3000/example/local/proxy1.html'><\/script>");
+      " slave='http://"+target+"/example/local/proxy1.html'><\/script>");
   </script>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
@@ -38,7 +42,30 @@
     $("#host").html(xdomain.origin);
     $("#target").html(target);
     //jquery ajax call
-    $("#output").load('http://'+target+':3000/CONTRIBUTING.md');
+    $("#output").load('http://'+target+'/CONTRIBUTING.md');
+
+    //vanilla ajax - with response type
+    var xhr = new XMLHttpRequest()
+    xhr.open('GET', 'http://'+target+'/example/files/octocat.jpg');
+    xhr.responseType = 'blob';
+    xhr.onreadystatechange = function(e) {
+      if(!window.FileReader)
+        return alert("FileReader not supported in this browser");
+      if(xhr.readyState === 4) {
+        var reader = new window.FileReader();
+        reader.readAsDataURL(xhr.response); 
+        reader.onloadend = function() {
+          document.getElementById("pic").src = reader.result;
+        }
+      }
+    };
+    xhr.onprogress = function(e) {
+      console.log("download",e.loaded,e.total);
+    };
+    xhr.onerror = function(err) {
+      console.info("error",err);
+    };
+    xhr.send();
   </script>
 
 </body>
