@@ -201,7 +201,7 @@ A: You shouldn't. You should use XDomain because:
     * Requests only emit `progress`,`timeout` and `error`
     * Requests may only use the `Content-Type` header
 * The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
-* On RESTful JSON API server, CORS will generating superfluous traffic by sending a
+* On a RESTful JSON API server, CORS will generate superfluous traffic by sending a
   preflight OPTIONS request on all requests, except for GET and HEAD.
 * Not everyone is able to modify HTTP headers on the server, but most can upload a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in its Google API JS SDK:
