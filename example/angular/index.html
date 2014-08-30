@@ -38,7 +38,11 @@
       //perform cross-domain request
       $http.get('http://echo.jpillora.com/foo/bar').then(function(result) {
         $rootScope.output = result.data;
-      })
+      }).catch(function() {
+          console.log("error");
+      }).finally(function() {
+        console.log("complete");
+      });
     });
   </script>
 

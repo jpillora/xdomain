@@ -5,13 +5,15 @@
 <body>
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://<span id="target"></span>/CONTRIBUTING.md'</h5>
+  <h5>To '<span id="target"></span>'</h5>
 
   <img id='pic' style='display:none'></img>
   <pre id='output'></pre>
 
   <script type="text/javascript">
-    
+
+    var $ = document.querySelector.bind(document);
+
     var origins = {
       'localhost': '127.0.0.1',
       'abc.lvho.st': 'xyz.lvho.st',
@@ -19,55 +21,35 @@
     };
 
     var src = location.hostname;
-    var target = origins[src];
+    var target = 'http://' + origins[src];
     if(!target)
       alert("this is a local test only");
 
     //add port
     target += ":" + location.port;
 
-    //create xdomain script tag usign target
-    document.write("<script src='../../dist/0.6/xdomain.js' debug='true' "+
-      " slave='http://"+target+"/example/local/proxy1.html'><\/script>");
-  </script>
+    //add xdomain
+    var script = document.createElement("script");
+    script.src = '../../dist/0.6/xdomain.js';
+    // script.debug = true;
+    script.setAttribute("slave", target+"/example/local/proxy1.html");
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
-  <script type="text/javascript">
-    // xhook.before(function(req) {
-    //   req.withCredentials = true;
-    //   console.log(req)
-    // }, 0);
+    target += '/CONTRIBUTING.md';
 
-    //show current origin
-    $("#host").html(xdomain.origin);
-    $("#target").html(target);
-    //jquery ajax call
-    $("#output").load('http://'+target+'/CONTRIBUTING.md');
-
-    if(window.FileReader) {
-      //vanilla ajax - with response type
-      var xhr = new XMLHttpRequest()
-      xhr.open('GET', 'http://'+target+'/example/files/octocat.jpg');
-      xhr.responseType = 'blob';
-      xhr.onreadystatechange = function(e) {
-        if(xhr.readyState !== 4) return;
-        var reader = new window.FileReader();
-        reader.readAsDataURL(xhr.response); 
-        reader.onloadend = function() {
-          var pic = document.getElementById("pic");
-          pic.src = reader.result;
-          pic.style.display = 'block';
-        }
-      };
-      xhr.onprogress = function(e) {
-        console.log("download",e.loaded,e.total);
-      };
-      xhr.onerror = function(err) {
-        console.info("error",err);
-      };
+    script.onload = function load() {
+      //show current origin
+      $("#host").innerHTML = xdomain.origin;
+      $("#target").innerHTML = target;
+      //vanilla ajax call
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", target);
       xhr.send();
-    }
+      xhr.onload = function() {
+        $("#output").innerHTML = xhr.responseText;
+      }
+    };
 
+    document.body.appendChild(script);
   </script>
 
 </body>

@@ -1,6 +1,6 @@
-// XDomain - v0.6.12 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.13 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.2.1 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.2.2 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -333,8 +333,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       if (hook.length === 2) {
         hook(request, response);
         return process();
-      } else if (hook.length === 3) {
+      } else if (hook.length === 3 && request.async) {
         return hook(request, response, process);
+      } else {
+        return process();
       }
     };
     process();
@@ -374,9 +376,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   facade.open = function(method, url, async, user, pass) {
     request.method = method;
     request.url = url;
-    if (async === false) {
-      throw "sync xhr not supported by XHook";
-    }
+    request.async = async !== false;
     request.user = user;
     request.pass = pass;
     setReadyState(1);
@@ -395,7 +395,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     send = function() {
       var header, value, _j, _len1, _ref1, _ref2;
       transiting = true;
-      xhr.open(request.method, request.url, true, request.user, request.pass);
+      xhr.open(request.method, request.url, request.async, request.user, request.pass);
       _ref1 = ['type', 'timeout', 'withCredentials'];
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         k = _ref1[_j];
@@ -442,8 +442,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       hook = hooks.shift();
       if (hook.length === 1) {
         return done(hook(request));
-      } else if (hook.length === 2) {
+      } else if (hook.length === 2 && request.async) {
         return hook(request, done);
+      } else {
+        return done();
       }
     };
     process();
