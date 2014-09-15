@@ -1,6 +1,6 @@
 {
   "name": "jpillora/xdomain",
-  "version": "0.6.13",
+  "version": "0.6.14",
   "main": "dist/0.6/xdomain.js",
   "license": "MIT",
   "ignore": [

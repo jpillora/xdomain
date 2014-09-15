@@ -33,8 +33,8 @@ will work seamlessly with any library.
 
 ## Download
 
-* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js) 25KB
-* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js) 12KB (2.8KB Gzip)
+* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js) 27KB
+* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.min.js) 12KB (5.16KB Gzip)
 
 ## Live Demos
 
