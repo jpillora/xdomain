@@ -1,8 +1,8 @@
-// XDomain - v0.6.14 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.15 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {// XHook - v1.2.3 - https://github.com/jpillora/xhook
+(function(window,undefined) {// XHook - v1.2.4 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 document = window.document;
@@ -214,10 +214,13 @@ convertHeaders = xhook.headers = function(h, dest) {
   }
 };
 
-if (xhook[FormData] = window[FormData]) {
+NativeFormData = window[FormData];
+
+if (NativeFormData) {
+  xhook[FormData] = NativeFormData;
   window[FormData] = function(form) {
     var entries;
-    this.fd = new xhook[FormData](form);
+    this.fd = form ? new NativeFormData(form) : new NativeFormData();
     this.form = form;
     entries = [];
     Object.defineProperty(this, 'entries', {
