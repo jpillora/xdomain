@@ -129,7 +129,7 @@ createSocket = (id, frame) ->
     frame.postMessage [id, XD_CHECK, {}], "*"
     if ready
       return
-    if checks++ is xdomain.timeout/CHECK_INTERVAL
+    if checks++ >= xdomain.timeout/CHECK_INTERVAL
       warn "Timeout waiting on iframe socket"
     else
       setTimeout check, CHECK_INTERVAL
