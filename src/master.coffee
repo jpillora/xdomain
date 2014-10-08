@@ -95,7 +95,7 @@ initMaster = ->
 
   #hook XHR  calls
   xhook.before (request, callback) ->
-    
+
     #allow unless we have a slave domain
     p = parseUrl request.url
 
@@ -105,7 +105,7 @@ initMaster = ->
     unless slaves[p.origin]
       log "no slave matching: '#{p.origin}'" if p
       return callback()
-    
+
     log "proxying request to slave: '#{p.origin}'"
 
     if request.async is false
@@ -116,7 +116,7 @@ initMaster = ->
     frame = getFrame p.origin, slaves[p.origin]
 
     #connect to slave
-    socket = connect frame
+    socket = connect frame, p.origin
 
     #queue callback
     socket.on "response", (resp) ->
