@@ -70,7 +70,7 @@ startPostMessage = -> onMessage (e) ->
   if sock is `undefined`
     #send unsolicited requests to the listening server
     return unless handler
-    sock = createSocket id, e.source
+    sock = createSocket id, e.source, e.origin
     handler e.origin, sock
 
   extra = if typeof d[1] is "string" then ": '#{d[1]}'" else ""
@@ -79,7 +79,7 @@ startPostMessage = -> onMessage (e) ->
   sock.fire.apply sock, d
   return
 
-createSocket = (id, frame) ->
+createSocket = (id, frame, origin) ->
 
   ready = false
   sock = sockets[id] = xhook.EventEmitter(true)
@@ -131,6 +131,14 @@ createSocket = (id, frame) ->
       return
     if checks++ >= xdomain.timeout/CHECK_INTERVAL
       warn "Timeout waiting on iframe socket"
+      #trigger an event on `window` so that scripts can hook into the failure
+      #only trigger if browser is standards-compliant
+      if document.createEvent?
+        e = new Event 'xdomainTimeout'
+        e.domain = origin;
+        e.id = id;
+        e.frame = frame;
+        window.dispatchEvent? e;
     else
       setTimeout check, CHECK_INTERVAL
     return
@@ -140,8 +148,8 @@ createSocket = (id, frame) ->
   return sock
 
 #connect to frame
-connect = (target) ->
-  s = createSocket guid(), target
+connect = (target, origin) ->
+  s = createSocket guid(), target, origin
   return s
 #listen on frame
 listen = (h) ->

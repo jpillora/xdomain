@@ -625,7 +625,7 @@ initMaster = function() {
       return callback();
     }
     frame = getFrame(p.origin, slaves[p.origin]);
-    socket = connect(frame);
+    socket = connect(frame, p.origin);
     socket.on("response", function(resp) {
       callback(resp);
       return socket.close();
@@ -806,7 +806,7 @@ startPostMessage = function() {
       if (!handler) {
         return;
       }
-      sock = createSocket(id, e.source);
+      sock = createSocket(id, e.source, e.origin);
       handler(e.origin, sock);
     }
     extra = typeof d[1] === "string" ? ": '" + d[1] + "'" : "";
@@ -815,7 +815,7 @@ startPostMessage = function() {
   });
 };
 
-createSocket = function(id, frame) {
+createSocket = function(id, frame, origin) {
   var check, checks, emit, pendingEmits, ready, sock,
     _this = this;
   ready = false;
@@ -860,12 +860,22 @@ createSocket = function(id, frame) {
   });
   checks = 0;
   check = function() {
+    var e;
     frame.postMessage([id, XD_CHECK, {}], "*");
     if (ready) {
       return;
     }
     if (checks++ >= xdomain.timeout / CHECK_INTERVAL) {
       warn("Timeout waiting on iframe socket");
+      if (document.createEvent != null) {
+        e = new Event('xdomainTimeout');
+        e.domain = origin;
+        e.id = id;
+        e.frame = frame;
+        if (typeof window.dispatchEvent === "function") {
+          window.dispatchEvent(e);
+        }
+      }
     } else {
       setTimeout(check, CHECK_INTERVAL);
     }
@@ -875,9 +885,9 @@ createSocket = function(id, frame) {
   return sock;
 };
 
-connect = function(target) {
+connect = function(target, origin) {
   var s;
-  s = createSocket(guid(), target);
+  s = createSocket(guid(), target, origin);
   return s;
 };
 
