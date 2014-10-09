@@ -816,7 +816,8 @@ startPostMessage = function() {
 };
 
 createSocket = function(id, frame) {
-  var check, checks, emit, pendingEmits, ready, sock;
+  var check, checks, emit, pendingEmits, ready, sock,
+    _this = this;
   ready = false;
   sock = sockets[id] = xhook.EventEmitter(true);
   sock.id = id;
@@ -858,19 +859,17 @@ createSocket = function(id, frame) {
     }
   });
   checks = 0;
-  check = (function(_this) {
-    return function() {
-      frame.postMessage([id, XD_CHECK, {}], "*");
-      if (ready) {
-        return;
-      }
-      if (checks++ === xdomain.timeout / CHECK_INTERVAL) {
-        warn("Timeout waiting on iframe socket");
-      } else {
-        setTimeout(check, CHECK_INTERVAL);
-      }
-    };
-  })(this);
+  check = function() {
+    frame.postMessage([id, XD_CHECK, {}], "*");
+    if (ready) {
+      return;
+    }
+    if (checks++ >= xdomain.timeout / CHECK_INTERVAL) {
+      warn("Timeout waiting on iframe socket");
+    } else {
+      setTimeout(check, CHECK_INTERVAL);
+    }
+  };
   setTimeout(check);
   log("new socket: " + id);
   return sock;
