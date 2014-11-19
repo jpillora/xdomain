@@ -1,4 +1,4 @@
-// XDomain - v0.6.15 - https://github.com/jpillora/xdomain
+// XDomain - v0.6.16 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {// XHook - v1.2.4 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -606,7 +606,9 @@ initMaster = function() {
     }
     send();
   };
-  xhook.addWithCredentials = true;
+  if (!xhook.hasOwnProperty('addWithCredentials')) {
+    xhook.addWithCredentials = true;
+  }
   return xhook.before(function(request, callback) {
     var frame, p, socket;
     p = parseUrl(request.url);
