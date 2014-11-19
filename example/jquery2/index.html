@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  <a href="https://github.com/jpillora/xdomain">
+    <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+
+  <h3>jQuery 2.x Abort Test</h3>
+  <p>
+    From '<span id="host"></span>'<br>
+  </p>
+
+  <script src="https://rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js"
+          slave="http://echo.jpillora.com/proxy.html"></script>
+  <!-- LOCAL TESTING
+  <script src="http://localhost:3000/dist/0.6/xdomain.js" debug="true"
+          slave="http://echo.jpillora.com/proxy.html?src=http://localhost:3000/dist/0.6/xdomain.js"></script>
+  -->
+  <script src="//code.jquery.com/jquery-2.0.2.js"></script>
+
+  <pre id='result'>Loading... </pre>
+
+  <script type="text/javascript">
+
+    // show current origin
+    $("#host").html(xdomain.origin);
+    // jquery ajax call (with 5sec delay)
+    var req = $.get('http://echo.jpillora.com/foo/bar/delay/5000/bazz');
+
+    req.done(function(data) {
+      $("#result").append("<THIS SHOULD NOT APPEAR>");
+    });
+
+    req.fail(function(res) {
+      $("#result").append(res.statusText);
+    });
+    // abort after 2secs
+    setTimeout(function() {
+      req.abort();
+    }, 2000);
+  </script>
+
+</body>
+</html>
+

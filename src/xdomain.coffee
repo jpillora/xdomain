@@ -1,224 +1,10 @@
 'use strict'
 
-currentOrigin = location.protocol + '//' + location.host
-
-warn = (str) ->
-  str = "xdomain (#{currentOrigin}): #{str}"
-  if console['warn']
-    console.warn str
-  else
-    alert str
-
-#feature detect
-for feature in ['postMessage','JSON']
-  unless window[feature]
-    warn "requires '#{feature}' and this browser does not support it"
-    return
-
-#master-slave compatibility version
-COMPAT_VERSION = "V0"
-
-#helpers
-guid = -> 
-  (Math.random()*Math.pow(2,32)).toString(16)
-
-parseUrl = (url) ->
-  if /(https?:\/\/[^\/]+)(\/.*)?/.test(url) then {origin: RegExp.$1, path: RegExp.$2} else null
-
-toRegExp = (obj) ->
-  return obj if obj instanceof RegExp
-  str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".+")
-  return new RegExp "^#{str}$"
-
-#message helpers
-onMessage = (fn) ->
-  if document.addEventListener
-    window.addEventListener "message", fn
-  else
-    window.attachEvent "onmessage", fn
-
-setMessage = (obj) ->
-  JSON.stringify obj
-
-getMessage = (str) ->
-  JSON.parse str
-
-masters = null
-addMasters = (m) ->
-  if masters is null
-    masters = {}
-    setupReceiver()
-  for origin, path of m
-    masters[origin] = path
-  return
-
-setupReceiver = ->
-  onMessage (event) ->
-    origin = event.origin
-    pathRegex = null
-
-    for master, regex of masters
-      try
-        masterRegex = toRegExp master
-        if masterRegex.test origin
-          pathRegex = toRegExp regex
-          break
-
-    unless pathRegex
-      warn "blocked request from: '#{origin}'"
-      return
-
-    frame = event.source
-
-    #extract data
-    message = getMessage event.data
-    req = message.msg
-
-    p = parseUrl req.url
-    unless p and pathRegex.test p.path
-      warn "blocked request to path: '#{p.path}' by regex: #{regex}"
-      return
-
-    # warn("request: #{JSON.stringify(req,null,2)}")
-
-    proxyXhr = new XMLHttpRequest()
-    proxyXhr.open req.method, req.url
-    proxyXhr.onreadystatechange = ->
-      return unless proxyXhr.readyState is 4
-      #extract properties
-      resp =
-        status: proxyXhr.status
-        statusText: proxyXhr.statusText
-        type: "text" # proxyXhr.responseType (only support text)
-        # data: proxyXhr.response
-        text: proxyXhr.responseText
-        # xml: proxyXhr.responseXML (need a json<->xml converter...)
-        headers: xhook.headers proxyXhr.getAllResponseHeaders()
-
-      frame.postMessage setMessage({id:message.id,msg:resp}), origin
-    
-    for k,v of req.headers
-      proxyXhr.setRequestHeader k, v
-
-    proxyXhr.send req.body or null
-
-  #ping master
-  if window is window.parent
-    warn "slaves must be in an iframe"
-  else
-    window.parent.postMessage "XPING_#{COMPAT_VERSION}", '*'
-
-
-slaves = null
-addSlaves = (s) ->
-  if slaves is null
-    slaves = {}
-    setupSender()
-  for origin, path of s
-    slaves[origin] = path
-  return
-
-setupSender = ->
-  #pass messages to the correct frame instance
-  onMessage (e) ->
-    Frame::frames[e.origin]?.recieve (e)
-
-  #hook XHR  calls
-  xhook.before (request, callback) ->
-
-    #allow unless we have a slave domain
-    p = parseUrl request.url
-    unless p and slaves[p.origin]
-      return callback()
-
-    if request.async is false
-      warn "sync not supported"
-
-    #check frame exists
-    frame = new Frame p.origin, slaves[p.origin]
-    frame.send request, callback
-    return
-
-#frame
-class Frame
-
-  frames: {}
-
-  constructor: (@origin, @proxyPath) ->
-    #cache origin
-    return @frames[@origin] if @frames[@origin]
-
-    @frames[@origin] = @
-    @listeners = {}
-
-    @frame = document.createElement "iframe"
-    @frame.id = @frame.name = 'xdomain-'+guid()
-    @frame.src = @origin + @proxyPath
-    @frame.setAttribute 'style', 'display:none;'
-
-    document.body.appendChild @frame
-
-    @waits = 0
-    @ready = false
-
-  post: (msg) ->
-    @frame.contentWindow.postMessage msg, @origin
-    return
-
-  #sub-events with id's
-  listen: (id, callback) ->
-    if @listeners[id]
-      throw "already listening for: " + id
-    @listeners[id] = callback
-    return
-
-  unlisten: (id) ->
-    delete @listeners[id]
-    return
-
-  recieve: (event) ->
-    #pong only
-    if /^XPING(_(V\d+))?$/.test event.data
-      if RegExp.$2 isnt COMPAT_VERSION
-        warn "your master is not compatible with your slave, check your xdomain.js verison"
-        return
-      @ready = true
-      return
-
-    message = getMessage event.data
-
-    #response
-    cb = @listeners[message.id]
-    unless cb
-      warn "unkown message (#{message.id})"
-      return 
-    @unlisten message.id
-    cb message.msg
-    return
-
-  #send with id
-  send: (msg, callback) ->
-    @readyCheck =>
-      id = guid()
-      @listen id, (data) -> callback data
-      @post setMessage({id,msg})
-    return
-
-  #confirm the connection to iframe
-  readyCheck: (callback) ->
-    if @ready is true
-      return callback()
-
-    if @waits++ >= 100 # 10.0 seconds
-      throw "Timeout connecting to iframe: " + @origin
-    else
-      setTimeout =>
-        @readyCheck callback
-      , 100
-    return
+#commonjs/globally defined xhook
+xhook = (@exports or @).xhook
 
 #public methods
-window.xdomain = (o) ->
+xdomain = (o) ->
   return unless o
   if o.masters
     addMasters o.masters
@@ -226,18 +12,120 @@ window.xdomain = (o) ->
     addSlaves o.slaves
   return
 
-xdomain.origin = currentOrigin
+xdomain.masters = addMasters
+xdomain.slaves = addSlaves
+xdomain.debug = false
+xdomain.timeout = 15e3
+CHECK_INTERVAL = 100
 
-#auto init
-for script in document.getElementsByTagName("script")
-  if /xdomain/.test(script.src)
-    if script.hasAttribute 'slave'
-      p = parseUrl script.getAttribute 'slave'
+document = window.document
+location = window.location
+currentOrigin = xdomain.origin = location.protocol + '//' + location.host
+
+#helpers
+guid = -> 'xdomain-'+Math.round(Math.random()*Math.pow(2,32)).toString(16)
+slice = (o,n) -> Array::slice.call o,n
+console = window.console || {}
+
+logger = (type) ->
+  (str) ->
+    str = "xdomain (#{currentOrigin}): #{str}"
+    #user provided log/warn functions
+    if type of xdomain
+      xdomain[type] str
+    if type is 'log' and not xdomain.debug
+      return
+    if type of console
+      console[type] str
+    else if type is 'warn'
+      alert str
+    return
+
+log = logger 'log'
+warn = logger 'warn'
+
+#feature detect
+for feature in ['postMessage','JSON']
+  unless window[feature]
+    warn "requires '#{feature}' and this browser does not support it"
+    return
+
+instOf = (obj, global) ->
+  return false unless global of window
+  return obj instanceof window[global]
+
+#master-slave compatibility version
+COMPAT_VERSION = "V1"
+
+#absolute url parser (relative urls aren't crossdomain)
+parseUrl = xdomain.parseUrl = (url) ->
+  return if /^((https?:)?\/\/[^\/\?]+)(\/.*)?/.test(url)
+    {origin: (if RegExp.$2 then '' else location.protocol)+RegExp.$1, path: RegExp.$3}
+  else
+    log "failed to parse absolute url: #{url}"
+    null
+
+toRegExp = (obj) ->
+  return obj if obj instanceof RegExp
+  str = obj.toString().replace(/\W/g, (str) -> "\\#{str}").replace(/\\\*/g, ".*")
+  return new RegExp "^#{str}$"
+
+#strip functions and objects from an object
+strip = (src) ->
+  dst = {}
+  for k of src
+    continue if k is "returnValue"
+    v = src[k]
+    if typeof v not in ["function","object"]
+      dst[k] = v
+  dst
+
+#cookies helper (disabled - 3rd party cookie issue)
+# cookies = (set, cookieString) ->
+#   for c in cookieString.split /; /
+#     document.cookie = c + (if set then "" else "; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+#   return
+
+
+#auto init with attributes
+(->
+  attrs =
+    debug: (value) ->
+      return unless typeof value is "string"
+      xdomain.debug = value isnt "false"
+    slave: (value) ->
+      return unless value
+      p = parseUrl value
       return unless p
       s = {}
       s[p.origin] = p.path
       addSlaves s
-    if script.hasAttribute 'master'
+    master: (value) ->
+      return unless value
+      if value is "*"
+        p = {origin:"*",path:"*"}
+      else
+        p = parseUrl value
+      return unless p
       m = {}
-      m[script.getAttribute 'master'] = /./
+      m[p.origin] = if p.path.replace(/^\//,"") then p.path else "*"
       addMasters m
+
+  for script in document.getElementsByTagName("script")
+    if /xdomain/.test(script.src)
+      for prefix in ['','data-']
+        for k,fn of attrs
+          fn script.getAttribute prefix+k
+  return
+)()
+#init
+startPostMessage()
+
+#publicise (mini-umd)
+if typeof @define is "function" and @define.amd
+  define "xdomain", ["xhook"], (xh) ->
+    #require defined xhook
+    xhook = xh
+    return xdomain
+else
+  (@exports or @).xdomain = xdomain

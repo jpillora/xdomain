@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  <h3>XDomain Demo</h3>
+  <h5>From '<span id="host"></span>'</h5>
+  <h5>To 'http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json'</h5>
+<!-- 
+
+  http://127.0.0.1:3000/xdomain/Gruntsource.json
+  
+  <script src="../../dist/0.6/xdomain.js"
+          slave="http://127.0.0.1:3000/xdomain/example/local/proxy1.html"></script>
+ -->
+
+  <script src="https://rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js"
+          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/0.6/proxy.html"></script>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+  <pre id='output'></pre>
+
+  <script type="text/javascript">
+    //show current origin
+    $("#host").html(xdomain.origin);
+    //jquery ajax call
+    for(var i = 0, c = 1; i < 100; i++)
+      $.get('http://s3.amazonaws.com/jpillora-usa/xdomain/data1.json?v='+i)
+        .always(function(data, success, xhr) {
+          $("#output").append(c++ + ": " + success + "\n");
+        });
+  </script>
+
+</body>
+</html>
+

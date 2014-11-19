@@ -1,21 +1,55 @@
 <!DOCTYPE HTML>
 <html>
+<head>
+</head>
 <body>
-
   <h3>XDomain Demo</h3>
   <h5>From '<span id="host"></span>'</h5>
-  <h5>To 'http://xyz.example.com:4000/Gruntsource.json'</h5>
+  <h5>To '<span id="target"></span>'</h5>
 
-  <script src="/dist/0.5/xdomain.js" slave="http://127.0.0.1:4000/example/local/proxy2.html"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
-
+  <img id='pic' style='display:none'></img>
   <pre id='output'></pre>
 
   <script type="text/javascript">
-    //show current origin
-    $("#host").html(xdomain.origin);
-    //jquery ajax call
-    $("#output").load('http://127.0.0.1:4000/Gruntsource.json');
+
+    var $ = document.querySelector.bind(document);
+
+    var origins = {
+      'localhost': '127.0.0.1',
+      'abc.lvho.st': 'xyz.lvho.st',
+      'abc.example.com': 'xyz.example.com'
+    };
+
+    var src = location.hostname;
+    var target = 'http://' + origins[src];
+    if(!target)
+      alert("this is a local test only");
+
+    //add port
+    target += ":" + location.port;
+
+    //add xdomain
+    var script = document.createElement("script");
+    script.src = '../../dist/0.6/xdomain.js';
+    // script.debug = true;
+    script.setAttribute("slave", target+"/example/local/proxy1.html");
+
+    target += '/CONTRIBUTING.md';
+
+    script.onload = function load() {
+      //show current origin
+      $("#host").innerHTML = xdomain.origin;
+      $("#target").innerHTML = target;
+      //vanilla ajax call
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", target);
+      xhr.send();
+      xhr.onload = function() {
+        $("#output").innerHTML = xhr.responseText;
+      }
+    };
+
+    document.body.appendChild(script);
   </script>
 
 </body>

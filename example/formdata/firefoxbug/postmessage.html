@@ -1,0 +1,49 @@
+<html>
+<body>
+<div id="msgs"></div>
+<script type="text/javascript">
+
+var runTests = function(target) {
+  //run once
+  runTests = function(){};
+  function send(type, obj) {
+    var err
+    try {
+      target.postMessage(obj, "*");
+    } catch(e) { err = e; }
+    window.msgs.innerHTML += "<b>"+type+"</b>: "+(err ? err.message : 'Sent')+"<br>";
+  }
+
+  var fd = new FormData();
+  fd.append("foo","bar");
+  send('FormData', fd);
+
+  var arr = new Uint8Array(42);
+  arr[13] = 260;
+  send('Uint8Array', arr);
+
+  var blob = new Blob(["foo"], {type:'text/plain'});
+  send('Blob', blob);
+}
+
+//parent
+if(window === window.parent) {
+  window.msgs.innerHTML += "Parent<br>";
+  window.addEventListener("message", function(event) {
+    console.log(event.origin,"->",location.origin,event.data);
+    runTests(event.source);
+  })
+  document.write("<iframe src='"+location.href.replace('http','https')+"?cross'></iframe>");
+  document.write("<iframe src='"+location.href+"?same'></iframe>");
+  //for local testing, do: replace('localhost','127.0.0.1')
+
+//child
+} else {
+  window.msgs.innerHTML += "Child ("+location.search.substr(1)+" origin)<br>";
+  runTests(window.parent);
+}
+
+
+</script>
+</body>
+</html>

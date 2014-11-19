@@ -19,7 +19,7 @@
       }
       #ace, textarea {
         position: absolute;
-        font-size: 12px;
+        font-size: 12px; 
         left: 0;
         top: 0;
         height: 100%;
@@ -37,7 +37,7 @@
         text-align: right;
       }
       button {
-        font-size: 16px
+        font-size: 16px 
       }
     </style>
   </head>
@@ -53,12 +53,18 @@
     </div>
 
     <div id="ace"></div>
-    <textarea id="ta" readonly="readonly"></textarea>
+    <textarea id="ta"></textarea>
 
     <pre id="output"></pre>
-
-    <script src="/dist/0.5/xdomain.js' slave='http://echo.jpillora.com/proxy.html'></script>
-
+    
+    <script src="https://rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js"
+            slave="http://echo.jpillora.com/proxy.html"></script>
+            
+    <!-- LOCAL TESTING -->
+<!-- 
+    <script src="http://localhost:3000/dist/0.6/xdomain.js" debug="true"
+            slave="http://echo.jpillora.com/proxy.html?src=http://localhost:3000/dist/0.6/xdomain.js"></script>
+ -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"
@@ -77,14 +83,13 @@ $.ajax({
   timeout: 5000
 }).always(function(data, result, xhr) {
   $("#output").html(result === 'success' ? xhr.responseText : result);
-});</script>
+});
+</script>
 
     <script type="text/javascript">
 
       (function() {
-
         if(/MSIE [678]/.test(window.navigator.userAgent)) {
-
           $("#ace").remove();
           var set = function(code) {
             $("#ta").val(code);
@@ -92,22 +97,18 @@ $.ajax({
           var get = function() {
             return $("#ta").val()
           }
-
         } else {
-
           $("#ta").remove();
-
           window.editor = ace.edit("ace");
           editor.setTheme("ace/theme/textmate");
           editor.getSession().setMode("ace/mode/javascript");
+          editor.getSession().setUseWorker(false);
           editor.session.setTabSize(2);
           editor.session.setUseSoftTabs(true);
           editor.setShowPrintMargin(false);
-
           var set = function(code) {
             editor.session.setValue(code);
           }
-
           var get = function() {
             return editor.session.getValue()
           }

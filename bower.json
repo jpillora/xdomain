@@ -1,0 +1,14 @@
+{
+  "name": "jpillora/xdomain",
+  "version": "0.6.15",
+  "main": "dist/0.6/xdomain.js",
+  "license": "MIT",
+  "ignore": [
+    "*",
+    "!bower.json",
+    "!dist/0.6/xdomain.js",
+    "!dist/0.6/xdomain.min.js"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}

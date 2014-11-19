@@ -1,0 +1,34 @@
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+
+  <h3>RequireJS+XDomain Demo</h3>
+  <p>
+    Cross-domain XHR access to Amazon (http://s3.amazonaws.com)<br>
+  </p>
+
+  <pre>Loading...</pre>
+
+  <a href="https://github.com/jpillora/xdomain/tree/gh-pages/example/requirejs">See example</a>
+
+  <script src="//requirejs.org/docs/release/2.1.14/minified/require.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script src="../../dist/0.6/xdomain.js"></script>
+  <script>
+    //Application entry point
+    require(['xdomain', 'jquery'], function(xdomain, $) {
+      xdomain.debug = true;
+      xdomain.slaves({
+        'http://s3.amazonaws.com':'/jpillora-usa/xdomain/0.6/proxy.html'
+      });
+      $("pre").load('http://s3.amazonaws.com/jpillora-usa/xdomain/data2.json');
+    });
+
+    //note:
+    //  window.xhook === undefined
+    //  window.xdomain === undefined
+  </script>
+</body>
+</html>

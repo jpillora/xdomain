@@ -1,8 +1,9 @@
-// XHook - v1.0.0 - https://github.com/jpillora/xhook
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
-(function(window,document,undefined) {
-var AFTER, BEFORE, EventEmitter, INVALID_PARAMS_ERROR, READY_STATE, convertHeaders, createXHRFacade, patchClass, pluginEvents, xhook, _base,
-  __slice = [].slice;
+// XHook - v1.2.4 - https://github.com/jpillora/xhook
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
+(function(window,undefined) {var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, document, fakeEvent, mergeObjects, proxyEvents, slice, xhook, _base,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+document = window.document;
 
 BEFORE = 'before';
 
@@ -10,7 +11,19 @@ AFTER = 'after';
 
 READY_STATE = 'readyState';
 
-INVALID_PARAMS_ERROR = "Invalid number or parameters. Please see API documentation.";
+ON = 'addEventListener';
+
+OFF = 'removeEventListener';
+
+FIRE = 'dispatchEvent';
+
+XMLHTTP = 'XMLHttpRequest';
+
+FormData = 'FormData';
+
+UPLOAD_EVENTS = ['load', 'loadend', 'loadstart'];
+
+COMMON_EVENTS = ['progress', 'abort', 'error', 'timeout'];
 
 (_base = Array.prototype).indexOf || (_base.indexOf = function(item) {
   var i, x, _i, _len;
@@ -23,59 +36,154 @@ INVALID_PARAMS_ERROR = "Invalid number or parameters. Please see API documentati
   return -1;
 });
 
-EventEmitter = function(ctx) {
+slice = function(o, n) {
+  return Array.prototype.slice.call(o, n);
+};
+
+mergeObjects = function(src, dst) {
+  var k, v;
+  for (k in src) {
+    v = src[k];
+    if (k === "returnValue") {
+      continue;
+    }
+    try {
+      dst[k] = src[k];
+    } catch (_error) {}
+  }
+  return dst;
+};
+
+proxyEvents = function(events, src, dst) {
+  var event, p, _i, _len;
+  p = function(event) {
+    return function(e) {
+      var clone, k, val;
+      clone = {};
+      for (k in e) {
+        if (k === "returnValue") {
+          continue;
+        }
+        val = e[k];
+        clone[k] = val === src ? dst : val;
+      }
+      clone;
+      return dst[FIRE](event, clone);
+    };
+  };
+  for (_i = 0, _len = events.length; _i < _len; _i++) {
+    event = events[_i];
+    src["on" + event] = p(event);
+  }
+};
+
+fakeEvent = function(type) {
+  var msieEventObject;
+  if (document.createEventObject != null) {
+    msieEventObject = document.createEventObject();
+    msieEventObject.type = type;
+    return msieEventObject;
+  } else {
+    try {
+      return new Event(type);
+    } catch (_error) {
+      return {
+        type: type
+      };
+    }
+  }
+};
+
+EventEmitter = function(nodeStyle) {
   var emitter, events, listeners;
   events = {};
   listeners = function(event) {
     return events[event] || [];
   };
-  emitter = {
-    listeners: function(event) {
-      return Array.prototype.slice.call(listeners(event));
-    },
-    on: function(event, callback, i) {
-      events[event] = listeners(event);
-      if (events[event].indexOf(callback) >= 0) {
-        return;
-      }
-      i = i === undefined ? events[event].length : i;
-      events[event].splice(i, 0, callback);
-    },
-    off: function(event, callback) {
-      var i;
-      i = listeners(event).indexOf(callback);
-      if (i === -1) {
-        return;
-      }
-      listeners(event).splice(i, 1);
-    },
-    fire: function() {
-      var args, event, listener, _i, _len, _ref;
-      event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      _ref = listeners(event);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        listener = _ref[_i];
-        listener.apply(ctx, args);
-      }
+  emitter = {};
+  emitter[ON] = function(event, callback, i) {
+    events[event] = listeners(event);
+    if (events[event].indexOf(callback) >= 0) {
+      return;
+    }
+    i = i === undefined ? events[event].length : i;
+    events[event].splice(i, 0, callback);
+  };
+  emitter[OFF] = function(event, callback) {
+    var i;
+    i = listeners(event).indexOf(callback);
+    if (i === -1) {
+      return;
+    }
+    listeners(event).splice(i, 1);
+  };
+  emitter[FIRE] = function() {
+    var args, event, i, legacylistener, listener, _i, _len, _ref;
+    args = slice(arguments);
+    event = args.shift();
+    if (!nodeStyle) {
+      args[0] = mergeObjects(args[0], fakeEvent(event));
+    }
+    legacylistener = emitter["on" + event];
+    if (legacylistener) {
+      legacylistener.apply(undefined, args);
+    }
+    _ref = listeners(event).concat(listeners("*"));
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      listener = _ref[i];
+      listener.apply(undefined, args);
     }
   };
+  if (nodeStyle) {
+    emitter.listeners = function(event) {
+      return slice(listeners(event));
+    };
+    emitter.on = emitter[ON];
+    emitter.off = emitter[OFF];
+    emitter.fire = emitter[FIRE];
+    emitter.once = function(e, fn) {
+      var fire;
+      fire = function() {
+        emitter.off(e, fire);
+        return fn.apply(null, arguments);
+      };
+      return emitter.on(e, fire);
+    };
+    emitter.destroy = function() {
+      return events = {};
+    };
+  }
   return emitter;
 };
 
-pluginEvents = EventEmitter();
+xhook = EventEmitter(true);
 
-xhook = {};
+xhook.EventEmitter = EventEmitter;
 
 xhook[BEFORE] = function(handler, i) {
-  return pluginEvents.on(BEFORE, handler, i);
+  if (handler.length < 1 || handler.length > 2) {
+    throw "invalid hook";
+  }
+  return xhook[ON](BEFORE, handler, i);
 };
 
 xhook[AFTER] = function(handler, i) {
-  return pluginEvents.on(AFTER, handler, i);
+  if (handler.length < 2 || handler.length > 3) {
+    throw "invalid hook";
+  }
+  return xhook[ON](AFTER, handler, i);
 };
 
-convertHeaders = function(h, dest) {
-  var header, headers, k, v, _i, _len;
+xhook.enable = function() {
+  window[XMLHTTP] = XHookHttpRequest;
+};
+
+xhook.disable = function() {
+  window[XMLHTTP] = xhook[XMLHTTP];
+};
+
+convertHeaders = xhook.headers = function(h, dest) {
+  var header, headers, k, name, v, value, _i, _len, _ref;
   if (dest == null) {
     dest = {};
   }
@@ -84,7 +192,8 @@ convertHeaders = function(h, dest) {
       headers = [];
       for (k in h) {
         v = h[k];
-        headers.push("" + k + ":\t" + v);
+        name = k.toLowerCase();
+        headers.push("" + name + ":\t" + v);
       }
       return headers.join('\n');
     case "string":
@@ -92,8 +201,10 @@ convertHeaders = function(h, dest) {
       for (_i = 0, _len = headers.length; _i < _len; _i++) {
         header = headers[_i];
         if (/([^:]+):\s*(.+)/.test(header)) {
-          if (!dest[RegExp.$1]) {
-            dest[RegExp.$1] = RegExp.$2;
+          name = (_ref = RegExp.$1) != null ? _ref.toLowerCase() : void 0;
+          value = RegExp.$2;
+          if (dest[name] == null) {
+            dest[name] = value;
           }
         }
       }
@@ -101,220 +212,288 @@ convertHeaders = function(h, dest) {
   }
 };
 
-xhook.headers = convertHeaders;
+NativeFormData = window[FormData];
 
-patchClass = function(name) {
-  var Class;
-  Class = window[name];
-  if (!Class) {
-    return;
-  }
-  window[name] = function(arg) {
-    if (typeof arg === "string" && !/\.XMLHTTP/.test(arg)) {
-      return;
-    }
-    return createXHRFacade(new Class(arg));
+if (NativeFormData) {
+  xhook[FormData] = NativeFormData;
+  window[FormData] = function(form) {
+    var entries;
+    this.fd = form ? new NativeFormData(form) : new NativeFormData();
+    this.form = form;
+    entries = [];
+    Object.defineProperty(this, 'entries', {
+      get: function() {
+        var fentries;
+        fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
+          var _ref;
+          return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+        }).map(function(e) {
+          return [e.name, e.type === "file" ? e.files : e.value];
+        });
+        return fentries.concat(entries);
+      }
+    });
+    this.append = (function(_this) {
+      return function() {
+        var args;
+        args = slice(arguments);
+        entries.push(args);
+        return _this.fd.append.apply(_this.fd, args);
+      };
+    })(this);
   };
-};
+}
 
-patchClass("ActiveXObject");
+xhook[XMLHTTP] = window[XMLHTTP];
 
-patchClass("XMLHttpRequest");
-
-createXHRFacade = function(xhr) {
-  var checkEvent, currentState, event, extractProps, face, readyBody, readyHead, request, response, setReadyState, transiting, xhrEvents, _i, _len, _ref;
-  if (pluginEvents.listeners(BEFORE).length === 0 && pluginEvents.listeners(AFTER).length === 0) {
-    return xhr;
-  }
+XHookHttpRequest = window[XMLHTTP] = function() {
+  var currentState, emitFinal, emitReadyState, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, transiting, writeBody, writeHead, xhr;
+  xhr = new xhook[XMLHTTP]();
+  hasError = false;
   transiting = false;
-  request = {
-    headers: {}
+  request = {};
+  request.headers = {};
+  request.headerNames = {};
+  response = {};
+  response.headers = {};
+  readHead = function() {
+    var key, name, val, _ref;
+    response.status = xhr.status;
+    response.statusText = xhr.statusText;
+    _ref = convertHeaders(xhr.getAllResponseHeaders());
+    for (key in _ref) {
+      val = _ref[key];
+      if (!response.headers[key]) {
+        name = key.toLowerCase();
+        response.headers[name] = val;
+      }
+    }
   };
-  response = null;
-  xhrEvents = EventEmitter();
-  readyHead = function() {
-    face.status = response.status;
-    face.statusText = response.statusText;
-    response.headers || (response.headers = {});
+  readBody = function() {
+    try {
+      response.text = xhr.responseText;
+    } catch (_error) {}
+    try {
+      response.xml = xhr.responseXML;
+    } catch (_error) {}
+    response.data = xhr.response || response.text;
   };
-  readyBody = function() {
-    face.responseType = response.type || '';
-    face.response = response.data || null;
-    face.responseText = response.text || response.data || '';
-    face.responseXML = response.xml || null;
+  writeHead = function() {
+    facade.status = response.status;
+    facade.statusText = response.statusText;
+  };
+  writeBody = function() {
+    if (response.hasOwnProperty('text')) {
+      facade.responseText = response.text;
+    }
+    if (response.hasOwnProperty('xml')) {
+      facade.responseXML = response.xml;
+    }
+    facade.response = response.data || null;
+  };
+  emitReadyState = function(n) {
+    while (n > currentState && currentState < 4) {
+      facade[READY_STATE] = ++currentState;
+      if (currentState === 1) {
+        facade[FIRE]("loadstart", {});
+      }
+      if (currentState === 2) {
+        writeHead();
+      }
+      if (currentState === 4) {
+        writeHead();
+        writeBody();
+      }
+      facade[FIRE]("readystatechange", {});
+      if (currentState === 4) {
+        setTimeout(emitFinal, 0);
+      }
+    }
+  };
+  emitFinal = function() {
+    if (!hasError) {
+      facade[FIRE]("load", {});
+    }
+    facade[FIRE]("loadend", {});
+    if (hasError) {
+      facade[READY_STATE] = 0;
+    }
   };
   currentState = 0;
   setReadyState = function(n) {
-    var fire, hooks, process;
-    extractProps();
-    fire = function() {
-      while (n > currentState && currentState < 4) {
-        face[READY_STATE] = ++currentState;
-        if (currentState === 2) {
-          readyHead();
-        }
-        if (currentState === 4) {
-          readyBody();
-        }
-        xhrEvents.fire("readystatechange");
-        if (currentState === 4) {
-          xhrEvents.fire("load");
-        }
-      }
-    };
-    if (n < 4) {
-      return fire();
+    var hooks, process;
+    if (n !== 4) {
+      emitReadyState(n);
+      return;
     }
-    hooks = pluginEvents.listeners(AFTER);
+    hooks = xhook.listeners(AFTER);
     process = function() {
       var hook;
       if (!hooks.length) {
-        return fire();
+        return emitReadyState(4);
       }
       hook = hooks.shift();
       if (hook.length === 2) {
         hook(request, response);
         return process();
-      } else if (hook.length === 3) {
+      } else if (hook.length === 3 && request.async) {
         return hook(request, response, process);
       } else {
-        throw INVALID_PARAMS_ERROR;
+        return process();
       }
     };
     process();
   };
-  checkEvent = function(e) {
-    var clone, key, val;
-    clone = {};
-    for (key in e) {
-      val = e[key];
-      clone[key] = val === xhr ? face : val;
-    }
-    return clone;
-  };
-  extractProps = function() {
-    var fn, key, _i, _len, _ref;
-    _ref = ['timeout'];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      key = _ref[_i];
-      if (xhr[key] && request[key] === undefined) {
-        request[key] = xhr[key];
-      }
-    }
-    for (key in face) {
-      fn = face[key];
-      if (typeof fn === 'function' && /^on(\w+)/.test(key)) {
-        xhrEvents.on(RegExp.$1, fn);
-      }
-    }
-  };
+  facade = request.xhr = EventEmitter();
   xhr.onreadystatechange = function(event) {
-    var key, val, _ref;
-    if (xhr[READY_STATE] === 2) {
-      response.status = xhr.status;
-      response.statusText = xhr.statusText;
-      _ref = convertHeaders(xhr.getAllResponseHeaders());
-      for (key in _ref) {
-        val = _ref[key];
-        if (!response.headers[key]) {
-          response.headers[key] = val;
-        }
+    try {
+      if (xhr[READY_STATE] === 2) {
+        readHead();
       }
-    }
+    } catch (_error) {}
     if (xhr[READY_STATE] === 4) {
       transiting = false;
-      response.type = xhr.responseType;
-      response.text = xhr.responseText;
-      response.data = xhr.response || response.text;
-      response.xml = xhr.responseXML;
-      setReadyState(xhr[READY_STATE]);
+      readHead();
+      readBody();
     }
+    setReadyState(xhr[READY_STATE]);
   };
-  _ref = ['abort', 'progress'];
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    event = _ref[_i];
-    xhr["on" + event] = function(obj) {
-      return xhrEvents.fire(event, checkEvent(obj));
-    };
+  hasErrorHandler = function() {
+    hasError = true;
+  };
+  facade[ON]('error', hasErrorHandler);
+  facade[ON]('timeout', hasErrorHandler);
+  facade[ON]('abort', hasErrorHandler);
+  facade[ON]('progress', function() {
+    if (currentState < 3) {
+      setReadyState(3);
+    } else {
+      facade[FIRE]("readystatechange", {});
+    }
+  });
+  proxyEvents(COMMON_EVENTS, xhr, facade);
+  if ('withCredentials' in xhr || xhook.addWithCredentials) {
+    facade.withCredentials = false;
   }
-  face = {
-    withCredentials: false,
-    response: null,
-    status: 0
-  };
-  face.addEventListener = function(event, fn) {
-    return xhrEvents.on(e, fn);
-  };
-  face.removeEventListener = xhrEvents.off;
-  face.dispatchEvent = function() {};
-  face.open = function(method, url, async) {
+  facade.status = 0;
+  facade.open = function(method, url, async, user, pass) {
     request.method = method;
     request.url = url;
-    request.async = async;
+    request.async = async !== false;
+    request.user = user;
+    request.pass = pass;
     setReadyState(1);
   };
-  face.send = function(body) {
-    var hooks, process, send;
+  facade.send = function(body) {
+    var hooks, k, modk, process, send, _i, _len, _ref;
+    _ref = ['type', 'timeout', 'withCredentials'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      k = _ref[_i];
+      modk = k === "type" ? "responseType" : k;
+      if (modk in facade) {
+        request[k] = facade[modk];
+      }
+    }
     request.body = body;
     send = function() {
-      var header, value, _ref1;
-      response = {
-        headers: {}
-      };
+      var header, value, _j, _len1, _ref1, _ref2;
       transiting = true;
-      xhr.open(request.method, request.url, request.async);
-      xhr.timeout = request.timeout;
-      _ref1 = request.headers;
-      for (header in _ref1) {
-        value = _ref1[header];
+      xhr.open(request.method, request.url, request.async, request.user, request.pass);
+      _ref1 = ['type', 'timeout', 'withCredentials'];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        k = _ref1[_j];
+        modk = k === "type" ? "responseType" : k;
+        if (k in request) {
+          xhr[modk] = request[k];
+        }
+      }
+      _ref2 = request.headers;
+      for (header in _ref2) {
+        value = _ref2[header];
         xhr.setRequestHeader(header, value);
+      }
+      if (window[FormData] && request.body instanceof window[FormData]) {
+        request.body = request.body.fd;
       }
       xhr.send(request.body);
     };
-    hooks = pluginEvents.listeners(BEFORE);
+    hooks = xhook.listeners(BEFORE);
     process = function() {
       var done, hook;
       if (!hooks.length) {
         return send();
       }
-      done = function(resp) {
-        if (typeof resp === 'object' && typeof resp.status === 'number') {
-          response = resp;
+      done = function(userResponse) {
+        if (typeof userResponse === 'object' && (typeof userResponse.status === 'number' || typeof response.status === 'number')) {
+          mergeObjects(userResponse, response);
+          if (__indexOf.call(userResponse, 'data') < 0) {
+            userResponse.data = userResponse.response || userResponse.text;
+          }
           setReadyState(4);
-        } else {
-          return process();
+          return;
         }
+        process();
+      };
+      done.head = function(userResponse) {
+        mergeObjects(userResponse, response);
+        return setReadyState(2);
+      };
+      done.progress = function(userResponse) {
+        mergeObjects(userResponse, response);
+        return setReadyState(3);
       };
       hook = hooks.shift();
       if (hook.length === 1) {
         return done(hook(request));
-      } else if (hook.length === 2) {
-        request.async = true;
+      } else if (hook.length === 2 && request.async) {
         return hook(request, done);
       } else {
-        throw INVALID_PARAMS_ERROR;
+        return done();
       }
     };
     process();
   };
-  face.abort = function() {
+  facade.abort = function() {
     if (transiting) {
       xhr.abort();
+    } else {
+      facade[FIRE]('abort', {});
     }
-    xhrEvents.fire('abort', arguments);
   };
-  face.setRequestHeader = function(header, value) {
-    request.headers[header] = value;
+  facade.setRequestHeader = function(header, value) {
+    var lName, name;
+    lName = header != null ? header.toLowerCase() : void 0;
+    name = request.headerNames[lName] = request.headerNames[lName] || header;
+    if (request.headers[name]) {
+      value = request.headers[name] + ', ' + value;
+    }
+    request.headers[name] = value;
   };
-  face.getResponseHeader = function(header) {
-    return response.headers[header];
+  facade.getResponseHeader = function(header) {
+    var name;
+    name = header != null ? header.toLowerCase() : void 0;
+    return response.headers[name];
   };
-  face.getAllResponseHeaders = function() {
+  facade.getAllResponseHeaders = function() {
     return convertHeaders(response.headers);
   };
-  face.upload = EventEmitter();
-  return face;
+  if (xhr.overrideMimeType) {
+    facade.overrideMimeType = function() {
+      return xhr.overrideMimeType.apply(xhr, arguments);
+    };
+  }
+  if (xhr.upload) {
+    facade.upload = request.upload = EventEmitter();
+    proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
+  }
+  return facade;
 };
 
-window.xhook = xhook;
-}(window,document));
+if (typeof this.define === "function" && this.define.amd) {
+  define("xhook", [], function() {
+    return xhook;
+  });
+} else {
+  (this.exports || this).xhook = xhook;
+}
+}.call(this,window));
