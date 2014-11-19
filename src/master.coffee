@@ -91,7 +91,7 @@ initMaster = ->
 
   #add withCredentials to xhr to trick jquery
   #in older browsers into thinking cors is allowed
-  xhook.addWithCredentials = true
+  xhook.addWithCredentials = true unless xhook.hasOwnProperty('addWithCredentials')
 
   #hook XHR  calls
   xhook.before (request, callback) ->
