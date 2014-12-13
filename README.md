@@ -33,8 +33,8 @@ will work seamlessly with any library.
 
 ## Download
 
-* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.js) 27KB
-* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js) 12KB (5.16KB Gzip)
+* Development [xdomain.js](https://jpillora.com/xdomain/dist/xdomain.js) 27KB
+* Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
 * CDN
 
   * Latest version (Cloudflare CDN to "`master`" branch)
@@ -46,7 +46,7 @@ will work seamlessly with any library.
   * Lock particular version (Rawgit CDN to any [release tag](https://github.com/jpillora/xdomain/releases))
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.16/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
   ```
 
 ## Live Demos
@@ -76,13 +76,13 @@ and uses that, XHook won't be able to intercept those requests.
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -110,11 +110,11 @@ and uses that, XHook won't be able to intercept those requests.
   The following two snippets are equivalent:
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
   ```
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
   <script>
   xdomain.masters({
     'http://abc.example.com': '/api/*'
@@ -137,7 +137,7 @@ and uses that, XHook won't be able to intercept those requests.
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
   <script>
     xdomain.slaves({
       "http://xyz.example.com": "/proxy.html"

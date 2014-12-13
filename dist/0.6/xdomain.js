@@ -5,7 +5,7 @@ if('console' in window) console.warn("XDomain: The URL to this script is depreca
 // XHook - v1.3.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {
-var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
+var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, deprecatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 document = window.document;
@@ -51,7 +51,7 @@ slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
 };
 
-depricatedProp = function(p) {
+deprecatedProp = function(p) {
   return p === "returnValue" || p === "totalSize" || p === "position";
 };
 
@@ -59,7 +59,7 @@ mergeObjects = function(src, dst) {
   var k, v;
   for (k in src) {
     v = src[k];
-    if (depricatedProp(k)) {
+    if (deprecatedProp(k)) {
       continue;
     }
     try {
@@ -76,7 +76,7 @@ proxyEvents = function(events, src, dst) {
       var clone, k, val;
       clone = {};
       for (k in e) {
-        if (depricatedProp(k)) {
+        if (deprecatedProp(k)) {
           continue;
         }
         val = e[k];
