@@ -33,8 +33,21 @@ will work seamlessly with any library.
 
 ## Download
 
-* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.js) 27KB
-* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js) 12KB (5.16KB Gzip)
+* Development [xdomain.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.js) 27KB
+* Production [xdomain.min.js](https://cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js) 12KB (5.16KB Gzip)
+* CDN
+
+  * Latest version (Cloudflare CDN to "`master`" branch)
+
+  ``` html
+  <script src="//jpillora.com/xdomain/dist/xdomain.min.js"></script>
+  ```
+
+  * Lock particular version (Rawgit CDN to any [release tag](https://github.com/jpillora/xdomain/releases))
+
+  ``` html
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.16/dist/xdomain.min.js"></script>
+  ```
 
 ## Live Demos
 
@@ -63,13 +76,13 @@ and uses that, XHook won't be able to intercept those requests.
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -97,11 +110,11 @@ and uses that, XHook won't be able to intercept those requests.
   The following two snippets are equivalent:
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
   ```
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js"></script>
   <script>
   xdomain.masters({
     'http://abc.example.com': '/api/*'
@@ -124,7 +137,7 @@ and uses that, XHook won't be able to intercept those requests.
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/0.6/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.15/dist/xdomain.min.js"></script>
   <script>
     xdomain.slaves({
       "http://xyz.example.com": "/proxy.html"
@@ -148,12 +161,12 @@ and uses that, XHook won't be able to intercept those requests.
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
   
   ```html
-  <script src="/dist/0.6/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
+  <script src="/dist/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
   ```
   
   Which is equivalent to:
   ```html
-  <script src="/dist/0.6/xdomain.min.js"></script>
+  <script src="/dist/xdomain.min.js"></script>
   <script>
     xdomain.masters({
       "http://*.example.com": "/api/*.json"
@@ -166,12 +179,23 @@ and uses that, XHook won't be able to intercept those requests.
   Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
   <!-- BEWARE: VERY INSECURE -->
-  <script src="/dist/0.6/xdomain.min.js" master="*"></script>
+  <script src="/dist/xdomain.min.js" master="*"></script>
   ```
 
 ### `xdomain.debug` = `false`
 
   When `true`, XDomain will log actions to console
+
+
+### `xdomain.timeout` = `15e3`ms (15 seconds)
+
+  Number of milliseconds until XDomains gives up waiting for an iframe to respond
+
+### `xdomain.on`(`event`, `handler`)
+
+  `event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events,
+  `handler` with contain the `message` as the first parameter. The `timeout` event fires
+  when an iframe exeeds the `xdomain.timeout` time limit.
 
 ## Conceptual Overview
 
@@ -253,29 +277,6 @@ and copy the `console.logs` to a new issue. If possible, please a live example d
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDomain locally.
-
-## Change Log
-
-v0.6.12 - Fixed AMD/CommonJS loading
-
-v0.6.10-11 - Fixing minor issues
-
-v0.6.9 - Update XHook to 1.1.10 to support case-insensitive header access
-         using `getResponseHeader`.
-
-v0.6.8 - Implements FormData
-
-v0.6.0 - Implements XHR2 functionality
-
-v0.6.0 - Upgraded to XHook v1.
-
-v0.4.0 - Now setting request body, duh.
-
-v0.3.0 - Moved to vanilla, using XHook to hook XHR instead of `$.ajax`
-
-v0.2.0 - Removed PortHole, using pure postMessage, IE6/7 NOT supported
-
-v0.1.0 - Alpha
 
 #### Donate
 

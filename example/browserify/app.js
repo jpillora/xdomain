@@ -1,5 +1,5 @@
 //require latest XDomain distribution
-var xdomain = require("../../dist/0.6/xdomain").xdomain;
+var xdomain = require("../../dist/xdomain").xdomain;
 
 xdomain.debug = true;
 

@@ -1066,7 +1066,7 @@ if (typeof this.define === "function" && this.define.amd) {
 }.call(this,window));
 },{}],2:[function(require,module,exports){
 //require latest XDomain distribution
-var xdomain = require("../../dist/0.6/xdomain").xdomain;
+var xdomain = require("../../dist/xdomain").xdomain;
 
 xdomain.debug = true;
 
@@ -1082,4 +1082,4 @@ xhr.onreadystatechange = function() {
 };
 xhr.send();
 
-},{"../../dist/0.6/xdomain":1}]},{},[2])
+},{"../../dist/xdomain":1}]},{},[2])

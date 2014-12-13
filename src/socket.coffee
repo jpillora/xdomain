@@ -14,7 +14,6 @@ sockets = {}
 jsonEncode = true
 
 # TODO: determine if its worth while performing this test
-
 # sendBlobSupport = false
 # sendBlobTest = (source) ->
 #   return unless window.Blob
@@ -23,8 +22,6 @@ jsonEncode = true
 #   catch
 #     return
 #   sendBlobSupport = true
-
-
 
 #ONE WINDOW LISTENER!
 #double purpose:
@@ -79,6 +76,9 @@ startPostMessage = -> onMessage (e) ->
   sock.fire.apply sock, d
   return
 
+#a 'sock' is a two-way event-emitter,
+#each side listens for messages with on()
+#and the other side sends messages with emit()
 createSocket = (id, frame) ->
 
   ready = false
@@ -129,8 +129,10 @@ createSocket = (id, frame) ->
     frame.postMessage [id, XD_CHECK, {}], "*"
     if ready
       return
-    if checks++ is xdomain.timeout/CHECK_INTERVAL
+    if checks++ >= xdomain.timeout/CHECK_INTERVAL
       warn "Timeout waiting on iframe socket"
+      emitter.fire "timeout"
+      sock.fire "abort" #self-emit "abort"
     else
       setTimeout check, CHECK_INTERVAL
     return

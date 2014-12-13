@@ -12,6 +12,6 @@
 
 * Open Chrome `open http://localhost:3000/example/local`
 
-* Grunt will now be watch *src* for changes, then compiling and minifying into *dist*
+* Grunt will now be watch *src* for changes, then compiling, concating and minifying into *dist*
 
   ### Issues and Pull-requests welcome!

@@ -1,6 +1,5 @@
 // XDomain - v0.6.16 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
-if('console' in window) console.warn("XDomain: The URL to this script is deprecated - please see https://github.com/jpillora/xdomain#download");
 (function(window,undefined) {
 // XHook - v1.3.0 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
@@ -536,7 +535,7 @@ if (typeof this.define === "function" && this.define.amd) {
 }
 
 }.call(this,window));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, xhook, _i, _len, _ref;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, emitter, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, setupEmitter, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, xhook, _i, _len, _ref;
 
 slaves = null;
 
@@ -643,7 +642,9 @@ initMaster = function() {
     }
     send();
   };
-  xhook.addWithCredentials = true;
+  if (!('addWithCredentials' in xhook)) {
+    xhook.addWithCredentials = true;
+  }
   return xhook.before(function(request, callback) {
     var frame, p, socket;
     p = parseUrl(request.url);
@@ -901,8 +902,10 @@ createSocket = function(id, frame) {
       if (ready) {
         return;
       }
-      if (checks++ === xdomain.timeout / CHECK_INTERVAL) {
+      if (checks++ >= xdomain.timeout / CHECK_INTERVAL) {
         warn("Timeout waiting on iframe socket");
+        emitter.fire("timeout");
+        sock.fire("abort");
       } else {
         setTimeout(check, CHECK_INTERVAL);
       }
@@ -965,16 +968,27 @@ slice = function(o, n) {
 
 console = window.console || {};
 
+emitter = null;
+
+setupEmitter = function() {
+  emitter = xhook.EventEmitter(true);
+  xdomain.on = emitter.on;
+};
+
+if (xhook) {
+  setupEmitter();
+}
+
 logger = function(type) {
   return function(str) {
     str = "xdomain (" + currentOrigin + "): " + str;
-    if (type in xdomain) {
-      xdomain[type](str);
-    }
+    emitter.fire(type, str);
     if (type === 'log' && !xdomain.debug) {
       return;
     }
-    if (type in console) {
+    if (type in xdomain) {
+      xdomain[type](str);
+    } else if (type in console) {
       console[type](str);
     } else if (type === 'warn') {
       alert(str);
@@ -1106,6 +1120,7 @@ startPostMessage();
 if (typeof this.define === "function" && this.define.amd) {
   define("xdomain", ["xhook"], function(xh) {
     xhook = xh;
+    setupEmitter();
     return xdomain;
   });
 } else {
