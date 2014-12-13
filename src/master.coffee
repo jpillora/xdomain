@@ -89,9 +89,10 @@ initMaster = ->
     send()
     return
 
-  #add withCredentials to xhr to trick jquery
+  #unless already set, add withCredentials to xhrs to trick jquery
   #in older browsers into thinking cors is allowed
-  xhook.addWithCredentials = true
+  unless 'addWithCredentials' of xhook
+    xhook.addWithCredentials = true
 
   #hook XHR  calls
   xhook.before (request, callback) ->

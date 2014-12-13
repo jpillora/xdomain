@@ -1,4 +1,3 @@
-if('console' in window) console.warn("XDomain: The URL to this script will soon be deprecated - please see https://github.com/jpillora/xdomain#download");
 // XDomain - v0.6.17 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,undefined) {

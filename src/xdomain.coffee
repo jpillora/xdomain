@@ -27,16 +27,31 @@ guid = -> 'xdomain-'+Math.round(Math.random()*Math.pow(2,32)).toString(16)
 slice = (o,n) -> Array::slice.call o,n
 console = window.console || {}
 
+#emitter stores handlers for 'warn' 'log' and 'timeout' events
+emitter = null
+
+setupEmitter = ->
+  emitter = xhook.EventEmitter true
+  xdomain.on = emitter.on
+  return
+
+setupEmitter() if xhook
+
+#create a logger of type
 logger = (type) ->
   (str) ->
     str = "xdomain (#{currentOrigin}): #{str}"
+    #emit event
+    emitter.fire type, str
+    if type is 'log' and not xdomain.debug
+      return
     #user provided log/warn functions
     if type of xdomain
       xdomain[type] str
-    if type is 'log' and not xdomain.debug
-      return
-    if type of console
+    #fallback console
+    else if type of console
       console[type] str
+    #fallbackback alert
     else if type is 'warn'
       alert str
     return
@@ -126,6 +141,7 @@ if typeof @define is "function" and @define.amd
   define "xdomain", ["xhook"], (xh) ->
     #require defined xhook
     xhook = xh
+    setupEmitter()
     return xdomain
 else
   (@exports or @).xdomain = xdomain
