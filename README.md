@@ -269,6 +269,10 @@ including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
 The safest way to fix it is to include XDomain **first**, it has no dependencies,
 it only modifies `window.XMLHttpRequest`.
 
+Q: The script is loading but nothing seems to happen
+
+A: The script name must contain `xdomain` - if you've renamed it while moving it to your own CDN. This is how it can find itself while bootstrapping.
+
 Q: It's still not working!
 
 A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag) on both the master and the slave
