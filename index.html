@@ -11,8 +11,8 @@
     From '<span id="host"></span>'<br>
   </p>
 
-  <script src="https://rawgit.com/jpillora/xdomain/gh-pages/dist/xdomain.js"
-          slave="http://s3.amazonaws.com/jpillora-usa/xdomain/0.6/proxy.html"></script>
+  <script src="../../dist/xdomain.js"
+          slave="https://s3.amazonaws.com/jpillora-usa/xdomain/proxy.html"></script>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
 
@@ -29,7 +29,7 @@
     $("#host").html(xdomain.origin);
     //jquery ajax call
     $("#same").load('example/files/data1.json');
-    $("#cross").load('http://s3.amazonaws.com/jpillora-usa/xdomain/data2.json');
+    $("#cross").load('https://s3.amazonaws.com/jpillora-usa/xdomain/data2.json');
   </script>
 
   <script>
