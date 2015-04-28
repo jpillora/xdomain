@@ -1,17 +1,21 @@
 
-masters = null
-addMasters = (m) ->
-  if masters is null
-    masters = {}
+#when you add masters, this node
+#enables slave listeners
+
+initdSlave = false
+masters = (m) ->
+  unless initdSlave
     initSlave()
   for origin, path of m
     log "adding master: #{origin}"
     masters[origin] = path
   return
 
+handleSocket = null
 initSlave = ->
-
-  listen (origin, socket) ->
+  initdSlave = true
+  log "handling incoming sockets..."
+  handleSocket = (origin, socket) ->
     origin = "*" if origin is "null"
     pathRegex = null
 
@@ -62,9 +66,11 @@ initSlave = ->
         socket.emit 'response', resp
       
       # document.cookie (Cookie header) can't be set inside an iframe
-      # as many browsers have 3rd party cookies disabled
-      if req.withCredentials
-        req.headers['XDomain-Cookie'] = req.credentials
+      # as many browsers have 3rd party cookies disabled. slaveCookie
+      # contains the 'xdomain.cookie.slave' string set on the master.
+      if req.withCredentials 
+        xhr.withCredentials = true
+        req.headers[req.slaveCookie] = document.cookie if req.slaveCookie
 
       xhr.timeout = req.timeout if req.timeout
       xhr.responseType = req.type if req.type

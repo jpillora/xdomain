@@ -37,16 +37,10 @@ will work seamlessly with any library.
 * Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
 * CDN
 
-  * Latest version (Cloudflare CDN to "`master`" branch)
+  * Latest version is `0.7.0`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases)
 
   ``` html
-  <script src="//jpillora.com/xdomain/dist/xdomain.min.js"></script>
-  ```
-
-  * Lock particular version (Rawgit CDN to any [release tag](https://github.com/jpillora/xdomain/releases))
-
-  ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
   ```
 
 ## Live Demos
@@ -67,22 +61,19 @@ All except IE6/7 as they don't have `postMessage`
 
 ## Quick Usage
 
-Note: It's **important** to include XDomain before any other library.
-When XDomain loads, XHook replaces the current `window.XMLHttpRequest`.
-So if another library saves a reference to the original `window.XMLHttpRequest`
-and uses that, XHook won't be able to intercept those requests.
+*Note: It's* **important** *to include XDomain before any other library. When XDomain loads, XHook replaces the current `window.XMLHttpRequest`. So if another library saves a reference to the original `window.XMLHttpRequest` and uses that, XHook won't be able to intercept those requests.*
 
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -93,7 +84,7 @@ and uses that, XHook won't be able to intercept those requests.
     xhr.open('GET', 'http://xyz.example.com/secret/file.txt');
     xhr.onreadystatechange = function(e) {
       if(xhr.readyState === 4)
-        alert(xhr.responseText);
+        console.log("got result: ", xhr.responseText);
     };
     xhr.send();
 
@@ -110,11 +101,11 @@ and uses that, XHook won't be able to intercept those requests.
   The following two snippets are equivalent:
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
   ```
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
   <script>
   xdomain.masters({
     'http://abc.example.com': '/api/*'
@@ -122,8 +113,7 @@ and uses that, XHook won't be able to intercept those requests.
   </script>
   ```
 
-  So, we can then add more `masters` or (`slaves`) by simply including them
-  in the `object`, see API below.
+  So, we can then add more `masters` or (`slaves`) by simply including them in the `object`, see API below.
 
 ## API
 
@@ -137,7 +127,7 @@ and uses that, XHook won't be able to intercept those requests.
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
   <script>
     xdomain.slaves({
       "http://xyz.example.com": "/proxy.html"
@@ -151,9 +141,7 @@ and uses that, XHook won't be able to intercept those requests.
   
   Each of the `masters` must be defined as: `origin`: `path`
 
-  `origin` and `path` are converted to a regular expression by escaping all
-  non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it
-  with `^` and `$`. `path` can also be a `RegExp` literal.
+  `origin` and `path` are converted to a regular expression by escaping all non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it with `^` and `$`. `path` can also be a `RegExp` literal.
   
   Requests that do not match **both** the `origin` and the `path` regular
   expressions will be blocked.
@@ -193,9 +181,21 @@ and uses that, XHook won't be able to intercept those requests.
 
 ### `xdomain.on`(`event`, `handler`)
 
-  `event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events,
-  `handler` with contain the `message` as the first parameter. The `timeout` event fires
-  when an iframe exeeds the `xdomain.timeout` time limit.
+  `event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events, `handler` with contain the `message` as the first parameter. The `timeout` event fires when an iframe exeeds the `xdomain.timeout` time limit.
+
+### `xdomain.cookies`
+
+  When `withCredentials` is set to `true` for a given request, the cookies of the master and slave are sent to the server using these names. If one is set to `null`, it will not be sent.
+
+  ``` js
+  //defaults
+  xdomain.cookies = {
+    master: "Master-Cookie"
+    slave: "Slave-Cookie"
+  };
+  ```
+
+  *Note, if you use `"Cookie"` as your cookie name, it will be removed by browsers with `Disable 3rd Party Cookies` switched on - this includes all Safari users and many others who purposefully enable it.*
 
 ## Conceptual Overview
 
@@ -226,7 +226,7 @@ A: You shouldn't. You should use XDomain because:
     * Requests may only use the `Content-Type` header
 * The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
 * On a RESTful JSON API server, CORS will generate superfluous traffic by sending a
-  preflight OPTIONS request on all requests, except for GET and HEAD.
+  preflight OPTIONS request preceding various types of requests.
 * Not everyone is able to modify HTTP headers on the server, but most can upload a `proxy.html` file.
 * Google also uses iframes as postMessage proxies instead of CORS in its Google API JS SDK:
 
@@ -257,6 +257,10 @@ jQuery.support.cors = true;
 
 Note: In newer browsers `xhook.addWithCredentials` has no effect as they already support `withCredentials`.
 
+Q: XDomain works for a few requests and then it stops.
+
+A: Most likely, the slave iframe was removed - this is often due to libraries like Turbolinks
+
 Q: In IE, I'm getting an `Access Denied` error
 
 A: This is error occurs when IE attempts a CORS request. Read on.
@@ -269,9 +273,9 @@ including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
 The safest way to fix it is to include XDomain **first**, it has no dependencies,
 it only modifies `window.XMLHttpRequest`.
 
-Q: The script is loading but nothing seems to happen
+Q: The script is loads but the 'Quick Start' steps don't work
 
-A: The script name must contain `xdomain` - if you've renamed it while moving it to your own CDN. This is how it can find itself while bootstrapping.
+A: XDomain only searches the script tags for `master` and `slave` attributes if they have `xdomain` in the `src`. So, if you've renamed or embedded XDomain, you'll need to use the [API](#api) in order to insert your masters and slaves.
 
 Q: It's still not working!
 

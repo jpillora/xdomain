@@ -1,1 +1,34 @@
-index.html
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<h2>Blob example</h2>
+	<div id="output"></div>
+
+	<script src="../../dist/xdomain.js"
+			slave="https://rawgit.com/jpillora/xdomain/gh-pages/example/files/proxy.html"></script>
+
+	<script type="text/javascript">
+
+	//mini-jquery
+	var $ = document.querySelector.bind(document);
+
+	var xhr = window.xhr = new XMLHttpRequest();
+	xhr.responseType = 'blob';
+	xhr.withCredentials = true;
+	xhr.open("GET", 'https://rawgit.com/jpillora/xdomain/gh-pages/example/files/example/files/cat.png');
+	xhr.send();
+	xhr.onload = function() {
+		var reader = new FileReader();
+		reader.onload  = function() {
+		    var bytes = new Uint8Array(this.result);
+			var img = document.createElement("img");
+			img.src = "data:image/png;base64," + btoa(String.fromCharCode.apply(null, bytes));
+			$("#output").appendChild(img);
+		};
+		reader.readAsArrayBuffer(xhr.response);
+	};
+	</script>
+</body>
+</html>

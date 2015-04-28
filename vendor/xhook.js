@@ -1,7 +1,7 @@
-// XHook - v1.3.0 - https://github.com/jpillora/xhook
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
+// XHook - v1.3.2 - https://github.com/jpillora/xhook
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
 (function(window,undefined) {
-var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, deprecatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
+var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, NativeXMLHttp, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookFormData, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 document = window.document;
@@ -47,7 +47,7 @@ slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
 };
 
-deprecatedProp = function(p) {
+depricatedProp = function(p) {
   return p === "returnValue" || p === "totalSize" || p === "position";
 };
 
@@ -55,7 +55,7 @@ mergeObjects = function(src, dst) {
   var k, v;
   for (k in src) {
     v = src[k];
-    if (deprecatedProp(k)) {
+    if (depricatedProp(k)) {
       continue;
     }
     try {
@@ -72,19 +72,20 @@ proxyEvents = function(events, src, dst) {
       var clone, k, val;
       clone = {};
       for (k in e) {
-        if (deprecatedProp(k)) {
+        if (depricatedProp(k)) {
           continue;
         }
         val = e[k];
         clone[k] = val === src ? dst : val;
       }
-      clone;
       return dst[FIRE](event, clone);
     };
   };
   for (_i = 0, _len = events.length; _i < _len; _i++) {
     event = events[_i];
-    src["on" + event] = p(event);
+    if (dst._has(event)) {
+      src["on" + event] = p(event);
+    }
   }
 };
 
@@ -152,6 +153,9 @@ EventEmitter = function(nodeStyle) {
       listener.apply(undefined, args);
     }
   };
+  emitter._has = function(event) {
+    return !!(events[event] || emitter["on" + event]);
+  };
   if (nodeStyle) {
     emitter.listeners = function(event) {
       return slice(listeners(event));
@@ -194,10 +198,14 @@ xhook[AFTER] = function(handler, i) {
 
 xhook.enable = function() {
   window[XMLHTTP] = XHookHttpRequest;
+  if (NativeFormData) {
+    window[FormData] = XHookFormData;
+  }
 };
 
 xhook.disable = function() {
   window[XMLHTTP] = xhook[XMLHTTP];
+  window[FormData] = NativeFormData;
 };
 
 convertHeaders = xhook.headers = function(h, dest) {
@@ -232,37 +240,41 @@ convertHeaders = xhook.headers = function(h, dest) {
 
 NativeFormData = window[FormData];
 
+XHookFormData = function(form) {
+  var entries;
+  this.fd = form ? new NativeFormData(form) : new NativeFormData();
+  this.form = form;
+  entries = [];
+  Object.defineProperty(this, 'entries', {
+    get: function() {
+      var fentries;
+      fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
+        var _ref;
+        return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+      }).map(function(e) {
+        return [e.name, e.type === "file" ? e.files : e.value];
+      });
+      return fentries.concat(entries);
+    }
+  });
+  this.append = (function(_this) {
+    return function() {
+      var args;
+      args = slice(arguments);
+      entries.push(args);
+      return _this.fd.append.apply(_this.fd, args);
+    };
+  })(this);
+};
+
 if (NativeFormData) {
   xhook[FormData] = NativeFormData;
-  window[FormData] = function(form) {
-    var entries;
-    this.fd = form ? new NativeFormData(form) : new NativeFormData();
-    this.form = form;
-    entries = [];
-    Object.defineProperty(this, 'entries', {
-      get: function() {
-        var fentries;
-        fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
-          var _ref;
-          return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
-        }).map(function(e) {
-          return [e.name, e.type === "file" ? e.files : e.value];
-        });
-        return fentries.concat(entries);
-      }
-    });
-    this.append = (function(_this) {
-      return function() {
-        var args;
-        args = slice(arguments);
-        entries.push(args);
-        return _this.fd.append.apply(_this.fd, args);
-      };
-    })(this);
-  };
+  window[FormData] = XHookFormData;
 }
 
-xhook[XMLHTTP] = window[XMLHTTP];
+NativeXMLHttp = window[XMLHTTP];
+
+xhook[XMLHTTP] = NativeXMLHttp;
 
 XHookHttpRequest = window[XMLHTTP] = function() {
   var ABORTED, currentState, emitFinal, emitReadyState, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, status, transiting, writeBody, writeHead, xhr;
@@ -291,14 +303,17 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
   };
   readBody = function() {
-    if ('responseText' in xhr) {
+    if (!xhr.responseType || xhr.responseType === "text") {
       response.text = xhr.responseText;
-    }
-    if ('responseXML' in xhr) {
+      response.data = xhr.responseText;
+    } else if (xhr.responseType === "document") {
       response.xml = xhr.responseXML;
-    }
-    if ('response' in xhr) {
+      response.data = xhr.responseXML;
+    } else {
       response.data = xhr.response;
+    }
+    if ("responseURL" in xhr) {
+      response.finalUrl = xhr.responseURL;
     }
   };
   writeHead = function() {
@@ -314,6 +329,9 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
     if ('data' in response) {
       facade.response = response.data;
+    }
+    if ('finalUrl' in response) {
+      facade.responseURL = response.finalUrl;
     }
   };
   emitReadyState = function(n) {
@@ -396,7 +414,6 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       facade[FIRE]("readystatechange", {});
     }
   });
-  proxyEvents(COMMON_EVENTS, xhr, facade);
   if ('withCredentials' in xhr || xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
@@ -430,6 +447,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     request.body = body;
     send = function() {
       var header, value, _j, _len1, _ref1, _ref2;
+      proxyEvents(COMMON_EVENTS, xhr, facade);
+      if (facade.upload) {
+        proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
+      }
       transiting = true;
       xhr.open(request.method, request.url, request.async, request.user, request.pass);
       _ref1 = ['type', 'timeout', 'withCredentials'];
@@ -445,7 +466,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         value = _ref2[header];
         xhr.setRequestHeader(header, value);
       }
-      if (window[FormData] && request.body instanceof window[FormData]) {
+      if (NativeFormData && request.body instanceof NativeFormData) {
         request.body = request.body.fd;
       }
       xhr.send(request.body);
@@ -518,7 +539,6 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   }
   if (xhr.upload) {
     facade.upload = request.upload = EventEmitter();
-    proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
   }
   return facade;
 };

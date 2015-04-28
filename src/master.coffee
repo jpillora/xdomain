@@ -1,8 +1,10 @@
 
-slaves = null
-addSlaves = (s) ->
-  if slaves is null
-    slaves = {}
+#when you add slaves, this node
+#enables master listeners
+
+initdMaster = false
+slaves = (s) ->
+  unless initdMaster
     initMaster()
   for origin, path of s
     log "adding slave: #{origin}"
@@ -23,7 +25,7 @@ getFrame = (origin, proxyPath) ->
   return frames[origin] = frame.contentWindow
 
 initMaster = ->
-
+  initdMaster = true
   convertToArrayBuffer = (args, done) ->
     [name, obj] = args
     isBlob = instOf(obj, 'Blob')
@@ -72,8 +74,10 @@ initMaster = ->
 
     obj = strip request
     obj.headers = request.headers
+    #add master cookie
     if request.withCredentials
-      obj.credentials = document.cookie
+      obj.headers[cookies.master] = document.cookie if cookies.master
+      obj.slaveCookie = cookies.slave
 
     send = ->
       socket.emit "request", obj
@@ -117,7 +121,7 @@ initMaster = ->
     frame = getFrame p.origin, slaves[p.origin]
 
     #connect to slave
-    socket = connect frame
+    socket = createSocket guid(), frame
 
     #queue callback
     socket.on "response", (resp) ->

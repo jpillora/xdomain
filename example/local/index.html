@@ -12,6 +12,7 @@
 
   <script type="text/javascript">
 
+    //mini-jquery
     var $ = document.querySelector.bind(document);
 
     var origins = {
@@ -21,9 +22,9 @@
     };
 
     var src = location.hostname;
-    var target = 'http://' + origins[src];
-    if(!target)
+    if(!origins[src])
       alert("this is a local test only");
+    var target = 'http://' + origins[src];
 
     //add port
     target += ":" + location.port;
@@ -34,18 +35,23 @@
     // script.debug = true;
     script.setAttribute("slave", target+"/example/local/proxy1.html");
 
-    target += '/CONTRIBUTING.md';
+    target += '/example/files/cat.png';
 
     script.onload = function load() {
       //show current origin
       $("#host").innerHTML = xdomain.origin;
       $("#target").innerHTML = target;
       //vanilla ajax call
-      var xhr = new XMLHttpRequest();
+      var xhr = window.xhr = new XMLHttpRequest();
+      xhr.responseType = 'arraybuffer';
+      xhr.withCredentials = true;
       xhr.open("GET", target);
       xhr.send();
       xhr.onload = function() {
-        $("#output").innerHTML = xhr.responseText;
+        var bytes = new Uint8Array(xhr.response);
+        var img = document.createElement("img");
+        img.src = "data:image/png;base64," + btoa(String.fromCharCode.apply(null, bytes));
+        $("#output").appendChild(img);
       }
     };
 

@@ -1,10 +1,10 @@
-// XDomain - v0.6.17 - https://github.com/jpillora/xdomain
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
+// XDomain - v0.7.0 - https://github.com/jpillora/xdomain
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
 (function(window,undefined) {
-// XHook - v1.3.0 - https://github.com/jpillora/xhook
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
+// XHook - v1.3.2 - https://github.com/jpillora/xhook
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
 (function(window,undefined) {
-var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookHttpRequest, XMLHTTP, convertHeaders, deprecatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
+var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, NativeXMLHttp, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookFormData, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 document = window.document;
@@ -50,7 +50,7 @@ slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
 };
 
-deprecatedProp = function(p) {
+depricatedProp = function(p) {
   return p === "returnValue" || p === "totalSize" || p === "position";
 };
 
@@ -58,7 +58,7 @@ mergeObjects = function(src, dst) {
   var k, v;
   for (k in src) {
     v = src[k];
-    if (deprecatedProp(k)) {
+    if (depricatedProp(k)) {
       continue;
     }
     try {
@@ -75,19 +75,20 @@ proxyEvents = function(events, src, dst) {
       var clone, k, val;
       clone = {};
       for (k in e) {
-        if (deprecatedProp(k)) {
+        if (depricatedProp(k)) {
           continue;
         }
         val = e[k];
         clone[k] = val === src ? dst : val;
       }
-      clone;
       return dst[FIRE](event, clone);
     };
   };
   for (_i = 0, _len = events.length; _i < _len; _i++) {
     event = events[_i];
-    src["on" + event] = p(event);
+    if (dst._has(event)) {
+      src["on" + event] = p(event);
+    }
   }
 };
 
@@ -155,6 +156,9 @@ EventEmitter = function(nodeStyle) {
       listener.apply(undefined, args);
     }
   };
+  emitter._has = function(event) {
+    return !!(events[event] || emitter["on" + event]);
+  };
   if (nodeStyle) {
     emitter.listeners = function(event) {
       return slice(listeners(event));
@@ -197,10 +201,14 @@ xhook[AFTER] = function(handler, i) {
 
 xhook.enable = function() {
   window[XMLHTTP] = XHookHttpRequest;
+  if (NativeFormData) {
+    window[FormData] = XHookFormData;
+  }
 };
 
 xhook.disable = function() {
   window[XMLHTTP] = xhook[XMLHTTP];
+  window[FormData] = NativeFormData;
 };
 
 convertHeaders = xhook.headers = function(h, dest) {
@@ -235,37 +243,41 @@ convertHeaders = xhook.headers = function(h, dest) {
 
 NativeFormData = window[FormData];
 
+XHookFormData = function(form) {
+  var entries;
+  this.fd = form ? new NativeFormData(form) : new NativeFormData();
+  this.form = form;
+  entries = [];
+  Object.defineProperty(this, 'entries', {
+    get: function() {
+      var fentries;
+      fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
+        var _ref;
+        return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+      }).map(function(e) {
+        return [e.name, e.type === "file" ? e.files : e.value];
+      });
+      return fentries.concat(entries);
+    }
+  });
+  this.append = (function(_this) {
+    return function() {
+      var args;
+      args = slice(arguments);
+      entries.push(args);
+      return _this.fd.append.apply(_this.fd, args);
+    };
+  })(this);
+};
+
 if (NativeFormData) {
   xhook[FormData] = NativeFormData;
-  window[FormData] = function(form) {
-    var entries;
-    this.fd = form ? new NativeFormData(form) : new NativeFormData();
-    this.form = form;
-    entries = [];
-    Object.defineProperty(this, 'entries', {
-      get: function() {
-        var fentries;
-        fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
-          var _ref;
-          return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
-        }).map(function(e) {
-          return [e.name, e.type === "file" ? e.files : e.value];
-        });
-        return fentries.concat(entries);
-      }
-    });
-    this.append = (function(_this) {
-      return function() {
-        var args;
-        args = slice(arguments);
-        entries.push(args);
-        return _this.fd.append.apply(_this.fd, args);
-      };
-    })(this);
-  };
+  window[FormData] = XHookFormData;
 }
 
-xhook[XMLHTTP] = window[XMLHTTP];
+NativeXMLHttp = window[XMLHTTP];
+
+xhook[XMLHTTP] = NativeXMLHttp;
 
 XHookHttpRequest = window[XMLHTTP] = function() {
   var ABORTED, currentState, emitFinal, emitReadyState, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, status, transiting, writeBody, writeHead, xhr;
@@ -294,14 +306,17 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
   };
   readBody = function() {
-    if ('responseText' in xhr) {
+    if (!xhr.responseType || xhr.responseType === "text") {
       response.text = xhr.responseText;
-    }
-    if ('responseXML' in xhr) {
+      response.data = xhr.responseText;
+    } else if (xhr.responseType === "document") {
       response.xml = xhr.responseXML;
-    }
-    if ('response' in xhr) {
+      response.data = xhr.responseXML;
+    } else {
       response.data = xhr.response;
+    }
+    if ("responseURL" in xhr) {
+      response.finalUrl = xhr.responseURL;
     }
   };
   writeHead = function() {
@@ -317,6 +332,9 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
     if ('data' in response) {
       facade.response = response.data;
+    }
+    if ('finalUrl' in response) {
+      facade.responseURL = response.finalUrl;
     }
   };
   emitReadyState = function(n) {
@@ -399,7 +417,6 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       facade[FIRE]("readystatechange", {});
     }
   });
-  proxyEvents(COMMON_EVENTS, xhr, facade);
   if ('withCredentials' in xhr || xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
@@ -433,6 +450,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     request.body = body;
     send = function() {
       var header, value, _j, _len1, _ref1, _ref2;
+      proxyEvents(COMMON_EVENTS, xhr, facade);
+      if (facade.upload) {
+        proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
+      }
       transiting = true;
       xhr.open(request.method, request.url, request.async, request.user, request.pass);
       _ref1 = ['type', 'timeout', 'withCredentials'];
@@ -448,7 +469,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         value = _ref2[header];
         xhr.setRequestHeader(header, value);
       }
-      if (window[FormData] && request.body instanceof window[FormData]) {
+      if (NativeFormData && request.body instanceof NativeFormData) {
         request.body = request.body.fd;
       }
       xhr.send(request.body);
@@ -521,7 +542,6 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   }
   if (xhr.upload) {
     facade.upload = request.upload = EventEmitter();
-    proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
   }
   return facade;
 };
@@ -535,14 +555,13 @@ if (typeof this.define === "function" && this.define.amd) {
 }
 
 }.call(this,window));
-var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, addMasters, addSlaves, connect, console, createSocket, currentOrigin, document, emitter, feature, frames, getFrame, guid, handler, initMaster, initSlave, instOf, jsonEncode, listen, location, log, logger, masters, onMessage, parseUrl, setupEmitter, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, xhook, _i, _len, _ref;
+var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, console, cookies, createSocket, currentOrigin, document, emitter, feature, frames, getFrame, guid, handleSocket, initMaster, initSlave, initdMaster, initdSlave, instOf, jsonEncode, location, log, logger, masters, onMessage, parseUrl, setupEmitter, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, xhook, _i, _len, _ref;
 
-slaves = null;
+initdMaster = false;
 
-addSlaves = function(s) {
+slaves = function(s) {
   var origin, path;
-  if (slaves === null) {
-    slaves = {};
+  if (!initdMaster) {
     initMaster();
   }
   for (origin in s) {
@@ -570,6 +589,7 @@ getFrame = function(origin, proxyPath) {
 
 initMaster = function() {
   var convertFormData, convertToArrayBuffer, handleRequest;
+  initdMaster = true;
   convertToArrayBuffer = function(args, done) {
     var isBlob, isFile, name, obj, reader;
     name = args[0], obj = args[1];
@@ -626,7 +646,10 @@ initMaster = function() {
     obj = strip(request);
     obj.headers = request.headers;
     if (request.withCredentials) {
-      obj.credentials = document.cookie;
+      if (cookies.master) {
+        obj.headers[cookies.master] = document.cookie;
+      }
+      obj.slaveCookie = cookies.slave;
     }
     send = function() {
       return socket.emit("request", obj);
@@ -663,7 +686,7 @@ initMaster = function() {
       return callback();
     }
     frame = getFrame(p.origin, slaves[p.origin]);
-    socket = connect(frame);
+    socket = createSocket(guid(), frame);
     socket.on("response", function(resp) {
       callback(resp);
       return socket.close();
@@ -681,12 +704,11 @@ initMaster = function() {
   });
 };
 
-masters = null;
+initdSlave = false;
 
-addMasters = function(m) {
+masters = function(m) {
   var origin, path;
-  if (masters === null) {
-    masters = {};
+  if (!initdSlave) {
     initSlave();
   }
   for (origin in m) {
@@ -696,8 +718,12 @@ addMasters = function(m) {
   }
 };
 
+handleSocket = null;
+
 initSlave = function() {
-  listen(function(origin, socket) {
+  initdSlave = true;
+  log("handling incoming sockets...");
+  handleSocket = function(origin, socket) {
     var master, masterRegex, pathRegex, regex;
     if (origin === "null") {
       origin = "*";
@@ -756,7 +782,10 @@ initSlave = function() {
         return socket.emit('response', resp);
       };
       if (req.withCredentials) {
-        req.headers['XDomain-Cookie'] = req.credentials;
+        xhr.withCredentials = true;
+        if (req.slaveCookie) {
+          req.headers[req.slaveCookie] = document.cookie;
+        }
       }
       if (req.timeout) {
         xhr.timeout = req.timeout;
@@ -788,7 +817,7 @@ initSlave = function() {
       xhr.send(req.body || null);
     });
     log("slave listening for requests on socket: " + socket.id);
-  });
+  };
   if (window === window.parent) {
     return warn("slaves must be in an iframe");
   } else {
@@ -796,62 +825,11 @@ initSlave = function() {
   }
 };
 
-onMessage = function(fn) {
-  if (document.addEventListener) {
-    return window.addEventListener("message", fn);
-  } else {
-    return window.attachEvent("onmessage", fn);
-  }
-};
-
 XD_CHECK = "XD_CHECK";
-
-handler = null;
 
 sockets = {};
 
 jsonEncode = true;
-
-startPostMessage = function() {
-  return onMessage(function(e) {
-    var d, extra, id, sock;
-    d = e.data;
-    if (typeof d === "string") {
-      if (/^XDPING(_(V\d+))?$/.test(d) && RegExp.$2 !== COMPAT_VERSION) {
-        return warn("your master is not compatible with your slave, check your xdomain.js version");
-      } else if (/^xdomain-/.test(d)) {
-        d = d.split(",");
-      } else if (jsonEncode) {
-        try {
-          d = JSON.parse(d);
-        } catch (_error) {
-          return;
-        }
-      }
-    }
-    if (!(d instanceof Array)) {
-      return;
-    }
-    id = d.shift();
-    if (!/^xdomain-/.test(id)) {
-      return;
-    }
-    sock = sockets[id];
-    if (sock === null) {
-      return;
-    }
-    if (sock === undefined) {
-      if (!handler) {
-        return;
-      }
-      sock = createSocket(id, e.source);
-      handler(e.origin, sock);
-    }
-    extra = typeof d[1] === "string" ? ": '" + d[1] + "'" : "";
-    log("receive socket: " + id + ": '" + d[0] + "'" + extra);
-    sock.fire.apply(sock, d);
-  });
-};
 
 createSocket = function(id, frame) {
   var check, checks, emit, pendingEmits, ready, sock;
@@ -866,7 +844,7 @@ createSocket = function(id, frame) {
   sock.emit = function() {
     var args, extra;
     args = slice(arguments);
-    extra = typeof args[1] === "string" ? ": '" + args[1] + "'" : "";
+    extra = typeof args[1] === "string" ? " -> " + args[1] : "";
     log("send socket: " + id + ": " + args[0] + extra);
     args.unshift(id);
     if (ready) {
@@ -916,14 +894,53 @@ createSocket = function(id, frame) {
   return sock;
 };
 
-connect = function(target) {
-  var s;
-  s = createSocket(guid(), target);
-  return s;
+onMessage = function(fn) {
+  if (document.addEventListener) {
+    return window.addEventListener("message", fn);
+  } else {
+    return window.attachEvent("onmessage", fn);
+  }
 };
 
-listen = function(h) {
-  handler = h;
+startPostMessage = function() {
+  return onMessage(function(e) {
+    var d, extra, id, sock;
+    d = e.data;
+    if (typeof d === "string") {
+      if (/^XDPING(_(V\d+))?$/.test(d) && RegExp.$2 !== COMPAT_VERSION) {
+        return warn("your master is not compatible with your slave, check your xdomain.js version");
+      } else if (/^xdomain-/.test(d)) {
+        d = d.split(",");
+      } else if (jsonEncode) {
+        try {
+          d = JSON.parse(d);
+        } catch (_error) {
+          return;
+        }
+      }
+    }
+    if (!(d instanceof Array)) {
+      return;
+    }
+    id = d.shift();
+    if (!/^xdomain-/.test(id)) {
+      return;
+    }
+    sock = sockets[id];
+    if (sock === null) {
+      return;
+    }
+    if (sock === undefined) {
+      if (!handleSocket) {
+        return;
+      }
+      sock = createSocket(id, e.source);
+      handleSocket(e.origin, sock);
+    }
+    extra = typeof d[1] === "string" ? " -> " + d[1] : "";
+    log("receive socket: " + id + ": " + d[0] + extra);
+    sock.fire.apply(sock, d);
+  });
 };
 
 'use strict';
@@ -935,22 +952,27 @@ xdomain = function(o) {
     return;
   }
   if (o.masters) {
-    addMasters(o.masters);
+    masters(o.masters);
   }
   if (o.slaves) {
-    addSlaves(o.slaves);
+    slaves(o.slaves);
   }
 };
 
-xdomain.masters = addMasters;
+xdomain.masters = masters;
 
-xdomain.slaves = addSlaves;
+xdomain.slaves = slaves;
 
-xdomain.debug = false;
+xdomain.debug = true;
 
 xdomain.timeout = 15e3;
 
 CHECK_INTERVAL = 100;
+
+cookies = xdomain.cookies = {
+  master: "Master-Cookie",
+  slave: "Slave-Cookie"
+};
 
 document = window.document;
 
@@ -973,6 +995,7 @@ emitter = null;
 setupEmitter = function() {
   emitter = xhook.EventEmitter(true);
   xdomain.on = emitter.on;
+  xdomain.off = emitter.off;
 };
 
 if (xhook) {
@@ -1076,7 +1099,7 @@ strip = function(src) {
       }
       s = {};
       s[p.origin] = p.path;
-      return addSlaves(s);
+      return slaves(s);
     },
     master: function(value) {
       var m, p;
@@ -1096,7 +1119,7 @@ strip = function(src) {
       }
       m = {};
       m[p.origin] = p.path.replace(/^\//, "") ? p.path : "*";
-      return addMasters(m);
+      return masters(m);
     }
   };
   _ref1 = document.getElementsByTagName("script");

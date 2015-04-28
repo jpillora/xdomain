@@ -7,16 +7,19 @@ xhook = (@exports or @).xhook
 xdomain = (o) ->
   return unless o
   if o.masters
-    addMasters o.masters
+    masters o.masters
   if o.slaves
-    addSlaves o.slaves
+    slaves o.slaves
   return
 
-xdomain.masters = addMasters
-xdomain.slaves = addSlaves
-xdomain.debug = false
+xdomain.masters = masters
+xdomain.slaves = slaves
+xdomain.debug = true
 xdomain.timeout = 15e3
 CHECK_INTERVAL = 100
+cookies = xdomain.cookies = 
+  master: "Master-Cookie"
+  slave: "Slave-Cookie"
 
 document = window.document
 location = window.location
@@ -33,6 +36,7 @@ emitter = null
 setupEmitter = ->
   emitter = xhook.EventEmitter true
   xdomain.on = emitter.on
+  xdomain.off = emitter.off
   return
 
 setupEmitter() if xhook
@@ -114,7 +118,7 @@ strip = (src) ->
       return unless p
       s = {}
       s[p.origin] = p.path
-      addSlaves s
+      slaves s
     master: (value) ->
       return unless value
       if value is "*"
@@ -124,7 +128,7 @@ strip = (src) ->
       return unless p
       m = {}
       m[p.origin] = if p.path.replace(/^\//,"") then p.path else "*"
-      addMasters m
+      masters m
 
   for script in document.getElementsByTagName("script")
     if /xdomain/.test(script.src)
