@@ -37,10 +37,10 @@ will work seamlessly with any library.
 * Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
 * CDN
 
-  * Latest version is `0.7.0`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases)
+  * Latest version is `0.7.1`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases)
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js"></script>
   ```
 
 ## Live Demos
@@ -67,13 +67,13 @@ All except IE6/7 as they don't have `postMessage`
   
     ``` html
     <!DOCTYPE HTML>
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ``` html
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
@@ -101,11 +101,11 @@ All except IE6/7 as they don't have `postMessage`
   The following two snippets are equivalent:
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
   ```
 
   ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js"></script>
   <script>
   xdomain.masters({
     'http://abc.example.com': '/api/*'
@@ -127,7 +127,7 @@ All except IE6/7 as they don't have `postMessage`
 
   The **Quick Usage** step 2 above is equivalent to:
   ```html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.0/dist/xdomain.min.js"></script>
+  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.1/dist/xdomain.min.js"></script>
   <script>
     xdomain.slaves({
       "http://xyz.example.com": "/proxy.html"
