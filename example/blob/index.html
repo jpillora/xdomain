@@ -7,7 +7,7 @@
 	<div id="output"></div>
 
 	<script src="../../dist/xdomain.js"
-			slave="https://rawgit.com/jpillora/xdomain/gh-pages/example/files/proxy.html"></script>
+			slave="https://jpillora.com/xdomain/example/files/proxy.html"></script>
 
 	<script type="text/javascript">
 
@@ -17,7 +17,7 @@
 	var xhr = window.xhr = new XMLHttpRequest();
 	xhr.responseType = 'blob';
 	xhr.withCredentials = true;
-	xhr.open("GET", 'https://rawgit.com/jpillora/xdomain/gh-pages/example/files/example/files/cat.png');
+	xhr.open("GET", 'https://jpillora.com/xdomain/example/files/example/files/cat.png');
 	xhr.send();
 	xhr.onload = function() {
 		var reader = new FileReader();

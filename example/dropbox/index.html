@@ -20,15 +20,14 @@
   <script type="text/javascript">
 
     //enforce https
-    if(window.location.href !== 'https://rawgit.com/jpillora/xdomain/gh-pages/example/dropbox/index.html')
-      window.location.href = 'https://rawgit.com/jpillora/xdomain/gh-pages/example/dropbox/index.html';
+    if(window.location.href !== 'https://jpillora.com/xdomain/example/dropbox/index.html')
+      window.location.href = 'https://jpillora.com/xdomain/example/dropbox/index.html';
 
     //show current origin
     document.getElementById("host").innerHTML = xdomain.origin;
 
     var url = 'https://dl.dropboxusercontent.com/u/14376395/Pictures/leaves.jpeg';
     document.getElementById("file").innerHTML = url;
-
 
     var xhr = new XMLHttpRequest()
     xhr.open('GET', url);
