@@ -1,4 +1,4 @@
-// XDomain - v0.7.2 - https://github.com/jpillora/xdomain
+// XDomain - v0.7.3 - https://github.com/jpillora/xdomain
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
 (function(window,undefined) {
 // XHook - v1.3.3 - https://github.com/jpillora/xhook
@@ -963,7 +963,7 @@ xdomain.masters = masters;
 
 xdomain.slaves = slaves;
 
-xdomain.debug = true;
+xdomain.debug = false;
 
 xdomain.timeout = 15e3;
 

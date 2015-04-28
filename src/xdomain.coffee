@@ -14,7 +14,7 @@ xdomain = (o) ->
 
 xdomain.masters = masters
 xdomain.slaves = slaves
-xdomain.debug = true
+xdomain.debug = false
 xdomain.timeout = 15e3
 CHECK_INTERVAL = 100
 cookies = xdomain.cookies = 
