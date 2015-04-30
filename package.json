@@ -1,0 +1,20 @@
+{
+  "name": "xdomain",
+  "version": "0.7.3",
+  "description": "A pure JavaScript CORS alternative",
+  "browser": "dist/xdomain.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpillora/xdomain"
+  },
+   "keywords": [
+    "cors",
+    "ie8",
+    "polyfill"
+  ],
+  "author": {
+    "name": "Jaime Pillora",
+    "email": "dev@jpillora.com"
+  },
+  "license": "MIT"
+}
