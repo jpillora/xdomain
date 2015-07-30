@@ -543,7 +543,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   return facade;
 };
 
-if (typeof this.define === "function" && this.define.amd) {
+if (typeof define === "function" && define.amd) {
   define("xhook", [], function() {
     return xhook;
   });
