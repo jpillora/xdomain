@@ -401,6 +401,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       transiting = false;
       readHead();
       readBody();
+    } else if (xhr[READY_STATE] === 3) {
+      facade.response = xhr.response;
+      facade.responseText = xhr.responseText;
+      facade.responseXML = xhr.responseXML;
     }
     setReadyState(xhr[READY_STATE]);
   };
