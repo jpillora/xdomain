@@ -1,5 +1,5 @@
 // XDomain - v0.7.3 - https://github.com/jpillora/xdomain
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
 (function(window,undefined) {
 // XHook - v1.3.3 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2015
@@ -401,6 +401,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       transiting = false;
       readHead();
       readBody();
+    } else if (xhr[READY_STATE] === 3) {
+      facade.response = xhr.response;
+      facade.responseText = xhr.responseText;
+      facade.responseXML = xhr.responseXML;
     }
     setReadyState(xhr[READY_STATE]);
   };
@@ -546,7 +550,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   return facade;
 };
 
-if (typeof this.define === "function" && this.define.amd) {
+if (typeof define === "function" && define.amd) {
   define("xhook", [], function() {
     return xhook;
   });
@@ -555,6 +559,7 @@ if (typeof this.define === "function" && this.define.amd) {
 }
 
 }.call(this,window));
+
 var CHECK_INTERVAL, COMPAT_VERSION, XD_CHECK, console, cookies, createSocket, currentOrigin, document, emitter, feature, frames, getFrame, guid, handleSocket, initMaster, initSlave, initdMaster, initdSlave, instOf, jsonEncode, location, log, logger, masters, onMessage, parseUrl, setupEmitter, slaves, slice, sockets, startPostMessage, strip, toRegExp, warn, xdomain, xhook, _i, _len, _ref;
 
 initdMaster = false;
@@ -1140,7 +1145,7 @@ strip = function(src) {
 
 startPostMessage();
 
-if (typeof this.define === "function" && this.define.amd) {
+if (typeof define === "function" && define.amd) {
   define("xdomain", ["xhook"], function(xh) {
     xhook = xh;
     setupEmitter();

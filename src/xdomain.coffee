@@ -141,7 +141,7 @@ strip = (src) ->
 startPostMessage()
 
 #publicise (mini-umd)
-if typeof @define is "function" and @define.amd
+if typeof define is "function" and define.amd
   define "xdomain", ["xhook"], (xh) ->
     #require defined xhook
     xhook = xh
