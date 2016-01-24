@@ -1071,7 +1071,7 @@ var xdomain = require("../../dist/xdomain").xdomain;
 xdomain.debug = true;
 
 xdomain.slaves({
-  'http://s3.amazonaws.com':'/jpillora-usa/xdomain/0.6/proxy.html'
+  'http://s3.amazonaws.com':'/jpillora-usa/xdomain/proxy.html'
 });
 
 var xhr = new XMLHttpRequest();

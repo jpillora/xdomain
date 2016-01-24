@@ -6,7 +6,7 @@
 
 ## Summary
 
-A pure JavaScript CORS alternative. No server configuration required - 
+A pure JavaScript CORS alternative. No server configuration required -
 just add a `proxy.html` on the domain you wish to communicate with. This
 library utilizes [XHook](http://jpillora.com/xhook) to hook all XHR, so XDomain
 will work seamlessly with any library.
@@ -35,9 +35,7 @@ will work seamlessly with any library.
 
 * Development [xdomain.js](https://jpillora.com/xdomain/dist/xdomain.js) 27KB
 * Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
-* CDN
-
-  * Latest version is `0.7.3`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases)
+* CDN (Latest version is `0.7.3`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases))
 
   ``` html
   <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.3/dist/xdomain.min.js"></script>
@@ -45,9 +43,9 @@ will work seamlessly with any library.
 
 ## Live Demos
 
-* [Simple GET from S3](http://jpillora.com/xdomain) 
+* [Simple GET from S3](http://jpillora.com/xdomain)
 
-* [XHR from file:// or data://](http://jpillora.com/xdomain/example/datauri/data-uri.html) 
+* [XHR from file:// or data://](http://jpillora.com/xdomain/example/datauri/data-uri.html)
 
 * [Serverless S3 Client](http://jpillora.com/s3hook)
 
@@ -64,7 +62,7 @@ All except IE6/7 as they don't have `postMessage`
 *Note: It's* **important** *to include XDomain before any other library. When XDomain loads, XHook replaces the current `window.XMLHttpRequest`. So if another library saves a reference to the original `window.XMLHttpRequest` and uses that, XHook won't be able to intercept those requests.*
 
 1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
-  
+
     ``` html
     <!DOCTYPE HTML>
     <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.3/dist/xdomain.min.js" master="http://abc.example.com"></script>
@@ -76,7 +74,7 @@ All except IE6/7 as they don't have `postMessage`
     <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.3/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
-3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work: 
+3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work:
 
     ``` js
     //do some vanilla XHR
@@ -120,9 +118,9 @@ All except IE6/7 as they don't have `postMessage`
 ### `xdomain.slaves`(`slaves`)
 
   Will initialize as a master
-  
+
   Each of the `slaves` must be defined as: `origin`: `proxy file`
-  
+
   The `slaves` object is used as a *list* slaves to force one proxy file per origin.
 
   The **Quick Usage** step 2 above is equivalent to:
@@ -138,20 +136,20 @@ All except IE6/7 as they don't have `postMessage`
 ### `xdomain.masters`(`masters`)
 
   Will initialize as a slave
-  
+
   Each of the `masters` must be defined as: `origin`: `path`
 
   `origin` and `path` are converted to a regular expression by escaping all non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it with `^` and `$`. `path` can also be a `RegExp` literal.
-  
+
   Requests that do not match **both** the `origin` and the `path` regular
   expressions will be blocked.
 
   So you could use the following `proxy.html` to allow all subdomains of `example.com`:
-  
+
   ```html
   <script src="/dist/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
   ```
-  
+
   Which is equivalent to:
   ```html
   <script src="/dist/xdomain.min.js"></script>
@@ -163,7 +161,7 @@ All except IE6/7 as they don't have `postMessage`
   ```
 
   Where `"/api/*.json"` becomes the RegExp `/^\/api\/.*\.json$/`
-  
+
   Therefore, you could allow ALL domains with the following `proxy.html`:
   ```html
   <!-- BEWARE: VERY INSECURE -->
@@ -184,6 +182,8 @@ All except IE6/7 as they don't have `postMessage`
   `event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events, `handler` with contain the `message` as the first parameter. The `timeout` event fires when an iframe exeeds the `xdomain.timeout` time limit.
 
 ### `xdomain.cookies`
+
+  :warning: Chrome and possibly other browsers appear to be blocking access to the iframe's `document.cookie` property. This means `Slave-Cookie`s are no longer supported in some browsers.
 
   When `withCredentials` is set to `true` for a given request, the cookies of the master and slave are sent to the server using these names. If one is set to `null`, it will not be sent.
 

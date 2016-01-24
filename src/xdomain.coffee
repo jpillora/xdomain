@@ -1,6 +1,7 @@
 'use strict'
 
 #commonjs/globally defined xhook
+#or if amd defined - see bottom of file
 xhook = (@exports or @).xhook
 
 #public methods
@@ -17,7 +18,7 @@ xdomain.slaves = slaves
 xdomain.debug = false
 xdomain.timeout = 15e3
 CHECK_INTERVAL = 100
-cookies = xdomain.cookies = 
+cookies = xdomain.cookies =
   master: "Master-Cookie"
   slave: "Slave-Cookie"
 
@@ -141,7 +142,7 @@ strip = (src) ->
 startPostMessage()
 
 #publicise (mini-umd)
-if typeof @define is "function" and @define.amd
+if typeof define is "function" and define.amd
   define "xdomain", ["xhook"], (xh) ->
     #require defined xhook
     xhook = xh
