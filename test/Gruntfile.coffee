@@ -15,10 +15,6 @@ browsers = [
     version: "8"
   ,
     browserName: 'safari'
-    version: '6'
-  ,
-    browserName: 'safari'
-    version: '5'
   ,
     browserName: 'ipad'
   ,
@@ -36,10 +32,9 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-saucelabs'
 
-  runId = crypto.randomBytes(4).toString('hex')
+  runId = process.env.TRAVIS_JOB_ID or crypto.randomBytes(4).toString('hex')
 
   grunt.initConfig
-
     # Cross-browser testing
     connect:
       server:
@@ -55,7 +50,7 @@ module.exports = (grunt) ->
           key: process.env.SAUCELABS_KEY
           urls: ['http://127.0.0.1:3000/test/runner.html']
           browsers: browsers
-          build: process.env.TRAVIS_JOB_ID or runId
+          build: runId
           testname: 'XDomain #' + runId
           concurrency: 8
 

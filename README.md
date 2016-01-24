@@ -53,7 +53,9 @@ will work seamlessly with any library.
 
 All except IE6/7 as they don't have `postMessage`
 
+<!--
 [![Build Status](https://travis-ci.org/jpillora/xdomain.png)](https://travis-ci.org/jpillora/xdomain)
+-->
 
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/jpillora-xdomain.svg)](https://saucelabs.com/u/jpillora-xdomain)
 
@@ -183,7 +185,7 @@ All except IE6/7 as they don't have `postMessage`
 
 ### `xdomain.cookies`
 
-  :warning: Chrome and possibly other browsers appear to be blocking access to the iframe's `document.cookie` property. This means `Slave-Cookie`s are no longer supported in some browsers.
+  **WARNING** :warning: Chrome and possibly other browsers appear to be blocking access to the iframe's `document.cookie` property. This means `Slave-Cookie`s are no longer supported in some browsers.
 
   When `withCredentials` is set to `true` for a given request, the cookies of the master and slave are sent to the server using these names. If one is set to `null`, it will not be sent.
 
@@ -280,7 +282,7 @@ A: XDomain only searches the script tags for `master` and `slave` attributes if 
 Q: It's still not working!
 
 A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag) on both the master and the slave
-and copy the `console.logs` to a new issue. If possible, please a live example demonstrating the issue.
+and copy the `console.logs` to a new issue. If possible, please provide a live example demonstrating your issue.
 
 ## Contributing
 
@@ -292,7 +294,7 @@ BTC 1AxEWoz121JSC3rV8e9MkaN9GAc5Jxvs4
 
 #### MIT License
 
-Copyright © 2014 Jaime Pillora &lt;dev@jpillora.com&gt;
+Copyright © 2016 Jaime Pillora &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
