@@ -1,4 +1,4 @@
-// XHook - v1.3.4 - https://github.com/jpillora/xhook
+// XHook - v1.3.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
 (function(window,undefined) {
 var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, NativeXMLHttp, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookFormData, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
@@ -471,7 +471,9 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       _ref3 = request.headers;
       for (header in _ref3) {
         value = _ref3[header];
-        xhr.setRequestHeader(header, value);
+        if (header) {
+          xhr.setRequestHeader(header, value);
+        }
       }
       if (request.body instanceof XHookFormData) {
         request.body = request.body.fd;
