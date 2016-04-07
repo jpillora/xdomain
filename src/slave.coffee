@@ -75,7 +75,7 @@ initSlave = ->
       xhr.timeout = req.timeout if req.timeout
       xhr.responseType = req.type if req.type
       for k,v of req.headers
-        xhr.setRequestHeader k, v
+        xhr.setRequestHeader k, v or ""
 
       #deserialize FormData
       if req.body instanceof Array and req.body[0] is "XD_FD"
