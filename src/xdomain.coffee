@@ -132,7 +132,7 @@ strip = (src) ->
       masters m
 
   for script in document.getElementsByTagName("script")
-    if /xdomain/.test(script.src)
+    if /xdomain/.test(script.src.toLowerCase())
       for prefix in ['','data-']
         for k,fn of attrs
           fn script.getAttribute prefix+k
