@@ -542,7 +542,8 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     return convertHeaders(response.headers);
   };
   if (xhr.overrideMimeType) {
-    facade.overrideMimeType = function() {
+    facade.overrideMimeType = function(mimeType) {
+      request.overrideMimeType = mimeType;
       return xhr.overrideMimeType.apply(xhr, arguments);
     };
   }

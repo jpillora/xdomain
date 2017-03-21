@@ -74,6 +74,7 @@ initSlave = ->
 
       xhr.timeout = req.timeout if req.timeout
       xhr.responseType = req.type if req.type
+      xhr.overrideMimeType req.overrideMimeType if req.overrideMimeType
       for k,v of req.headers
         xhr.setRequestHeader k, v
 
