@@ -345,7 +345,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       if (currentState === 2) {
         writeHead();
       }
-      if (currentState === 4) {
+      if (currentState === 3 || currentState === 4) {
         writeHead();
         writeBody();
       }

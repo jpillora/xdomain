@@ -39,7 +39,7 @@ initSlave = ->
         socket.close()
         return
 
-      xhr = new XMLHttpRequest()
+      xhr = new xhook.XMLHttpRequest()
       xhr.open req.method, req.url
 
       xhr.addEventListener "*", (e) ->
@@ -53,11 +53,11 @@ initSlave = ->
         xhr.abort()
 
       xhr.onreadystatechange = ->
-        return unless xhr.readyState is 4
         #extract properties
         resp =
           status: xhr.status
           statusText: xhr.statusText
+          readyState: xhr.readyState
           data: xhr.response
           headers: xhook.headers xhr.getAllResponseHeaders()
         try resp.text = xhr.responseText

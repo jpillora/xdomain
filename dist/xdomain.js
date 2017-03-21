@@ -348,7 +348,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       if (currentState === 2) {
         writeHead();
       }
-      if (currentState === 4) {
+      if (currentState === 3 || currentState === 4) {
         writeHead();
         writeBody();
       }
@@ -699,8 +699,15 @@ initMaster = function() {
     frame = getFrame(p.origin, slaves[p.origin]);
     socket = createSocket(guid(), frame);
     socket.on("response", function(resp) {
-      callback(resp);
-      return socket.close();
+      switch (resp.readyState) {
+        case 2:
+          return callback.head(resp);
+        case 3:
+          return callback.progress(resp);
+        case 4:
+          callback(resp);
+          return socket.close();
+      }
     });
     request.xhr.addEventListener('abort', function() {
       return socket.emit("abort");
@@ -763,7 +770,7 @@ initSlave = function() {
         socket.close();
         return;
       }
-      xhr = new XMLHttpRequest();
+      xhr = new xhook.XMLHttpRequest();
       xhr.open(req.method, req.url);
       xhr.addEventListener("*", function(e) {
         return socket.emit('xhr-event', e.type, strip(e));
@@ -778,12 +785,10 @@ initSlave = function() {
       });
       xhr.onreadystatechange = function() {
         var resp;
-        if (xhr.readyState !== 4) {
-          return;
-        }
         resp = {
           status: xhr.status,
           statusText: xhr.statusText,
+          readyState: xhr.readyState,
           data: xhr.response,
           headers: xhook.headers(xhr.getAllResponseHeaders())
         };
