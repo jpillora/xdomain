@@ -396,7 +396,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         readHead();
       }
     } catch (_error) {}
-    if (xhr[READY_STATE] === 4) {
+    if (xhr[READY_STATE] === 3) {
+      readHead();
+      readBody();
+    } else if (xhr[READY_STATE] === 4) {
       transiting = false;
       readHead();
       readBody();
