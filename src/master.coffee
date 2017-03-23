@@ -125,8 +125,12 @@ initMaster = ->
 
     #queue callback
     socket.on "response", (resp) ->
-      callback resp
-      socket.close()
+      switch resp.readyState
+        when 2 then callback.head resp
+        when 3 then callback.progress resp
+        when 4
+          callback resp
+          socket.close()
 
     #user wants to abort
     request.xhr.addEventListener 'abort', ->

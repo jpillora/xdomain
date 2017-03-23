@@ -345,7 +345,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       if (currentState === 2) {
         writeHead();
       }
-      if (currentState === 4) {
+      if (currentState === 3 || currentState === 4) {
         writeHead();
         writeBody();
       }
@@ -396,7 +396,10 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         readHead();
       }
     } catch (_error) {}
-    if (xhr[READY_STATE] === 4) {
+    if (xhr[READY_STATE] === 3) {
+      readHead();
+      readBody();
+    } else if (xhr[READY_STATE] === 4) {
       transiting = false;
       readHead();
       readBody();
@@ -542,7 +545,8 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     return convertHeaders(response.headers);
   };
   if (xhr.overrideMimeType) {
-    facade.overrideMimeType = function() {
+    facade.overrideMimeType = function(mimeType) {
+      request.overrideMimeType = mimeType;
       return xhr.overrideMimeType.apply(xhr, arguments);
     };
   }
