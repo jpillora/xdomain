@@ -1,5 +1,5 @@
 // XDomain - v0.7.5 - https://github.com/jpillora/xdomain
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2017
 (function(window,undefined) {
 // XHook - v1.3.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
@@ -866,7 +866,9 @@ createSocket = function(id, frame) {
     if (jsonEncode) {
       args = JSON.stringify(args);
     }
-    frame.postMessage(args, "*");
+    try {
+      frame.postMessage(args, "*");
+    } catch (_error) {}
   };
   sock.close = function() {
     sock.emit('close');
@@ -885,7 +887,9 @@ createSocket = function(id, frame) {
   checks = 0;
   check = (function(_this) {
     return function() {
-      frame.postMessage([id, XD_CHECK, {}], "*");
+      try {
+        frame.postMessage([id, XD_CHECK, {}], "*");
+      } catch (_error) {}
       if (ready) {
         return;
       }

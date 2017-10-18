@@ -33,7 +33,7 @@ createSocket = (id, frame) ->
     #convert to string when necessary
     args = JSON.stringify args if jsonEncode
     #send!
-    frame.postMessage args, "*"
+    try frame.postMessage args, "*"
     return
 
   sock.close = ->
@@ -55,7 +55,7 @@ createSocket = (id, frame) ->
   checks = 0
   check = =>
     # send test message NO ENCODING
-    frame.postMessage [id, XD_CHECK, {}], "*"
+    try frame.postMessage [id, XD_CHECK, {}], "*"
     if ready
       return
     if checks++ >= xdomain.timeout/CHECK_INTERVAL
