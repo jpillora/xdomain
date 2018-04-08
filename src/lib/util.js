@@ -88,7 +88,8 @@ exports.strip = src => {
       continue;
     }
     const v = src[k];
-    if (!["function", "object"].includes(typeof v)) {
+    const t = typeof v;
+    if (t !== "function" && t !== "object") {
       dst[k] = v;
     }
   }
