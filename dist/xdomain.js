@@ -90,7 +90,7 @@ module.exports = function isArguments(value) {
 	}
 	return isArgs;
 };
-},{}],28:[function(require,module,exports) {
+},{}],26:[function(require,module,exports) {
 'use strict';
 
 // modified from https://github.com/es-shims/es5-shim
@@ -250,7 +250,7 @@ module.exports = function forEach (obj, fn, ctx) {
 };
 
 
-},{}],15:[function(require,module,exports) {
+},{}],12:[function(require,module,exports) {
 'use strict';
 
 var keys = require('object-keys');
@@ -310,7 +310,7 @@ var defineProperties = function (object, map) {
 defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
-},{"object-keys":28,"foreach":27}],48:[function(require,module,exports) {
+},{"object-keys":26,"foreach":27}],46:[function(require,module,exports) {
 'use strict';
 
 /* eslint no-invalid-this: 1 */
@@ -371,7 +371,7 @@ var implementation = require('./implementation');
 
 module.exports = Function.prototype.bind || implementation;
 
-},{"./implementation":48}],43:[function(require,module,exports) {
+},{"./implementation":46}],43:[function(require,module,exports) {
 var bind = require('function-bind');
 
 module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
@@ -379,7 +379,7 @@ module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
 module.exports = function isPrimitive(value) {
 	return value === null || typeof value !== 'function' && typeof value !== 'object';
 };
-},{}],47:[function(require,module,exports) {
+},{}],48:[function(require,module,exports) {
 'use strict';
 
 var fnToStr = Function.prototype.toString;
@@ -561,7 +561,7 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
 };
-},{"./helpers/isPrimitive":49,"is-callable":47,"is-date-object":50,"is-symbol":51}],36:[function(require,module,exports) {
+},{"./helpers/isPrimitive":49,"is-callable":48,"is-date-object":50,"is-symbol":51}],36:[function(require,module,exports) {
 module.exports = Number.isNaN || function isNaN(a) {
 	return a !== a;
 };
@@ -595,7 +595,7 @@ module.exports = function mod(number, modulo) {
 	var remain = number % modulo;
 	return Math.floor(remain >= 0 ? remain : remain + modulo);
 };
-},{}],46:[function(require,module,exports) {
+},{}],47:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -633,7 +633,7 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ES5internalSlots['[[DefaultValue]]'](input, PreferredType);
 };
-},{"./helpers/isPrimitive":49,"is-callable":47}],35:[function(require,module,exports) {
+},{"./helpers/isPrimitive":49,"is-callable":48}],35:[function(require,module,exports) {
 'use strict';
 
 var $isNaN = require('./helpers/isNaN');
@@ -880,7 +880,7 @@ var ES5 = {
 };
 
 module.exports = ES5;
-},{"./helpers/isNaN":36,"./helpers/isFinite":37,"./helpers/sign":39,"./helpers/mod":40,"is-callable":47,"es-to-primitive/es5":46,"has":43}],42:[function(require,module,exports) {
+},{"./helpers/isNaN":36,"./helpers/isFinite":37,"./helpers/sign":39,"./helpers/mod":40,"is-callable":48,"es-to-primitive/es5":47,"has":43}],42:[function(require,module,exports) {
 'use strict';
 
 var has = require('has');
@@ -1648,7 +1648,7 @@ module.exports = function from(arrayLike) {
 	return A;
 };
 
-},{"es-abstract/es6":25,"define-properties":15}],10:[function(require,module,exports) {
+},{"es-abstract/es6":25,"define-properties":12}],10:[function(require,module,exports) {
 'use strict';
 
 var ES = require('es-abstract/es6');
@@ -1689,7 +1689,7 @@ module.exports = function shimArrayFrom() {
 	return polyfill;
 };
 
-},{"define-properties":15,"./polyfill":10}],6:[function(require,module,exports) {
+},{"define-properties":12,"./polyfill":10}],5:[function(require,module,exports) {
 'use strict';
 
 var define = require('define-properties');
@@ -1712,7 +1712,7 @@ define(boundFromShim, {
 
 module.exports = boundFromShim;
 
-},{"define-properties":15,"./implementation":9,"./polyfill":10,"./shim":11}],4:[function(require,module,exports) {
+},{"define-properties":12,"./implementation":9,"./polyfill":10,"./shim":11}],4:[function(require,module,exports) {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 // XHook - v1.3.5 - https://github.com/jpillora/xhook
@@ -2299,7 +2299,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
 };
 
 module.exports = xhook;
-},{}],20:[function(require,module,exports) {
+},{}],19:[function(require,module,exports) {
 var config = function config(o) {
   if (o) {
     if (o.masters) {
@@ -2321,7 +2321,7 @@ config.cookies = {
 //extras are also attached to config
 
 module.exports = config;
-},{}],17:[function(require,module,exports) {
+},{}],16:[function(require,module,exports) {
 var global = (1,eval)("this");
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -2417,13 +2417,14 @@ exports.strip = function (src) {
       continue;
     }
     var v = src[k];
-    if (!["function", "object"].includes(typeof v === "undefined" ? "undefined" : _typeof(v))) {
+    var t = typeof v === "undefined" ? "undefined" : _typeof(v);
+    if (t !== "function" && t !== "object") {
       dst[k] = v;
     }
   }
   return dst;
 };
-},{"../vendor/xhook":4,"./config":20}],32:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":19}],32:[function(require,module,exports) {
 var xhook = require("../vendor/xhook");
 var config = require("./config");
 
@@ -2576,7 +2577,7 @@ exports.handleSocket = function (origin, socket) {
   });
   log("slave listening for requests on socket: " + socket.id);
 };
-},{"../vendor/xhook":4,"./config":20,"./util":17}],18:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":19,"./util":16}],17:[function(require,module,exports) {
 var xhook = require("../vendor/xhook");
 
 var config = require("./config");
@@ -2733,7 +2734,7 @@ exports.initialise = function () {
     return window.attachEvent("onmessage", handle);
   }
 };
-},{"../vendor/xhook":4,"./config":20,"./util":17,"./slave":32}],31:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":19,"./util":16,"./slave":32}],31:[function(require,module,exports) {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var xhook = require("../vendor/xhook");
@@ -2929,7 +2930,7 @@ var handleRequest = function handleRequest(request, socket) {
   }
   send();
 };
-},{"../vendor/xhook":4,"./config":20,"./util":17,"./socket":18}],19:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":19,"./util":16,"./socket":17}],18:[function(require,module,exports) {
 var config = require("./config");
 
 var _require = require("./util"),
@@ -2994,7 +2995,7 @@ exports.initialise = function () {
     });
   });
 };
-},{"./config":20,"./util":17,"./master":31,"./slave":32}],3:[function(require,module,exports) {
+},{"./config":19,"./util":16,"./master":31,"./slave":32}],3:[function(require,module,exports) {
 "use strict";
 
 //feature detect
@@ -3020,16 +3021,13 @@ script.initialise();
 var initialise = require("./lib/config");
 //config is also the primary intialise function
 module.exports = initialise;
-},{"./lib/util":17,"./lib/socket":18,"./lib/script":19,"./lib/config":20}],1:[function(require,module,exports) {
-// require("babel-polyfill");
-
+},{"./lib/util":16,"./lib/socket":17,"./lib/script":18,"./lib/config":19}],1:[function(require,module,exports) {
 if (!Array.from) {
-  Array.from = require("array.from");
+  Array.from = require("array.from").getPolyfill();
 }
-
 var xhook = require("./vendor/xhook");
 window.xhook = xhook;
 var xdomain = require("./index");
 window.xdomain = xdomain;
-},{"array.from":6,"./vendor/xhook":4,"./index":3}]},{},[1])
+},{"array.from":5,"./vendor/xhook":4,"./index":3}]},{},[1])
 //# sourceMappingURL=xdomain.map
