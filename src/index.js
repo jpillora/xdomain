@@ -2,11 +2,11 @@
 
 //feature detect
 const { warn } = require("./lib/util");
-for (let feature of ["postMessage", "JSON"]) {
+["postMessage", "JSON"].forEach(feature => {
   if (!window[feature]) {
     warn(`requires '${feature}' and this browser does not support it`);
   }
-}
+});
 
 //init socket (post message mini-library)
 const socket = require("./lib/socket");

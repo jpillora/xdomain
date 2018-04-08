@@ -116,9 +116,9 @@ const convertFormData = function(entries, send) {
     const [name, value] = Array.from(args);
     if (instOf(value, "FileList")) {
       entries.splice(i, 1);
-      for (let file of Array.from(value)) {
+      Array.from(value).forEach(file => {
         entries.splice(i, 0, [name, file]);
-      }
+      });
     }
   });
   //basically: async.parallel([filter:files], send)

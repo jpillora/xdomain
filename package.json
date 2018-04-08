@@ -24,6 +24,8 @@
     "build": "parcel build --public-url . src/browser.js --no-minify -o xdomain && parcel build src/browser.js --no-source-maps --detailed-report -o xdomain.min"
   },
   "devDependencies": {
+    "array.from": "^1.0.3",
     "parcel-bundler": "^1.7.0"
-  }
+  },
+  "dependencies": {}
 }

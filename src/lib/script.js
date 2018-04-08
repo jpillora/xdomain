@@ -8,15 +8,9 @@ exports.initialise = function() {
   //attribute handlers
   const attrs = {
     debug(value) {
-      if (typeof value !== "string") {
-        return;
-      }
       config.debug = value !== "false";
     },
     slave(value) {
-      if (!value) {
-        return;
-      }
       const p = parseUrl(value);
       if (!p) {
         return;
@@ -27,9 +21,6 @@ exports.initialise = function() {
     },
     master(value) {
       let p;
-      if (!value) {
-        return;
-      }
       if (value === "*") {
         p = { origin: "*", path: "*" };
       } else if (value === "file://*") {
@@ -47,14 +38,18 @@ exports.initialise = function() {
   };
   //find all script tags referencing 'xdomain' and then
   //find all attributes with handlers registered
-  for (let script of Array.from(document.getElementsByTagName("script"))) {
-    if (/xdomain/.test(script.src)) {
-      for (let prefix of ["", "data-"]) {
-        for (let k in attrs) {
+  Array.from(document.getElementsByTagName("script")).forEach(script => {
+    if (!/xdomain/.test(script.src)) {
+      return;
+    }
+    ["", "data-"].forEach(prefix => {
+      for (let k in attrs) {
+        const value = script.getAttribute(prefix + k);
+        if (value) {
           const fn = attrs[k];
-          fn(script.getAttribute(prefix + k));
+          fn(value);
         }
       }
-    }
-  }
+    });
+  });
 };
