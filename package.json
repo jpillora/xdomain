@@ -1,13 +1,15 @@
 {
   "name": "xdomain",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "A pure JavaScript CORS alternative",
   "browser": "dist/xdomain.js",
+  "main": "src/index.js",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/jpillora/xdomain"
   },
-   "keywords": [
+  "keywords": [
     "cors",
     "ie8",
     "polyfill"
@@ -16,5 +18,12 @@
     "name": "Jaime Pillora",
     "email": "dev@jpillora.com"
   },
-  "license": "MIT"
+  "scripts": {
+    "dev": "parcel watch --no-source-maps --public-url . src/browser.js -o xdomain",
+    "devfile": "parcel watch --no-hmr --no-source-maps --public-url . src/browser.js -o xdomain",
+    "build": "parcel build --public-url . src/browser.js --no-minify -o xdomain && parcel build src/browser.js --no-source-maps --detailed-report -o xdomain.min"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.7.0"
+  }
 }

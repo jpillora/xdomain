@@ -1,47 +1,83 @@
 // XHook - v1.3.5 - https://github.com/jpillora/xhook
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
-(function(window,undefined) {
-var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FIRE, FormData, NativeFormData, NativeXMLHttp, OFF, ON, READY_STATE, UPLOAD_EVENTS, XHookFormData, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, proxyEvents, slice, xhook, _base,
-  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+var AFTER,
+  BEFORE,
+  COMMON_EVENTS,
+  EventEmitter,
+  FIRE,
+  FormData,
+  NativeFormData,
+  NativeXMLHttp,
+  OFF,
+  ON,
+  READY_STATE,
+  UPLOAD_EVENTS,
+  XHookFormData,
+  XHookHttpRequest,
+  XMLHTTP,
+  convertHeaders,
+  depricatedProp,
+  document,
+  fakeEvent,
+  mergeObjects,
+  msie,
+  proxyEvents,
+  slice,
+  xhook,
+  _base,
+  __indexOf =
+    [].indexOf ||
+    function(item) {
+      for (var i = 0, l = this.length; i < l; i++) {
+        if (i in this && this[i] === item) return i;
+      }
+      return -1;
+    };
 
 document = window.document;
 
-BEFORE = 'before';
+BEFORE = "before";
 
-AFTER = 'after';
+AFTER = "after";
 
-READY_STATE = 'readyState';
+READY_STATE = "readyState";
 
-ON = 'addEventListener';
+ON = "addEventListener";
 
-OFF = 'removeEventListener';
+OFF = "removeEventListener";
 
-FIRE = 'dispatchEvent';
+FIRE = "dispatchEvent";
 
-XMLHTTP = 'XMLHttpRequest';
+XMLHTTP = "XMLHttpRequest";
 
-FormData = 'FormData';
+FormData = "FormData";
 
-UPLOAD_EVENTS = ['load', 'loadend', 'loadstart'];
+UPLOAD_EVENTS = ["load", "loadend", "loadstart"];
 
-COMMON_EVENTS = ['progress', 'abort', 'error', 'timeout'];
+COMMON_EVENTS = ["progress", "abort", "error", "timeout"];
 
-msie = parseInt((/msie (\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
+msie = parseInt(
+  (/msie (\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]
+);
 
 if (isNaN(msie)) {
-  msie = parseInt((/trident\/.*; rv:(\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
+  msie = parseInt(
+    (/trident\/.*; rv:(\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]
+  );
 }
 
-(_base = Array.prototype).indexOf || (_base.indexOf = function(item) {
-  var i, x, _i, _len;
-  for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {
-    x = this[i];
-    if (x === item) {
-      return i;
+(_base = Array.prototype).indexOf ||
+  (_base.indexOf = function(item) {
+    var i, x, _i, _len;
+    for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {
+      x = this[i];
+      if (x === item) {
+        return i;
+      }
     }
-  }
-  return -1;
-});
+    return -1;
+  });
 
 slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
@@ -172,7 +208,7 @@ EventEmitter = function(nodeStyle) {
       return emitter.on(e, fire);
     };
     emitter.destroy = function() {
-      return events = {};
+      return (events = {});
     };
   }
   return emitter;
@@ -223,9 +259,9 @@ convertHeaders = xhook.headers = function(h, dest) {
         name = k.toLowerCase();
         headers.push("" + name + ":\t" + v);
       }
-      return headers.join('\n');
+      return headers.join("\n");
     case "string":
-      headers = h.split('\n');
+      headers = h.split("\n");
       for (_i = 0, _len = headers.length; _i < _len; _i++) {
         header = headers[_i];
         if (/([^:]+):\s*(.+)/.test(header)) {
@@ -247,15 +283,22 @@ XHookFormData = function(form) {
   this.fd = form ? new NativeFormData(form) : new NativeFormData();
   this.form = form;
   entries = [];
-  Object.defineProperty(this, 'entries', {
+  Object.defineProperty(this, "entries", {
     get: function() {
       var fentries;
-      fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
-        var _ref;
-        return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
-      }).map(function(e) {
-        return [e.name, e.type === "file" ? e.files : e.value];
-      });
+      fentries = !form
+        ? []
+        : slice(form.querySelectorAll("input,select"))
+            .filter(function(e) {
+              var _ref;
+              return (
+                ((_ref = e.type) !== "checkbox" && _ref !== "radio") ||
+                e.checked
+              );
+            })
+            .map(function(e) {
+              return [e.name, e.type === "file" ? e.files : e.value];
+            });
       return fentries.concat(entries);
     }
   });
@@ -279,7 +322,27 @@ NativeXMLHttp = window[XMLHTTP];
 xhook[XMLHTTP] = NativeXMLHttp;
 
 XHookHttpRequest = window[XMLHTTP] = function() {
-  var ABORTED, currentState, emitFinal, emitReadyState, event, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, status, transiting, writeBody, writeHead, xhr, _i, _len, _ref;
+  var ABORTED,
+    currentState,
+    emitFinal,
+    emitReadyState,
+    event,
+    facade,
+    hasError,
+    hasErrorHandler,
+    readBody,
+    readHead,
+    request,
+    response,
+    setReadyState,
+    status,
+    transiting,
+    writeBody,
+    writeHead,
+    xhr,
+    _i,
+    _len,
+    _ref;
   ABORTED = -1;
   xhr = new xhook[XMLHTTP]();
   request = {};
@@ -323,16 +386,16 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     facade.statusText = response.statusText;
   };
   writeBody = function() {
-    if ('text' in response) {
+    if ("text" in response) {
       facade.responseText = response.text;
     }
-    if ('xml' in response) {
+    if ("xml" in response) {
       facade.responseXML = response.xml;
     }
-    if ('data' in response) {
+    if ("data" in response) {
       facade.response = response.data;
     }
-    if ('finalUrl' in response) {
+    if ("finalUrl" in response) {
       facade.responseURL = response.finalUrl;
     }
   };
@@ -406,17 +469,17 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   hasErrorHandler = function() {
     hasError = true;
   };
-  facade[ON]('error', hasErrorHandler);
-  facade[ON]('timeout', hasErrorHandler);
-  facade[ON]('abort', hasErrorHandler);
-  facade[ON]('progress', function() {
+  facade[ON]("error", hasErrorHandler);
+  facade[ON]("timeout", hasErrorHandler);
+  facade[ON]("abort", hasErrorHandler);
+  facade[ON]("progress", function() {
     if (currentState < 3) {
       setReadyState(3);
     } else {
       facade[FIRE]("readystatechange", {});
     }
   });
-  if ('withCredentials' in xhr || xhook.addWithCredentials) {
+  if ("withCredentials" in xhr || xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
   facade.status = 0;
@@ -443,7 +506,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   };
   facade.send = function(body) {
     var hooks, k, modk, process, send, _j, _len1, _ref1;
-    _ref1 = ['type', 'timeout', 'withCredentials'];
+    _ref1 = ["type", "timeout", "withCredentials"];
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       k = _ref1[_j];
       modk = k === "type" ? "responseType" : k;
@@ -456,11 +519,21 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       var header, value, _k, _len2, _ref2, _ref3;
       proxyEvents(COMMON_EVENTS, xhr, facade);
       if (facade.upload) {
-        proxyEvents(COMMON_EVENTS.concat(UPLOAD_EVENTS), xhr.upload, facade.upload);
+        proxyEvents(
+          COMMON_EVENTS.concat(UPLOAD_EVENTS),
+          xhr.upload,
+          facade.upload
+        );
       }
       transiting = true;
-      xhr.open(request.method, request.url, request.async, request.user, request.pass);
-      _ref2 = ['type', 'timeout', 'withCredentials'];
+      xhr.open(
+        request.method,
+        request.url,
+        request.async,
+        request.user,
+        request.pass
+      );
+      _ref2 = ["type", "timeout", "withCredentials"];
       for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
         k = _ref2[_k];
         modk = k === "type" ? "responseType" : k;
@@ -487,9 +560,13 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         return send();
       }
       done = function(userResponse) {
-        if (typeof userResponse === 'object' && (typeof userResponse.status === 'number' || typeof response.status === 'number')) {
+        if (
+          typeof userResponse === "object" &&
+          (typeof userResponse.status === "number" ||
+            typeof response.status === "number")
+        ) {
           mergeObjects(userResponse, response);
-          if (__indexOf.call(userResponse, 'data') < 0) {
+          if (__indexOf.call(userResponse, "data") < 0) {
             userResponse.data = userResponse.response || userResponse.text;
           }
           setReadyState(4);
@@ -521,7 +598,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     if (transiting) {
       xhr.abort();
     } else {
-      facade[FIRE]('abort', {});
+      facade[FIRE]("abort", {});
     }
   };
   facade.setRequestHeader = function(header, value) {
@@ -529,7 +606,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     lName = header != null ? header.toLowerCase() : void 0;
     name = request.headerNames[lName] = request.headerNames[lName] || header;
     if (request.headers[name]) {
-      value = request.headers[name] + ', ' + value;
+      value = request.headers[name] + ", " + value;
     }
     request.headers[name] = value;
   };
@@ -552,12 +629,4 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   return facade;
 };
 
-if (typeof define === "function" && define.amd) {
-  define("xhook", [], function() {
-    return xhook;
-  });
-} else {
-  (this.exports || this).xhook = xhook;
-}
-
-}.call(this,window));
+module.exports = xhook;

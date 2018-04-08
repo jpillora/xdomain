@@ -1,40 +1,40 @@
 <!DOCTYPE HTML>
 <html>
+
 <head>
 </head>
+
 <body>
   <h3>XDomain Demo</h3>
-  <h5>From '<span id="host"></span>'</h5>
-  <h5>To '<span id="target"></span>'</h5>
+  <h5>From '
+    <span id="host"></span>'</h5>
+  <h5>To '
+    <span id="target"></span>'</h5>
 
   <img id='pic' style='display:none'></img>
   <pre id='output'></pre>
 
   <script type="text/javascript">
-
     //mini-jquery
     var $ = document.querySelector.bind(document);
-
     var origins = {
       'localhost': '127.0.0.1',
       'abc.lvho.st': 'xyz.lvho.st',
       'abc.example.com': 'xyz.example.com'
     };
-
     var src = location.hostname;
-    if(!origins[src])
-      alert("this is a local test only");
+    if (!origins[src]) {
+      alert("this is a localhost test");
+    }
     var target = 'http://' + origins[src];
-
     //add port
     target += ":" + location.port;
-
     //add xdomain
     var script = document.createElement("script");
     script.src = '../../dist/xdomain.js';
-    // script.debug = true;
-    script.setAttribute("slave", target+"/example/local/proxy1.html");
-
+    script.setAttribute("debug", "true");
+    script.setAttribute("slave", target + "/example/local/proxy.html");
+    //add file
     target += '/example/files/cat.png';
 
     script.onload = function load() {
@@ -47,7 +47,7 @@
       xhr.withCredentials = true;
       xhr.open("GET", target);
       xhr.send();
-      xhr.onload = function() {
+      xhr.onload = function () {
         var bytes = new Uint8Array(xhr.response);
         var img = document.createElement("img");
         img.src = "data:image/png;base64," + btoa(String.fromCharCode.apply(null, bytes));
@@ -59,4 +59,5 @@
   </script>
 
 </body>
+
 </html>

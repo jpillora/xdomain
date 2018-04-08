@@ -15,7 +15,7 @@ will work seamlessly with any library.
 
 * Simple
 * Library Agnostic
-  * With [jQuery](http://jpillora.com/xdomain)  `$.ajax` (and subsequently `$.get`, `$.post`)
+  * With [jQuery](http://jpillora.com/xdomain) `$.ajax` (and subsequently `$.get`, `$.post`)
   * With [Angular](http://jpillora.com/xdomain/example/angular) `$http` service
 * Cross domain XHR just magically works
   * No need to modify the server code
@@ -35,17 +35,15 @@ will work seamlessly with any library.
 
 * Development [xdomain.js](https://jpillora.com/xdomain/dist/xdomain.js) 27KB
 * Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
-* CDN (Latest version is `0.7.4`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases))
+* CDN (Latest version is `0.8.0`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases))
 
-  ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js"></script>
+  ```html
+  <script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js"></script>
   ```
 
 ## Live Demos
 
 * [Simple GET from S3](http://jpillora.com/xdomain)
-
-* [XHR from file:// or data://](http://jpillora.com/xdomain/example/datauri/data-uri.html)
 
 * [Serverless S3 Client](http://jpillora.com/s3hook)
 
@@ -53,157 +51,152 @@ will work seamlessly with any library.
 
 All except IE6/7 as they don't have `postMessage`
 
-<!--
-[![Build Status](https://travis-ci.org/jpillora/xdomain.png)](https://travis-ci.org/jpillora/xdomain)
--->
-
-[![Selenium Test Status](https://saucelabs.com/browser-matrix/jpillora-xdomain.svg)](https://saucelabs.com/u/jpillora-xdomain)
-
 ## Quick Usage
 
-*Note: It's* **important** *to include XDomain before any other library. When XDomain loads, XHook replaces the current `window.XMLHttpRequest`. So if another library saves a reference to the original `window.XMLHttpRequest` and uses that, XHook won't be able to intercept those requests.*
+_Note: It's_ **important** _to include XDomain before any other library. When XDomain loads, XHook replaces the current `window.XMLHttpRequest`. So if another library saves a reference to the original `window.XMLHttpRequest` and uses that, XHook won't be able to intercept those requests._
 
-1. On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
+1.  On your slave domain (`http://xyz.example.com`), create a small `proxy.html` file:
 
-    ``` html
+    ```html
     <!DOCTYPE HTML>
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
-2. Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
+2.  Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
-    ``` html
-    <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    ```html
+    <script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
-3. **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work:
+3.  **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work:
 
-    ``` js
+    ```js
     //do some vanilla XHR
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'http://xyz.example.com/secret/file.txt');
+    xhr.open("GET", "http://xyz.example.com/secret/file.txt");
     xhr.onreadystatechange = function(e) {
-      if(xhr.readyState === 4)
-        console.log("got result: ", xhr.responseText);
+      if (xhr.readyState === 4) console.log("got result: ", xhr.responseText);
     };
     xhr.send();
 
     //or if we are using jQuery...
-    $.get('http://xyz.example.com/secret/file.txt').done(function(data) {
+    $.get("http://xyz.example.com/secret/file.txt").done(function(data) {
       console.log("got result: ", data);
     });
     ```
 
-*Tip: If you enjoy being standards compliant, you can also use `data-master` and `data-slave` attributes.*
+_Tip: If you enjoy being standards compliant, you can also use `data-master` and `data-slave` attributes._
 
 ### Using multiple masters and slaves
 
-  The following two snippets are equivalent:
+The following two snippets are equivalent:
 
-  ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
-  ```
+```html
+<script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+```
 
-  ``` html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js"></script>
-  <script>
-  xdomain.masters({
-    'http://abc.example.com': '/api/*'
-  });
-  </script>
-  ```
+```html
+<script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js"></script>
+<script>
+xdomain.masters({
+  'http://abc.example.com': '/api/*'
+});
+</script>
+```
 
-  So, we can then add more `masters` or (`slaves`) by simply including them in the `object`, see API below.
+So, we can then add more `masters` or (`slaves`) by simply including them in the `object`, see API below.
 
 ## API
 
 ### `xdomain.slaves`(`slaves`)
 
-  Will initialize as a master
+Will initialize as a master
 
-  Each of the `slaves` must be defined as: `origin`: `proxy file`
+Each of the `slaves` must be defined as: `origin`: `proxy file`
 
-  The `slaves` object is used as a *list* slaves to force one proxy file per origin.
+The `slaves` object is used as a _list_ slaves to force one proxy file per origin.
 
-  The **Quick Usage** step 2 above is equivalent to:
-  ```html
-  <script src="//cdn.rawgit.com/jpillora/xdomain/0.7.4/dist/xdomain.min.js"></script>
-  <script>
-    xdomain.slaves({
-      "http://xyz.example.com": "/proxy.html"
-    });
-  </script>
-  ```
+The **Quick Usage** step 2 above is equivalent to:
+
+```html
+<script src="//unpkg.com/xdomain@0.8.0/dist/xdomain.min.js"></script>
+<script>
+  xdomain.slaves({
+    "http://xyz.example.com": "/proxy.html"
+  });
+</script>
+```
 
 ### `xdomain.masters`(`masters`)
 
-  Will initialize as a slave
+Will initialize as a slave
 
-  Each of the `masters` must be defined as: `origin`: `path`
+Each of the `masters` must be defined as: `origin`: `path`
 
-  `origin` and `path` are converted to a regular expression by escaping all non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it with `^` and `$`. `path` can also be a `RegExp` literal.
+`origin` and `path` are converted to a regular expression by escaping all non-alphanumeric chars, then converting `*` into `.*` and finally wrapping it with `^` and `$`. `path` can also be a `RegExp` literal.
 
-  Requests that do not match **both** the `origin` and the `path` regular
-  expressions will be blocked.
+Requests that do not match **both** the `origin` and the `path` regular
+expressions will be blocked.
 
-  So you could use the following `proxy.html` to allow all subdomains of `example.com`:
+So you could use the following `proxy.html` to allow all subdomains of `example.com`:
 
-  ```html
-  <script src="/dist/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
-  ```
+```html
+<script src="/dist/xdomain.min.js" data-master="http://*.example.com/api/*.json"></script>
+```
 
-  Which is equivalent to:
-  ```html
-  <script src="/dist/xdomain.min.js"></script>
-  <script>
-    xdomain.masters({
-      "http://*.example.com": "/api/*.json"
-    });
-  </script>
-  ```
+Which is equivalent to:
 
-  Where `"/api/*.json"` becomes the RegExp `/^\/api\/.*\.json$/`
+```html
+<script src="/dist/xdomain.min.js"></script>
+<script>
+  xdomain.masters({
+    "http://*.example.com": "/api/*.json"
+  });
+</script>
+```
 
-  Therefore, you could allow ALL domains with the following `proxy.html`:
-  ```html
-  <!-- BEWARE: VERY INSECURE -->
-  <script src="/dist/xdomain.min.js" master="*"></script>
-  ```
+Where `"/api/*.json"` becomes the RegExp `/^\/api\/.*\.json$/`
+
+Therefore, you could allow ALL domains with the following `proxy.html`:
+
+```html
+<!-- BEWARE: VERY INSECURE -->
+<script src="/dist/xdomain.min.js" master="*"></script>
+```
 
 ### `xdomain.debug` = `false`
 
-  When `true`, XDomain will log actions to console
-
+When `true`, XDomain will log actions to console
 
 ### `xdomain.timeout` = `15e3`ms (15 seconds)
 
-  Number of milliseconds until XDomains gives up waiting for an iframe to respond
+Number of milliseconds until XDomains gives up waiting for an iframe to respond
 
 ### `xdomain.on`(`event`, `handler`)
 
-  `event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events, `handler` with contain the `message` as the first parameter. The `timeout` event fires when an iframe exeeds the `xdomain.timeout` time limit.
+`event` may be `log`, `warn` or `timeout`. When listening for `log` and `warn` events, `handler` with contain the `message` as the first parameter. The `timeout` event fires when an iframe exeeds the `xdomain.timeout` time limit.
 
 ### `xdomain.cookies`
 
-  **WARNING** :warning: Chrome and possibly other browsers appear to be blocking access to the iframe's `document.cookie` property. This means `Slave-Cookie`s are no longer supported in some browsers.
+**WARNING** :warning: Chrome and possibly other browsers appear to be blocking access to the iframe's `document.cookie` property. This means `Slave-Cookie`s are no longer supported in some browsers.
 
-  When `withCredentials` is set to `true` for a given request, the cookies of the master and slave are sent to the server using these names. If one is set to `null`, it will not be sent.
+When `withCredentials` is set to `true` for a given request, the cookies of the master and slave are sent to the server using these names. If one is set to `null`, it will not be sent.
 
-  ``` js
-  //defaults
-  xdomain.cookies = {
-    master: "Master-Cookie"
-    slave: "Slave-Cookie"
-  };
-  ```
+```js
+//defaults
+xdomain.cookies = {
+  master: "Master-Cookie"
+  slave: "Slave-Cookie"
+};
+```
 
-  *Note, if you use `"Cookie"` as your cookie name, it will be removed by browsers with `Disable 3rd Party Cookies` switched on - this includes all Safari users and many others who purposefully enable it.*
+_Note, if you use `"Cookie"` as your cookie name, it will be removed by browsers with `Disable 3rd Party Cookies` switched on - this includes all Safari users and many others who purposefully enable it._
 
 ## Conceptual Overview
 
-1. XDomain will create an iframe on the master to the slave's proxy.
-2. Master will communicate to slave iframe using postMessage.
-3. Slave will create XHRs on behalf of master then return the results.
+1.  XDomain will create an iframe on the master to the slave's proxy.
+2.  Master will communicate to slave iframe using postMessage.
+3.  Slave will create XHRs on behalf of master then return the results.
 
 XHR interception is done seamlessly via [XHook](https://github.com/jpillora/xhook#overview).
 
@@ -213,7 +206,7 @@ Use the HTML5 document type `<!DOCTYPE HTML>` to prevent your page
 from going into quirks mode. If you don't do this, XDomain will warn you about
 the missing `JSON` and/or `postMessage` globals and will exit.
 
-If you need a **CORS Polyfill** and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed above.
+If you need a **CORS Polyfill** and you're here because of IE, give this XHook [CORS polyfill](http://jpillora.com/xhook/example/ie-8-9-cors-polyfill.html) a try, however, be mindful of the restrictions listed below.
 
 ## FAQ / Troubleshooting
 
@@ -222,10 +215,10 @@ Q: But I love CORS
 A: You shouldn't. You should use XDomain because:
 
 * IE uses a different API (XDomainRequest) for CORS, XDomain normalizes this silliness. XDomainRequest also has many restrictions:
-    * Requests must be `GET` or `POST`
-    * Requests must use the same protocol as the page `http` -> `http`
-    * Requests only emit `progress`,`timeout` and `error`
-    * Requests may only use the `Content-Type` header
+  * Requests must be `GET` or `POST`
+  * Requests must use the same protocol as the page `http` -> `http`
+  * Requests only emit `progress`,`timeout` and `error`
+  * Requests may only use the `Content-Type` header
 * The [CORS spec](http://www.w3.org/TR/cors/) is not as simple as it seems, XDomain allows you to use plain XHR instead.
 * On a RESTful JSON API server, CORS will generate superfluous traffic by sending a
   preflight OPTIONS request preceding various types of requests.
@@ -240,7 +233,7 @@ A: You shouldn't. You should use XDomain because:
 Q: XDomain is interfering with another library!
 
 A: XDomain attempts to perfectly implement [XMLHttpRequest2](http://www.w3.org/TR/XMLHttpRequest2/)
-so there *should* be no differences. If there is a difference, create an issue. Note however, one purposeful
+so there _should_ be no differences. If there is a difference, create an issue. Note however, one purposeful
 difference affects some libraries under IE. Many use the presence of `'withCredentials' in new XMLHttpRequest()`
 to determine if the browser supports CORS.
 
@@ -250,7 +243,7 @@ other libraries like: MixPanel, FB SDK, Intercom as they will incorrectly attemp
 which don't have a `proxy.html`. So, if you are using any of these libraries which implement their own CORS workarounds, you can do the
 following to manually disable defining `withCredentials` and manually reenable CORS on jQuery:
 
-``` js
+```js
 //fix trackers
 xhook.addWithCredentials = false;
 //fix jquery cors
@@ -271,7 +264,7 @@ Q: The browser is still sending CORS requests.
 
 A: Double check your slaves configuration against the examples.
 If your slaves configuration is correct, double-check that you're
-including XDomain *before* `window.XMLHttpRequest` is referenced **anywhere**.
+including XDomain _before_ `window.XMLHttpRequest` is referenced **anywhere**.
 The safest way to fix it is to include XDomain **first**, it has no dependencies,
 it only modifies `window.XMLHttpRequest`.
 
@@ -284,9 +277,29 @@ Q: It's still not working!
 A: Enable `xdomain.debug = true;` (or add a `debug="true"` attribute to the script tag) on both the master and the slave
 and copy the `console.logs` to a new issue. If possible, please provide a live example demonstrating your issue.
 
+## Change log
+
+* `0.8.0`
+
+  * Removed CoffeeScript
+  * Restructured with ES6 and Common.js
+  * Use `parcel` as bundler
+
+## Todo
+
+* Saucelabs testing is broken, need to swap to BrowserStack.
+
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md) for instructions on how to build and run XDomain locally.
+* `npm install`
+* Tab 1
+  * `npm run dev`
+* Tab 2
+  * `npm i -g serve`
+  * `serve -p 3000 .`
+  * `open http://localhost:3000/example/local`
+* `npm run build`
+* See `dist/`
 
 #### Donate
 

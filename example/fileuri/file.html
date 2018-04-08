@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+</head>
+
+<body>
+
+	<p>test:</p>
+	<pre>loading...</pre>
+
+	<script src="https://jpillora.com/xdomain/dist/xdomain.js" slave="https://jpillora.com/xdomain/fileuri/fileuri/proxy.html"></script>
+
+	<script>
+		if (window.location.protocol === 'file:') {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "https://jpillora.com/xdomain/example/files/data1.json");
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4)
+					document.querySelector("pre").innerHTML = xhr.responseText;
+			};
+			xhr.send();
+		} else {
+			alert("this example tests the file:// protocol")
+		}
+	</script>
+
+</body>
+
+</html>
