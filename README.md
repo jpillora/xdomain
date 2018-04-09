@@ -35,10 +35,10 @@ will work seamlessly with any library.
 
 * Development [xdomain.js](https://jpillora.com/xdomain/dist/xdomain.js) 27KB
 * Production [xdomain.min.js](https://jpillora.com/xdomain/dist/xdomain.min.js) 12KB (5.16KB Gzip)
-* CDN (Latest version is `0.8.1`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases))
+* CDN (Latest version is `0.8.2`, though you can change to any [release tag](https://github.com/jpillora/xdomain/releases))
 
   ```html
-  <script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js"></script>
+  <script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js"></script>
   ```
 
 ## Live Demos
@@ -59,13 +59,13 @@ _Note: It's_ **important** _to include XDomain before any other library. When XD
 
     ```html
     <!DOCTYPE HTML>
-    <script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js" master="http://abc.example.com"></script>
+    <script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js" master="http://abc.example.com"></script>
     ```
 
 2.  Then, on your master domain (`http://abc.example.com`), point to your new `proxy.html`:
 
     ```html
-    <script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
+    <script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js" slave="http://xyz.example.com/proxy.html"></script>
     ```
 
 3.  **And that's it!** Now, on your master domain, any XHR to `http://xyz.example.com` will automagically work:
@@ -92,11 +92,11 @@ _Tip: If you enjoy being standards compliant, you can also use `data-master` and
 The following two snippets are equivalent:
 
 ```html
-<script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
+<script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js" master="http://abc.example.com/api/*"></script>
 ```
 
 ```html
-<script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js"></script>
+<script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js"></script>
 <script>
 xdomain.masters({
   'http://abc.example.com': '/api/*'
@@ -119,7 +119,7 @@ The `slaves` object is used as a _list_ slaves to force one proxy file per origi
 The **Quick Usage** step 2 above is equivalent to:
 
 ```html
-<script src="//unpkg.com/xdomain@0.8.1/dist/xdomain.min.js"></script>
+<script src="//unpkg.com/xdomain@0.8.2/dist/xdomain.min.js"></script>
 <script>
   xdomain.slaves({
     "http://xyz.example.com": "/proxy.html"
@@ -279,7 +279,7 @@ and copy the `console.logs` to a new issue. If possible, please provide a live e
 
 ## Change log
 
-* `0.8.1`
+* `0.8.2`
 
   * Removed CoffeeScript
   * Restructured with ES6 and Common.js

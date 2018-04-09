@@ -1,6 +1,14 @@
 const xhook = require("../vendor/xhook");
 const config = require("./config");
-const { currentOrigin, log, warn, parseUrl, guid, strip } = require("./util");
+const {
+  currentOrigin,
+  log,
+  warn,
+  parseUrl,
+  guid,
+  strip,
+  instOf
+} = require("./util");
 const socketlib = require("./socket");
 const createSocket = socketlib.createSocket;
 

@@ -1,6 +1,6 @@
 {
   "name": "xdomain",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "A pure JavaScript CORS alternative",
   "browser": "dist/xdomain.js",
   "main": "src/index.js",
