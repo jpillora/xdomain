@@ -49,7 +49,7 @@ exports.handleSocket = (origin, socket) => {
   //this is true for file:// and data:// URIs.
   //html data:// URI are now blocked, they can
   //only be copy-and-pasted into the URL bar.
-  if (origin === "null") {
+  if (origin === "null" || origin === "file:") {
     origin = "file://";
   }
   log(`handle socket for "${origin}"`);
