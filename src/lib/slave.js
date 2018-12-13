@@ -129,7 +129,7 @@ exports.handleSocket = (origin, socket) => {
     if (req.body instanceof Array && req.body[0] === "XD_FD") {
       const fd = new xhook.FormData();
       const entries = req.body[1];
-      Array.from(entries).forEach(arg => {
+      Array.from(entries).forEach(args => {
         //deserialize blobs from arraybuffs
         //[0:marker, 1:real-args, 2:arraybuffer, 3:type]
         if (args[0] === "XD_BLOB" && args.length === 4) {
