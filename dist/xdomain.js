@@ -77,7 +77,7 @@ parcelRequire = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({31:[function(require,module,exports) {
+})({25:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -90,7 +90,7 @@ module.exports = function isArguments(value) {
 	}
 	return isArgs;
 };
-},{}],26:[function(require,module,exports) {
+},{}],22:[function(require,module,exports) {
 'use strict';
 
 // modified from https://github.com/es-shims/es5-shim
@@ -226,7 +226,7 @@ keysShim.shim = function shimObjectKeys() {
 };
 
 module.exports = keysShim;
-},{"./isArguments":31}],27:[function(require,module,exports) {
+},{"./isArguments":25}],23:[function(require,module,exports) {
 
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
@@ -250,7 +250,7 @@ module.exports = function forEach (obj, fn, ctx) {
 };
 
 
-},{}],12:[function(require,module,exports) {
+},{}],16:[function(require,module,exports) {
 'use strict';
 
 var keys = require('object-keys');
@@ -310,7 +310,7 @@ var defineProperties = function (object, map) {
 defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
-},{"object-keys":26,"foreach":27}],48:[function(require,module,exports) {
+},{"object-keys":22,"foreach":23}],39:[function(require,module,exports) {
 'use strict';
 
 /* eslint no-invalid-this: 1 */
@@ -364,22 +364,22 @@ module.exports = function bind(that) {
     return bound;
 };
 
-},{}],42:[function(require,module,exports) {
+},{}],36:[function(require,module,exports) {
 'use strict';
 
 var implementation = require('./implementation');
 
 module.exports = Function.prototype.bind || implementation;
 
-},{"./implementation":48}],41:[function(require,module,exports) {
+},{"./implementation":39}],34:[function(require,module,exports) {
 var bind = require('function-bind');
 
 module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
-},{"function-bind":42}],43:[function(require,module,exports) {
+},{"function-bind":36}],40:[function(require,module,exports) {
 module.exports = function isPrimitive(value) {
 	return value === null || typeof value !== 'function' && typeof value !== 'object';
 };
-},{}],44:[function(require,module,exports) {
+},{}],38:[function(require,module,exports) {
 'use strict';
 
 var fnToStr = Function.prototype.toString;
@@ -429,7 +429,7 @@ module.exports = function isCallable(value) {
 	var strClass = toStr.call(value);
 	return strClass === fnClass || strClass === genClass;
 };
-},{}],46:[function(require,module,exports) {
+},{}],41:[function(require,module,exports) {
 'use strict';
 
 var getDay = Date.prototype.getDay;
@@ -452,7 +452,7 @@ module.exports = function isDateObject(value) {
 	}
 	return hasToStringTag ? tryDateObject(value) : toStr.call(value) === dateClass;
 };
-},{}],45:[function(require,module,exports) {
+},{}],42:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -486,7 +486,7 @@ if (hasSymbols) {
 		return false;
 	};
 }
-},{}],40:[function(require,module,exports) {
+},{}],35:[function(require,module,exports) {
 'use strict';
 
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol';
@@ -561,11 +561,11 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
 };
-},{"./helpers/isPrimitive":43,"is-callable":44,"is-date-object":46,"is-symbol":45}],33:[function(require,module,exports) {
+},{"./helpers/isPrimitive":40,"is-callable":38,"is-date-object":41,"is-symbol":42}],27:[function(require,module,exports) {
 module.exports = Number.isNaN || function isNaN(a) {
 	return a !== a;
 };
-},{}],34:[function(require,module,exports) {
+},{}],28:[function(require,module,exports) {
 var $isNaN = Number.isNaN || function (a) {
   return a !== a;
 };
@@ -573,7 +573,7 @@ var $isNaN = Number.isNaN || function (a) {
 module.exports = Number.isFinite || function (x) {
   return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity;
 };
-},{}],35:[function(require,module,exports) {
+},{}],29:[function(require,module,exports) {
 var has = Object.prototype.hasOwnProperty;
 module.exports = function assign(target, source) {
 	if (Object.assign) {
@@ -586,16 +586,16 @@ module.exports = function assign(target, source) {
 	}
 	return target;
 };
-},{}],36:[function(require,module,exports) {
+},{}],30:[function(require,module,exports) {
 module.exports = function sign(number) {
 	return number >= 0 ? 1 : -1;
 };
-},{}],37:[function(require,module,exports) {
+},{}],31:[function(require,module,exports) {
 module.exports = function mod(number, modulo) {
 	var remain = number % modulo;
 	return Math.floor(remain >= 0 ? remain : remain + modulo);
 };
-},{}],47:[function(require,module,exports) {
+},{}],37:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -633,7 +633,7 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ES5internalSlots['[[DefaultValue]]'](input, PreferredType);
 };
-},{"./helpers/isPrimitive":43,"is-callable":44}],32:[function(require,module,exports) {
+},{"./helpers/isPrimitive":40,"is-callable":38}],26:[function(require,module,exports) {
 'use strict';
 
 var $isNaN = require('./helpers/isNaN');
@@ -880,7 +880,7 @@ var ES5 = {
 };
 
 module.exports = ES5;
-},{"./helpers/isNaN":33,"./helpers/isFinite":34,"./helpers/sign":36,"./helpers/mod":37,"is-callable":44,"es-to-primitive/es5":47,"has":41}],39:[function(require,module,exports) {
+},{"./helpers/isNaN":27,"./helpers/isFinite":28,"./helpers/sign":30,"./helpers/mod":31,"is-callable":38,"es-to-primitive/es5":37,"has":34}],33:[function(require,module,exports) {
 'use strict';
 
 var has = require('has');
@@ -920,7 +920,7 @@ module.exports = function isRegex(value) {
 
 	return tryRegexExecCall(value);
 };
-},{"has":41}],30:[function(require,module,exports) {
+},{"has":34}],24:[function(require,module,exports) {
 'use strict';
 
 var has = require('has');
@@ -1594,11 +1594,11 @@ var ES6 = assign(assign({}, ES5), {
 delete ES6.CheckObjectCoercible; // renamed in ES6 to RequireObjectCoercible
 
 module.exports = ES6;
-},{"has":41,"es-to-primitive/es6":40,"./helpers/isNaN":33,"./helpers/isFinite":34,"./helpers/assign":35,"./helpers/sign":36,"./helpers/mod":37,"./helpers/isPrimitive":43,"function-bind":42,"./es5":32,"is-regex":39}],25:[function(require,module,exports) {
+},{"has":34,"es-to-primitive/es6":35,"./helpers/isNaN":27,"./helpers/isFinite":28,"./helpers/assign":29,"./helpers/sign":30,"./helpers/mod":31,"./helpers/isPrimitive":40,"function-bind":36,"./es5":26,"is-regex":33}],21:[function(require,module,exports) {
 'use strict';
 
 module.exports = require('./es2015');
-},{"./es2015":30}],9:[function(require,module,exports) {
+},{"./es2015":24}],11:[function(require,module,exports) {
 'use strict';
 var ES = require('es-abstract/es6');
 var supportsDescriptors = require('define-properties').supportsDescriptors;
@@ -1648,7 +1648,7 @@ module.exports = function from(arrayLike) {
 	return A;
 };
 
-},{"es-abstract/es6":25,"define-properties":12}],10:[function(require,module,exports) {
+},{"es-abstract/es6":21,"define-properties":16}],12:[function(require,module,exports) {
 'use strict';
 
 var ES = require('es-abstract/es6');
@@ -1671,7 +1671,7 @@ module.exports = function getPolyfill() {
 	return implemented ? Array.from : implementation;
 };
 
-},{"es-abstract/es6":25,"./implementation":9}],11:[function(require,module,exports) {
+},{"es-abstract/es6":21,"./implementation":11}],13:[function(require,module,exports) {
 'use strict';
 
 var define = require('define-properties');
@@ -1689,7 +1689,7 @@ module.exports = function shimArrayFrom() {
 	return polyfill;
 };
 
-},{"define-properties":12,"./polyfill":10}],5:[function(require,module,exports) {
+},{"define-properties":16,"./polyfill":12}],4:[function(require,module,exports) {
 'use strict';
 
 var define = require('define-properties');
@@ -1712,73 +1712,245 @@ define(boundFromShim, {
 
 module.exports = boundFromShim;
 
-},{"define-properties":12,"./implementation":9,"./polyfill":10,"./shim":11}],4:[function(require,module,exports) {
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+},{"define-properties":16,"./implementation":11,"./polyfill":12,"./shim":13}],10:[function(require,module,exports) {
 
-// XHook - v1.3.5 - https://github.com/jpillora/xhook
-// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2016
+// shim for using process in browser
+var process = module.exports = {};
 
-var AFTER,
-    BEFORE,
-    COMMON_EVENTS,
-    EventEmitter,
-    FIRE,
-    FormData,
-    NativeFormData,
-    NativeXMLHttp,
-    OFF,
-    ON,
-    READY_STATE,
-    UPLOAD_EVENTS,
-    XHookFormData,
-    XHookHttpRequest,
-    XMLHTTP,
-    convertHeaders,
-    depricatedProp,
-    document,
-    fakeEvent,
-    mergeObjects,
-    msie,
-    proxyEvents,
-    slice,
-    xhook,
-    _base,
-    __indexOf = [].indexOf || function (item) {
-  for (var i = 0, l = this.length; i < l; i++) {
-    if (i in this && this[i] === item) return i;
-  }
-  return -1;
-};
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
 
-document = window.document;
+var cachedSetTimeout;
+var cachedClearTimeout;
 
-BEFORE = "before";
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout() {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+})();
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
 
-AFTER = "after";
-
-READY_STATE = "readyState";
-
-ON = "addEventListener";
-
-OFF = "removeEventListener";
-
-FIRE = "dispatchEvent";
-
-XMLHTTP = "XMLHttpRequest";
-
-FormData = "FormData";
-
-UPLOAD_EVENTS = ["load", "loadend", "loadstart"];
-
-COMMON_EVENTS = ["progress", "abort", "error", "timeout"];
-
-msie = parseInt((/msie (\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
-
-if (isNaN(msie)) {
-  msie = parseInt((/trident\/.*; rv:(\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
 }
 
-(_base = Array.prototype).indexOf || (_base.indexOf = function (item) {
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while (len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+    return [];
+};
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+    return '/';
+};
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function () {
+    return 0;
+};
+},{}],5:[function(require,module,exports) {
+var global = (1,eval)("this");
+var process = require("process");
+// XHook - v1.4.9 - https://github.com/jpillora/xhook
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2018
+(function(undefined) {
+var AFTER, BEFORE, COMMON_EVENTS, EventEmitter, FETCH, FIRE, FormData, NativeFetch, NativeFormData, NativeXMLHttp, OFF, ON, READY_STATE, UPLOAD_EVENTS, WINDOW, XHookFetchRequest, XHookFormData, XHookHttpRequest, XMLHTTP, convertHeaders, depricatedProp, document, fakeEvent, mergeObjects, msie, nullify, proxyEvents, slice, useragent, xhook, _base,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+WINDOW = null;
+
+if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
+  WINDOW = self;
+} else if (typeof global !== 'undefined') {
+  WINDOW = global;
+} else {
+  WINDOW = window;
+}
+
+document = WINDOW.document;
+
+BEFORE = 'before';
+
+AFTER = 'after';
+
+READY_STATE = 'readyState';
+
+ON = 'addEventListener';
+
+OFF = 'removeEventListener';
+
+FIRE = 'dispatchEvent';
+
+XMLHTTP = 'XMLHttpRequest';
+
+FETCH = 'fetch';
+
+FormData = 'FormData';
+
+UPLOAD_EVENTS = ['load', 'loadend', 'loadstart'];
+
+COMMON_EVENTS = ['progress', 'abort', 'error', 'timeout'];
+
+useragent = typeof navigator !== 'undefined' && navigator['useragent'] ? navigator.userAgent : '';
+
+msie = parseInt((/msie (\d+)/.exec(useragent.toLowerCase()) || [])[1]);
+
+if (isNaN(msie)) {
+  msie = parseInt((/trident\/.*; rv:(\d+)/.exec(useragent.toLowerCase()) || [])[1]);
+}
+
+(_base = Array.prototype).indexOf || (_base.indexOf = function(item) {
   var i, x, _i, _len;
   for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {
     x = this[i];
@@ -1789,15 +1961,15 @@ if (isNaN(msie)) {
   return -1;
 });
 
-slice = function slice(o, n) {
+slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
 };
 
-depricatedProp = function depricatedProp(p) {
+depricatedProp = function(p) {
   return p === "returnValue" || p === "totalSize" || p === "position";
 };
 
-mergeObjects = function mergeObjects(src, dst) {
+mergeObjects = function(src, dst) {
   var k, v;
   for (k in src) {
     v = src[k];
@@ -1811,10 +1983,17 @@ mergeObjects = function mergeObjects(src, dst) {
   return dst;
 };
 
-proxyEvents = function proxyEvents(events, src, dst) {
+nullify = function(res) {
+  if (res === void 0) {
+    return null;
+  }
+  return res;
+};
+
+proxyEvents = function(events, src, dst) {
   var event, p, _i, _len;
-  p = function p(event) {
-    return function (e) {
+  p = function(event) {
+    return function(e) {
       var clone, k, val;
       clone = {};
       for (k in e) {
@@ -1835,9 +2014,9 @@ proxyEvents = function proxyEvents(events, src, dst) {
   }
 };
 
-fakeEvent = function fakeEvent(type) {
+fakeEvent = function(type) {
   var msieEventObject;
-  if (document.createEventObject != null) {
+  if (document && (document.createEventObject != null)) {
     msieEventObject = document.createEventObject();
     msieEventObject.type = type;
     return msieEventObject;
@@ -1852,14 +2031,14 @@ fakeEvent = function fakeEvent(type) {
   }
 };
 
-EventEmitter = function EventEmitter(nodeStyle) {
+EventEmitter = function(nodeStyle) {
   var emitter, events, listeners;
   events = {};
-  listeners = function listeners(event) {
+  listeners = function(event) {
     return events[event] || [];
   };
   emitter = {};
-  emitter[ON] = function (event, callback, i) {
+  emitter[ON] = function(event, callback, i) {
     events[event] = listeners(event);
     if (events[event].indexOf(callback) >= 0) {
       return;
@@ -1867,7 +2046,7 @@ EventEmitter = function EventEmitter(nodeStyle) {
     i = i === undefined ? events[event].length : i;
     events[event].splice(i, 0, callback);
   };
-  emitter[OFF] = function (event, callback) {
+  emitter[OFF] = function(event, callback) {
     var i;
     if (event === undefined) {
       events = {};
@@ -1882,7 +2061,7 @@ EventEmitter = function EventEmitter(nodeStyle) {
     }
     listeners(event).splice(i, 1);
   };
-  emitter[FIRE] = function () {
+  emitter[FIRE] = function() {
     var args, event, i, legacylistener, listener, _i, _len, _ref;
     args = slice(arguments);
     event = args.shift();
@@ -1899,25 +2078,25 @@ EventEmitter = function EventEmitter(nodeStyle) {
       listener.apply(emitter, args);
     }
   };
-  emitter._has = function (event) {
+  emitter._has = function(event) {
     return !!(events[event] || emitter["on" + event]);
   };
   if (nodeStyle) {
-    emitter.listeners = function (event) {
+    emitter.listeners = function(event) {
       return slice(listeners(event));
     };
     emitter.on = emitter[ON];
     emitter.off = emitter[OFF];
     emitter.fire = emitter[FIRE];
-    emitter.once = function (e, fn) {
-      var _fire;
-      _fire = function fire() {
-        emitter.off(e, _fire);
+    emitter.once = function(e, fn) {
+      var fire;
+      fire = function() {
+        emitter.off(e, fire);
         return fn.apply(null, arguments);
       };
-      return emitter.on(e, _fire);
+      return emitter.on(e, fire);
     };
-    emitter.destroy = function () {
+    emitter.destroy = function() {
       return events = {};
     };
   }
@@ -1928,40 +2107,44 @@ xhook = EventEmitter(true);
 
 xhook.EventEmitter = EventEmitter;
 
-xhook[BEFORE] = function (handler, i) {
+xhook[BEFORE] = function(handler, i) {
   if (handler.length < 1 || handler.length > 2) {
     throw "invalid hook";
   }
   return xhook[ON](BEFORE, handler, i);
 };
 
-xhook[AFTER] = function (handler, i) {
+xhook[AFTER] = function(handler, i) {
   if (handler.length < 2 || handler.length > 3) {
     throw "invalid hook";
   }
   return xhook[ON](AFTER, handler, i);
 };
 
-xhook.enable = function () {
-  window[XMLHTTP] = XHookHttpRequest;
+xhook.enable = function() {
+  WINDOW[XMLHTTP] = XHookHttpRequest;
+  if (typeof XHookFetchRequest === "function") {
+    WINDOW[FETCH] = XHookFetchRequest;
+  }
   if (NativeFormData) {
-    window[FormData] = XHookFormData;
+    WINDOW[FormData] = XHookFormData;
   }
 };
 
-xhook.disable = function () {
-  window[XMLHTTP] = xhook[XMLHTTP];
+xhook.disable = function() {
+  WINDOW[XMLHTTP] = xhook[XMLHTTP];
+  WINDOW[FETCH] = xhook[FETCH];
   if (NativeFormData) {
-    window[FormData] = NativeFormData;
+    WINDOW[FormData] = NativeFormData;
   }
 };
 
-convertHeaders = xhook.headers = function (h, dest) {
+convertHeaders = xhook.headers = function(h, dest) {
   var header, headers, k, name, v, value, _i, _len, _ref;
   if (dest == null) {
     dest = {};
   }
-  switch (typeof h === "undefined" ? "undefined" : _typeof(h)) {
+  switch (typeof h) {
     case "object":
       headers = [];
       for (k in h) {
@@ -1969,9 +2152,9 @@ convertHeaders = xhook.headers = function (h, dest) {
         name = k.toLowerCase();
         headers.push("" + name + ":\t" + v);
       }
-      return headers.join("\n");
+      return headers.join('\n') + '\n';
     case "string":
-      headers = h.split("\n");
+      headers = h.split('\n');
       for (_i = 0, _len = headers.length; _i < _len; _i++) {
         header = headers[_i];
         if (/([^:]+):\s*(.+)/.test(header)) {
@@ -1986,45 +2169,45 @@ convertHeaders = xhook.headers = function (h, dest) {
   }
 };
 
-NativeFormData = window[FormData];
+NativeFormData = WINDOW[FormData];
 
-XHookFormData = function XHookFormData(form) {
+XHookFormData = function(form) {
   var entries;
   this.fd = form ? new NativeFormData(form) : new NativeFormData();
   this.form = form;
   entries = [];
-  Object.defineProperty(this, "entries", {
-    get: function get() {
+  Object.defineProperty(this, 'entries', {
+    get: function() {
       var fentries;
-      fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function (e) {
+      fentries = !form ? [] : slice(form.querySelectorAll("input,select")).filter(function(e) {
         var _ref;
-        return (_ref = e.type) !== "checkbox" && _ref !== "radio" || e.checked;
-      }).map(function (e) {
+        return ((_ref = e.type) !== 'checkbox' && _ref !== 'radio') || e.checked;
+      }).map(function(e) {
         return [e.name, e.type === "file" ? e.files : e.value];
       });
       return fentries.concat(entries);
     }
   });
-  this.append = function (_this) {
-    return function () {
+  this.append = (function(_this) {
+    return function() {
       var args;
       args = slice(arguments);
       entries.push(args);
       return _this.fd.append.apply(_this.fd, args);
     };
-  }(this);
+  })(this);
 };
 
 if (NativeFormData) {
   xhook[FormData] = NativeFormData;
-  window[FormData] = XHookFormData;
+  WINDOW[FormData] = XHookFormData;
 }
 
-NativeXMLHttp = window[XMLHTTP];
+NativeXMLHttp = WINDOW[XMLHTTP];
 
 xhook[XMLHTTP] = NativeXMLHttp;
 
-XHookHttpRequest = window[XMLHTTP] = function () {
+XHookHttpRequest = WINDOW[XMLHTTP] = function() {
   var ABORTED, currentState, emitFinal, emitReadyState, event, facade, hasError, hasErrorHandler, readBody, readHead, request, response, setReadyState, status, transiting, writeBody, writeHead, xhr, _i, _len, _ref;
   ABORTED = -1;
   xhr = new xhook[XMLHTTP]();
@@ -2033,7 +2216,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
   hasError = void 0;
   transiting = void 0;
   response = void 0;
-  readHead = function readHead() {
+  readHead = function() {
     var key, name, val, _ref;
     response.status = status || xhr.status;
     if (!(status === ABORTED && msie < 10)) {
@@ -2050,10 +2233,15 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       }
     }
   };
-  readBody = function readBody() {
+  readBody = function() {
     if (!xhr.responseType || xhr.responseType === "text") {
       response.text = xhr.responseText;
       response.data = xhr.responseText;
+      try {
+        response.xml = xhr.responseXML;
+      } catch (_error) {
+
+      }
     } else if (xhr.responseType === "document") {
       response.xml = xhr.responseXML;
       response.data = xhr.responseXML;
@@ -2064,25 +2252,25 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       response.finalUrl = xhr.responseURL;
     }
   };
-  writeHead = function writeHead() {
+  writeHead = function() {
     facade.status = response.status;
     facade.statusText = response.statusText;
   };
-  writeBody = function writeBody() {
-    if ("text" in response) {
+  writeBody = function() {
+    if ('text' in response) {
       facade.responseText = response.text;
     }
-    if ("xml" in response) {
+    if ('xml' in response) {
       facade.responseXML = response.xml;
     }
-    if ("data" in response) {
+    if ('data' in response) {
       facade.response = response.data;
     }
-    if ("finalUrl" in response) {
+    if ('finalUrl' in response) {
       facade.responseURL = response.finalUrl;
     }
   };
-  emitReadyState = function emitReadyState(n) {
+  emitReadyState = function(n) {
     while (n > currentState && currentState < 4) {
       facade[READY_STATE] = ++currentState;
       if (currentState === 1) {
@@ -2097,11 +2285,15 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       }
       facade[FIRE]("readystatechange", {});
       if (currentState === 4) {
-        setTimeout(emitFinal, 0);
+        if (request.async === false) {
+          emitFinal();
+        } else {
+          setTimeout(emitFinal, 0);
+        }
       }
     }
   };
-  emitFinal = function emitFinal() {
+  emitFinal = function() {
     if (!hasError) {
       facade[FIRE]("load", {});
     }
@@ -2111,14 +2303,14 @@ XHookHttpRequest = window[XMLHTTP] = function () {
     }
   };
   currentState = 0;
-  setReadyState = function setReadyState(n) {
-    var hooks, _process;
+  setReadyState = function(n) {
+    var hooks, process;
     if (n !== 4) {
       emitReadyState(n);
       return;
     }
     hooks = xhook.listeners(AFTER);
-    _process = function process() {
+    process = function() {
       var hook;
       if (!hooks.length) {
         return emitReadyState(4);
@@ -2126,17 +2318,17 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       hook = hooks.shift();
       if (hook.length === 2) {
         hook(request, response);
-        return _process();
+        return process();
       } else if (hook.length === 3 && request.async) {
-        return hook(request, response, _process);
+        return hook(request, response, process);
       } else {
-        return _process();
+        return process();
       }
     };
-    _process();
+    process();
   };
   facade = request.xhr = EventEmitter();
-  xhr.onreadystatechange = function (event) {
+  xhr.onreadystatechange = function(event) {
     try {
       if (xhr[READY_STATE] === 2) {
         readHead();
@@ -2149,20 +2341,20 @@ XHookHttpRequest = window[XMLHTTP] = function () {
     }
     setReadyState(xhr[READY_STATE]);
   };
-  hasErrorHandler = function hasErrorHandler() {
+  hasErrorHandler = function() {
     hasError = true;
   };
-  facade[ON]("error", hasErrorHandler);
-  facade[ON]("timeout", hasErrorHandler);
-  facade[ON]("abort", hasErrorHandler);
-  facade[ON]("progress", function () {
+  facade[ON]('error', hasErrorHandler);
+  facade[ON]('timeout', hasErrorHandler);
+  facade[ON]('abort', hasErrorHandler);
+  facade[ON]('progress', function() {
     if (currentState < 3) {
       setReadyState(3);
     } else {
       facade[FIRE]("readystatechange", {});
     }
   });
-  if ("withCredentials" in xhr || xhook.addWithCredentials) {
+  if ('withCredentials' in xhr || xhook.addWithCredentials) {
     facade.withCredentials = false;
   }
   facade.status = 0;
@@ -2171,7 +2363,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
     event = _ref[_i];
     facade["on" + event] = null;
   }
-  facade.open = function (method, url, async, user, pass) {
+  facade.open = function(method, url, async, user, pass) {
     currentState = 0;
     hasError = false;
     transiting = false;
@@ -2187,9 +2379,9 @@ XHookHttpRequest = window[XMLHTTP] = function () {
     request.pass = pass;
     setReadyState(1);
   };
-  facade.send = function (body) {
-    var hooks, k, modk, _process2, send, _j, _len1, _ref1;
-    _ref1 = ["type", "timeout", "withCredentials"];
+  facade.send = function(body) {
+    var hooks, k, modk, process, send, _j, _len1, _ref1;
+    _ref1 = ['type', 'timeout', 'withCredentials'];
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       k = _ref1[_j];
       modk = k === "type" ? "responseType" : k;
@@ -2198,7 +2390,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       }
     }
     request.body = body;
-    send = function send() {
+    send = function() {
       var header, value, _k, _len2, _ref2, _ref3;
       proxyEvents(COMMON_EVENTS, xhr, facade);
       if (facade.upload) {
@@ -2206,7 +2398,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       }
       transiting = true;
       xhr.open(request.method, request.url, request.async, request.user, request.pass);
-      _ref2 = ["type", "timeout", "withCredentials"];
+      _ref2 = ['type', 'timeout', 'withCredentials'];
       for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
         k = _ref2[_k];
         modk = k === "type" ? "responseType" : k;
@@ -2227,27 +2419,27 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       xhr.send(request.body);
     };
     hooks = xhook.listeners(BEFORE);
-    _process2 = function process() {
+    process = function() {
       var done, hook;
       if (!hooks.length) {
         return send();
       }
-      done = function done(userResponse) {
-        if ((typeof userResponse === "undefined" ? "undefined" : _typeof(userResponse)) === "object" && (typeof userResponse.status === "number" || typeof response.status === "number")) {
+      done = function(userResponse) {
+        if (typeof userResponse === 'object' && (typeof userResponse.status === 'number' || typeof response.status === 'number')) {
           mergeObjects(userResponse, response);
-          if (__indexOf.call(userResponse, "data") < 0) {
+          if (__indexOf.call(userResponse, 'data') < 0) {
             userResponse.data = userResponse.response || userResponse.text;
           }
           setReadyState(4);
           return;
         }
-        _process2();
+        process();
       };
-      done.head = function (userResponse) {
+      done.head = function(userResponse) {
         mergeObjects(userResponse, response);
         return setReadyState(2);
       };
-      done.progress = function (userResponse) {
+      done.progress = function(userResponse) {
         mergeObjects(userResponse, response);
         return setReadyState(3);
       };
@@ -2260,46 +2452,158 @@ XHookHttpRequest = window[XMLHTTP] = function () {
         return done();
       }
     };
-    _process2();
+    process();
   };
-  facade.abort = function () {
+  facade.abort = function() {
     status = ABORTED;
     if (transiting) {
       xhr.abort();
     } else {
-      facade[FIRE]("abort", {});
+      facade[FIRE]('abort', {});
     }
   };
-  facade.setRequestHeader = function (header, value) {
+  facade.setRequestHeader = function(header, value) {
     var lName, name;
     lName = header != null ? header.toLowerCase() : void 0;
     name = request.headerNames[lName] = request.headerNames[lName] || header;
     if (request.headers[name]) {
-      value = request.headers[name] + ", " + value;
+      value = request.headers[name] + ', ' + value;
     }
     request.headers[name] = value;
   };
-  facade.getResponseHeader = function (header) {
+  facade.getResponseHeader = function(header) {
     var name;
     name = header != null ? header.toLowerCase() : void 0;
-    return response.headers[name];
+    return nullify(response.headers[name]);
   };
-  facade.getAllResponseHeaders = function () {
-    return convertHeaders(response.headers);
+  facade.getAllResponseHeaders = function() {
+    return nullify(convertHeaders(response.headers));
   };
   if (xhr.overrideMimeType) {
-    facade.overrideMimeType = function () {
+    facade.overrideMimeType = function() {
       return xhr.overrideMimeType.apply(xhr, arguments);
     };
   }
   if (xhr.upload) {
     facade.upload = request.upload = EventEmitter();
   }
+  facade.UNSENT = 0;
+  facade.OPENED = 1;
+  facade.HEADERS_RECEIVED = 2;
+  facade.LOADING = 3;
+  facade.DONE = 4;
+  facade.response = '';
+  facade.responseText = '';
+  facade.responseXML = null;
+  facade.readyState = 0;
+  facade.statusText = '';
   return facade;
 };
 
-module.exports = xhook;
-},{}],19:[function(require,module,exports) {
+if (typeof WINDOW[FETCH] === "function") {
+  NativeFetch = WINDOW[FETCH];
+  xhook[FETCH] = NativeFetch;
+  XHookFetchRequest = WINDOW[FETCH] = function(url, options) {
+    var afterHooks, beforeHooks, request;
+    if (options == null) {
+      options = {
+        headers: {}
+      };
+    }
+    options.url = url;
+    request = null;
+    beforeHooks = xhook.listeners(BEFORE);
+    afterHooks = xhook.listeners(AFTER);
+    return new Promise(function(resolve, reject) {
+      var done, getRequest, processAfter, processBefore, send;
+      getRequest = function() {
+        if (options.body instanceof XHookFormData) {
+          options.body = options.body.fd;
+        }
+        if (options.headers) {
+          options.headers = new Headers(options.headers);
+        }
+        if (!request) {
+          request = new Request(options.url, options);
+        }
+        return mergeObjects(options, request);
+      };
+      processAfter = function(response) {
+        var hook;
+        if (!afterHooks.length) {
+          return resolve(response);
+        }
+        hook = afterHooks.shift();
+        if (hook.length === 2) {
+          hook(getRequest(), response);
+          return processAfter(response);
+        } else if (hook.length === 3) {
+          return hook(getRequest(), response, processAfter);
+        } else {
+          return processAfter(response);
+        }
+      };
+      done = function(userResponse) {
+        var response;
+        if (userResponse !== void 0) {
+          response = new Response(userResponse.body || userResponse.text, userResponse);
+          resolve(response);
+          processAfter(response);
+          return;
+        }
+        processBefore();
+      };
+      processBefore = function() {
+        var hook;
+        if (!beforeHooks.length) {
+          send();
+          return;
+        }
+        hook = beforeHooks.shift();
+        if (hook.length === 1) {
+          return done(hook(options));
+        } else if (hook.length === 2) {
+          return hook(getRequest(), done);
+        }
+      };
+      send = function() {
+        return NativeFetch(getRequest()).then(function(response) {
+          return processAfter(response);
+        })["catch"](function(err) {
+          processAfter(err);
+          return reject(err);
+        });
+      };
+      processBefore();
+    });
+  };
+}
+
+XHookHttpRequest.UNSENT = 0;
+
+XHookHttpRequest.OPENED = 1;
+
+XHookHttpRequest.HEADERS_RECEIVED = 2;
+
+XHookHttpRequest.LOADING = 3;
+
+XHookHttpRequest.DONE = 4;
+
+if (typeof define === "function" && define.amd) {
+  define("xhook", [], function() {
+    return xhook;
+  });
+} else if (typeof module === "object" && module.exports) {
+  module.exports = {
+    xhook: xhook
+  };
+} else if (WINDOW) {
+  WINDOW.xhook = xhook;
+}
+
+}.call(this));
+
+},{"process":10}],9:[function(require,module,exports) {
 var config = function config(o) {
   if (o) {
     if (o.masters) {
@@ -2321,11 +2625,11 @@ config.cookies = {
 //extras are also attached to config
 
 module.exports = config;
-},{}],16:[function(require,module,exports) {
+},{}],6:[function(require,module,exports) {
 var global = (1,eval)("this");
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var xhook = require("../vendor/xhook");
+var xhook = require("xhook").xhook;
 
 var config = require("./config");
 
@@ -2424,8 +2728,8 @@ exports.strip = function (src) {
   }
   return dst;
 };
-},{"../vendor/xhook":4,"./config":19}],28:[function(require,module,exports) {
-var xhook = require("../vendor/xhook");
+},{"xhook":5,"./config":9}],18:[function(require,module,exports) {
+var xhook = require("xhook").xhook;
 var config = require("./config");
 
 var _require = require("./util"),
@@ -2577,8 +2881,8 @@ exports.handleSocket = function (origin, socket) {
   });
   log("slave listening for requests on socket: " + socket.id);
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16}],17:[function(require,module,exports) {
-var xhook = require("../vendor/xhook");
+},{"xhook":5,"./config":9,"./util":6}],7:[function(require,module,exports) {
+var xhook = require("xhook").xhook;
 
 var config = require("./config");
 
@@ -2734,10 +3038,10 @@ exports.initialise = function () {
     return window.attachEvent("onmessage", handle);
   }
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16,"./slave":28}],29:[function(require,module,exports) {
+},{"xhook":5,"./config":9,"./util":6,"./slave":18}],17:[function(require,module,exports) {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var xhook = require("../vendor/xhook");
+var xhook = require("xhook").xhook;
 var config = require("./config");
 
 var _require = require("./util"),
@@ -2931,7 +3235,7 @@ var handleRequest = function handleRequest(request, socket) {
   }
   send();
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16,"./socket":17}],18:[function(require,module,exports) {
+},{"xhook":5,"./config":9,"./util":6,"./socket":7}],8:[function(require,module,exports) {
 var config = require("./config");
 
 var _require = require("./util"),
@@ -2996,7 +3300,7 @@ exports.initialise = function () {
     });
   });
 };
-},{"./config":19,"./util":16,"./master":29,"./slave":28}],3:[function(require,module,exports) {
+},{"./config":9,"./util":6,"./master":17,"./slave":18}],3:[function(require,module,exports) {
 "use strict";
 
 //feature detect
@@ -3022,13 +3326,13 @@ script.initialise();
 var initialise = require("./lib/config");
 //config is also the primary intialise function
 module.exports = initialise;
-},{"./lib/util":16,"./lib/socket":17,"./lib/script":18,"./lib/config":19}],1:[function(require,module,exports) {
+},{"./lib/util":6,"./lib/socket":7,"./lib/script":8,"./lib/config":9}],1:[function(require,module,exports) {
 if (!Array.from) {
   Array.from = require("array.from").getPolyfill();
 }
-var xhook = require("./vendor/xhook");
+var xhook = require("xhook").xhook;
 window.xhook = xhook;
 var xdomain = require("./index");
 window.xdomain = xdomain;
-},{"array.from":5,"./vendor/xhook":4,"./index":3}]},{},[1])
+},{"array.from":4,"xhook":5,"./index":3}]},{},[1])
 //# sourceMappingURL=xdomain.map

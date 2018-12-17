@@ -1,4 +1,4 @@
-const xhook = require("../vendor/xhook");
+const xhook = require("xhook").xhook;
 
 const config = require("./config");
 const { globalEmitter, log, warn, COMPAT_VERSION } = require("./util");
