@@ -9,18 +9,19 @@
     "type": "git",
     "url": "https://github.com/jpillora/xdomain"
   },
-  "keywords": ["cors", "ie8", "polyfill"],
+  "keywords": [
+    "cors",
+    "ie8",
+    "polyfill"
+  ],
   "author": {
     "name": "Jaime Pillora",
     "email": "dev@jpillora.com"
   },
   "scripts": {
-    "dev":
-      "parcel watch --no-source-maps --public-url . src/browser.js -o xdomain",
-    "devfile":
-      "parcel watch --no-hmr --no-source-maps --public-url . src/browser.js -o xdomain",
-    "build":
-      "parcel build --public-url . src/browser.js --no-minify -o xdomain && parcel build src/browser.js --no-source-maps --detailed-report -o xdomain.min"
+    "dev": "parcel watch --no-source-maps --public-url . src/browser.js -o xdomain",
+    "devfile": "parcel watch --no-hmr --no-source-maps --public-url . src/browser.js -o xdomain",
+    "build": "parcel build --public-url . src/browser.js --no-minify -o xdomain && parcel build src/browser.js --no-source-maps --detailed-report -o xdomain.min"
   },
   "devDependencies": {
     "array.from": "^1.0.3",

@@ -68,16 +68,16 @@ if (isNaN(msie)) {
 }
 
 (_base = Array.prototype).indexOf ||
-  (_base.indexOf = function(item) {
-    var i, x, _i, _len;
-    for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {
-      x = this[i];
-      if (x === item) {
-        return i;
-      }
+(_base.indexOf = function(item) {
+  var i, x, _i, _len;
+  for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {
+    x = this[i];
+    if (x === item) {
+      return i;
     }
-    return -1;
-  });
+  }
+  return -1;
+});
 
 slice = function(o, n) {
   return Array.prototype.slice.call(o, n);
@@ -173,11 +173,19 @@ EventEmitter = function(nodeStyle) {
     listeners(event).splice(i, 1);
   };
   emitter[FIRE] = function() {
-    var args, event, i, legacylistener, listener, _i, _len, _ref;
+    var args, event, originalEvent, i, legacylistener, listener, _i, _len, _ref;
     args = slice(arguments);
     event = args.shift();
+    if((event === 'readystatechange' || event === 'progress') && args.length && args[0] && args[0].currentTarget) {
+      originalEvent = args.shift();
+    }
+
     if (!nodeStyle) {
-      args[0] = mergeObjects(args[0], fakeEvent(event));
+      if(originalEvent) {
+        args[0] = mergeObjects(args[0], originalEvent);
+      } else {
+        args[0] = mergeObjects(args[0], fakeEvent(event));
+      }
     }
     legacylistener = emitter["on" + event];
     if (legacylistener) {
@@ -289,16 +297,16 @@ XHookFormData = function(form) {
       fentries = !form
         ? []
         : slice(form.querySelectorAll("input,select"))
-            .filter(function(e) {
-              var _ref;
-              return (
-                ((_ref = e.type) !== "checkbox" && _ref !== "radio") ||
-                e.checked
-              );
-            })
-            .map(function(e) {
-              return [e.name, e.type === "file" ? e.files : e.value];
-            });
+          .filter(function(e) {
+            var _ref;
+            return (
+              ((_ref = e.type) !== "checkbox" && _ref !== "radio") ||
+              e.checked
+            );
+          })
+          .map(function(e) {
+            return [e.name, e.type === "file" ? e.files : e.value];
+          });
       return fentries.concat(entries);
     }
   });
@@ -399,7 +407,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       facade.responseURL = response.finalUrl;
     }
   };
-  emitReadyState = function(n) {
+  emitReadyState = function(n, event) {
     while (n > currentState && currentState < 4) {
       facade[READY_STATE] = ++currentState;
       if (currentState === 1) {
@@ -412,7 +420,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
         writeHead();
         writeBody();
       }
-      facade[FIRE]("readystatechange", {});
+      facade[FIRE]("readystatechange", event || {});
       if (currentState === 4) {
         setTimeout(emitFinal, 0);
       }
@@ -428,17 +436,17 @@ XHookHttpRequest = window[XMLHTTP] = function() {
     }
   };
   currentState = 0;
-  setReadyState = function(n) {
+  setReadyState = function(n, event) {
     var hooks, process;
     if (n !== 4) {
-      emitReadyState(n);
+      emitReadyState(n, event);
       return;
     }
     hooks = xhook.listeners(AFTER);
     process = function() {
       var hook;
       if (!hooks.length) {
-        return emitReadyState(4);
+        return emitReadyState(4, event);
       }
       hook = hooks.shift();
       if (hook.length === 2) {
@@ -454,6 +462,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   };
   facade = request.xhr = EventEmitter();
   xhr.onreadystatechange = function(event) {
+    var a = xhr[READY_STATE];
     try {
       if (xhr[READY_STATE] === 2) {
         readHead();
@@ -464,7 +473,7 @@ XHookHttpRequest = window[XMLHTTP] = function() {
       readHead();
       readBody();
     }
-    setReadyState(xhr[READY_STATE]);
+    setReadyState(xhr[READY_STATE], event);
   };
   hasErrorHandler = function() {
     hasError = true;
@@ -472,11 +481,11 @@ XHookHttpRequest = window[XMLHTTP] = function() {
   facade[ON]("error", hasErrorHandler);
   facade[ON]("timeout", hasErrorHandler);
   facade[ON]("abort", hasErrorHandler);
-  facade[ON]("progress", function() {
+  facade[ON]("progress", function(event) {
     if (currentState < 3) {
       setReadyState(3);
     } else {
-      facade[FIRE]("readystatechange", {});
+      facade[FIRE]("readystatechange", event || {});
     }
   });
   if ("withCredentials" in xhr || xhook.addWithCredentials) {

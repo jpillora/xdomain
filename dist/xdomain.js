@@ -77,7 +77,7 @@ parcelRequire = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({31:[function(require,module,exports) {
+})({37:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -90,7 +90,7 @@ module.exports = function isArguments(value) {
 	}
 	return isArgs;
 };
-},{}],26:[function(require,module,exports) {
+},{}],27:[function(require,module,exports) {
 'use strict';
 
 // modified from https://github.com/es-shims/es5-shim
@@ -226,7 +226,7 @@ keysShim.shim = function shimObjectKeys() {
 };
 
 module.exports = keysShim;
-},{"./isArguments":31}],27:[function(require,module,exports) {
+},{"./isArguments":37}],28:[function(require,module,exports) {
 
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
@@ -250,7 +250,7 @@ module.exports = function forEach (obj, fn, ctx) {
 };
 
 
-},{}],12:[function(require,module,exports) {
+},{}],19:[function(require,module,exports) {
 'use strict';
 
 var keys = require('object-keys');
@@ -310,7 +310,7 @@ var defineProperties = function (object, map) {
 defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
-},{"object-keys":26,"foreach":27}],48:[function(require,module,exports) {
+},{"object-keys":27,"foreach":28}],55:[function(require,module,exports) {
 'use strict';
 
 /* eslint no-invalid-this: 1 */
@@ -364,22 +364,22 @@ module.exports = function bind(that) {
     return bound;
 };
 
-},{}],42:[function(require,module,exports) {
+},{}],48:[function(require,module,exports) {
 'use strict';
 
 var implementation = require('./implementation');
 
 module.exports = Function.prototype.bind || implementation;
 
-},{"./implementation":48}],41:[function(require,module,exports) {
+},{"./implementation":55}],47:[function(require,module,exports) {
 var bind = require('function-bind');
 
 module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
-},{"function-bind":42}],43:[function(require,module,exports) {
+},{"function-bind":48}],50:[function(require,module,exports) {
 module.exports = function isPrimitive(value) {
 	return value === null || typeof value !== 'function' && typeof value !== 'object';
 };
-},{}],44:[function(require,module,exports) {
+},{}],53:[function(require,module,exports) {
 'use strict';
 
 var fnToStr = Function.prototype.toString;
@@ -429,7 +429,7 @@ module.exports = function isCallable(value) {
 	var strClass = toStr.call(value);
 	return strClass === fnClass || strClass === genClass;
 };
-},{}],46:[function(require,module,exports) {
+},{}],51:[function(require,module,exports) {
 'use strict';
 
 var getDay = Date.prototype.getDay;
@@ -452,7 +452,7 @@ module.exports = function isDateObject(value) {
 	}
 	return hasToStringTag ? tryDateObject(value) : toStr.call(value) === dateClass;
 };
-},{}],45:[function(require,module,exports) {
+},{}],52:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -486,7 +486,7 @@ if (hasSymbols) {
 		return false;
 	};
 }
-},{}],40:[function(require,module,exports) {
+},{}],49:[function(require,module,exports) {
 'use strict';
 
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol';
@@ -561,11 +561,11 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
 };
-},{"./helpers/isPrimitive":43,"is-callable":44,"is-date-object":46,"is-symbol":45}],33:[function(require,module,exports) {
+},{"./helpers/isPrimitive":50,"is-callable":53,"is-date-object":51,"is-symbol":52}],40:[function(require,module,exports) {
 module.exports = Number.isNaN || function isNaN(a) {
 	return a !== a;
 };
-},{}],34:[function(require,module,exports) {
+},{}],41:[function(require,module,exports) {
 var $isNaN = Number.isNaN || function (a) {
   return a !== a;
 };
@@ -573,7 +573,7 @@ var $isNaN = Number.isNaN || function (a) {
 module.exports = Number.isFinite || function (x) {
   return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity;
 };
-},{}],35:[function(require,module,exports) {
+},{}],42:[function(require,module,exports) {
 var has = Object.prototype.hasOwnProperty;
 module.exports = function assign(target, source) {
 	if (Object.assign) {
@@ -586,16 +586,16 @@ module.exports = function assign(target, source) {
 	}
 	return target;
 };
-},{}],36:[function(require,module,exports) {
+},{}],43:[function(require,module,exports) {
 module.exports = function sign(number) {
 	return number >= 0 ? 1 : -1;
 };
-},{}],37:[function(require,module,exports) {
+},{}],44:[function(require,module,exports) {
 module.exports = function mod(number, modulo) {
 	var remain = number % modulo;
 	return Math.floor(remain >= 0 ? remain : remain + modulo);
 };
-},{}],47:[function(require,module,exports) {
+},{}],54:[function(require,module,exports) {
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -633,7 +633,7 @@ module.exports = function ToPrimitive(input, PreferredType) {
 	}
 	return ES5internalSlots['[[DefaultValue]]'](input, PreferredType);
 };
-},{"./helpers/isPrimitive":43,"is-callable":44}],32:[function(require,module,exports) {
+},{"./helpers/isPrimitive":50,"is-callable":53}],39:[function(require,module,exports) {
 'use strict';
 
 var $isNaN = require('./helpers/isNaN');
@@ -880,7 +880,7 @@ var ES5 = {
 };
 
 module.exports = ES5;
-},{"./helpers/isNaN":33,"./helpers/isFinite":34,"./helpers/sign":36,"./helpers/mod":37,"is-callable":44,"es-to-primitive/es5":47,"has":41}],39:[function(require,module,exports) {
+},{"./helpers/isNaN":40,"./helpers/isFinite":41,"./helpers/sign":43,"./helpers/mod":44,"is-callable":53,"es-to-primitive/es5":54,"has":47}],46:[function(require,module,exports) {
 'use strict';
 
 var has = require('has');
@@ -920,7 +920,7 @@ module.exports = function isRegex(value) {
 
 	return tryRegexExecCall(value);
 };
-},{"has":41}],30:[function(require,module,exports) {
+},{"has":47}],35:[function(require,module,exports) {
 'use strict';
 
 var has = require('has');
@@ -1594,11 +1594,11 @@ var ES6 = assign(assign({}, ES5), {
 delete ES6.CheckObjectCoercible; // renamed in ES6 to RequireObjectCoercible
 
 module.exports = ES6;
-},{"has":41,"es-to-primitive/es6":40,"./helpers/isNaN":33,"./helpers/isFinite":34,"./helpers/assign":35,"./helpers/sign":36,"./helpers/mod":37,"./helpers/isPrimitive":43,"function-bind":42,"./es5":32,"is-regex":39}],25:[function(require,module,exports) {
+},{"has":47,"es-to-primitive/es6":49,"./helpers/isNaN":40,"./helpers/isFinite":41,"./helpers/assign":42,"./helpers/sign":43,"./helpers/mod":44,"./helpers/isPrimitive":50,"function-bind":48,"./es5":39,"is-regex":46}],25:[function(require,module,exports) {
 'use strict';
 
 module.exports = require('./es2015');
-},{"./es2015":30}],9:[function(require,module,exports) {
+},{"./es2015":35}],9:[function(require,module,exports) {
 'use strict';
 var ES = require('es-abstract/es6');
 var supportsDescriptors = require('define-properties').supportsDescriptors;
@@ -1648,7 +1648,7 @@ module.exports = function from(arrayLike) {
 	return A;
 };
 
-},{"es-abstract/es6":25,"define-properties":12}],10:[function(require,module,exports) {
+},{"es-abstract/es6":25,"define-properties":19}],10:[function(require,module,exports) {
 'use strict';
 
 var ES = require('es-abstract/es6');
@@ -1689,7 +1689,7 @@ module.exports = function shimArrayFrom() {
 	return polyfill;
 };
 
-},{"define-properties":12,"./polyfill":10}],5:[function(require,module,exports) {
+},{"define-properties":19,"./polyfill":10}],7:[function(require,module,exports) {
 'use strict';
 
 var define = require('define-properties');
@@ -1712,7 +1712,7 @@ define(boundFromShim, {
 
 module.exports = boundFromShim;
 
-},{"define-properties":12,"./implementation":9,"./polyfill":10,"./shim":11}],4:[function(require,module,exports) {
+},{"define-properties":19,"./implementation":9,"./polyfill":10,"./shim":11}],4:[function(require,module,exports) {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 // XHook - v1.3.5 - https://github.com/jpillora/xhook
@@ -1883,11 +1883,19 @@ EventEmitter = function EventEmitter(nodeStyle) {
     listeners(event).splice(i, 1);
   };
   emitter[FIRE] = function () {
-    var args, event, i, legacylistener, listener, _i, _len, _ref;
+    var args, event, originalEvent, i, legacylistener, listener, _i, _len, _ref;
     args = slice(arguments);
     event = args.shift();
+    if ((event === 'readystatechange' || event === 'progress') && args.length && args[0] && args[0].currentTarget) {
+      originalEvent = args.shift();
+    }
+
     if (!nodeStyle) {
-      args[0] = mergeObjects(args[0], fakeEvent(event));
+      if (originalEvent) {
+        args[0] = mergeObjects(args[0], originalEvent);
+      } else {
+        args[0] = mergeObjects(args[0], fakeEvent(event));
+      }
     }
     legacylistener = emitter["on" + event];
     if (legacylistener) {
@@ -2082,7 +2090,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       facade.responseURL = response.finalUrl;
     }
   };
-  emitReadyState = function emitReadyState(n) {
+  emitReadyState = function emitReadyState(n, event) {
     while (n > currentState && currentState < 4) {
       facade[READY_STATE] = ++currentState;
       if (currentState === 1) {
@@ -2095,7 +2103,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
         writeHead();
         writeBody();
       }
-      facade[FIRE]("readystatechange", {});
+      facade[FIRE]("readystatechange", event || {});
       if (currentState === 4) {
         setTimeout(emitFinal, 0);
       }
@@ -2111,17 +2119,17 @@ XHookHttpRequest = window[XMLHTTP] = function () {
     }
   };
   currentState = 0;
-  setReadyState = function setReadyState(n) {
+  setReadyState = function setReadyState(n, event) {
     var hooks, _process;
     if (n !== 4) {
-      emitReadyState(n);
+      emitReadyState(n, event);
       return;
     }
     hooks = xhook.listeners(AFTER);
     _process = function process() {
       var hook;
       if (!hooks.length) {
-        return emitReadyState(4);
+        return emitReadyState(4, event);
       }
       hook = hooks.shift();
       if (hook.length === 2) {
@@ -2137,6 +2145,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
   };
   facade = request.xhr = EventEmitter();
   xhr.onreadystatechange = function (event) {
+    var a = xhr[READY_STATE];
     try {
       if (xhr[READY_STATE] === 2) {
         readHead();
@@ -2147,7 +2156,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
       readHead();
       readBody();
     }
-    setReadyState(xhr[READY_STATE]);
+    setReadyState(xhr[READY_STATE], event);
   };
   hasErrorHandler = function hasErrorHandler() {
     hasError = true;
@@ -2155,11 +2164,11 @@ XHookHttpRequest = window[XMLHTTP] = function () {
   facade[ON]("error", hasErrorHandler);
   facade[ON]("timeout", hasErrorHandler);
   facade[ON]("abort", hasErrorHandler);
-  facade[ON]("progress", function () {
+  facade[ON]("progress", function (event) {
     if (currentState < 3) {
       setReadyState(3);
     } else {
-      facade[FIRE]("readystatechange", {});
+      facade[FIRE]("readystatechange", event || {});
     }
   });
   if ("withCredentials" in xhr || xhook.addWithCredentials) {
@@ -2299,7 +2308,7 @@ XHookHttpRequest = window[XMLHTTP] = function () {
 };
 
 module.exports = xhook;
-},{}],19:[function(require,module,exports) {
+},{}],18:[function(require,module,exports) {
 var config = function config(o) {
   if (o) {
     if (o.masters) {
@@ -2321,7 +2330,7 @@ config.cookies = {
 //extras are also attached to config
 
 module.exports = config;
-},{}],16:[function(require,module,exports) {
+},{}],15:[function(require,module,exports) {
 var global = (1,eval)("this");
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -2424,7 +2433,7 @@ exports.strip = function (src) {
   }
   return dst;
 };
-},{"../vendor/xhook":4,"./config":19}],28:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":18}],31:[function(require,module,exports) {
 var xhook = require("../vendor/xhook");
 var config = require("./config");
 
@@ -2560,7 +2569,7 @@ exports.handleSocket = function (origin, socket) {
     if (req.body instanceof Array && req.body[0] === "XD_FD") {
       var fd = new xhook.FormData();
       var entries = req.body[1];
-      Array.from(entries).forEach(function (arg) {
+      Array.from(entries).forEach(function (args) {
         //deserialize blobs from arraybuffs
         //[0:marker, 1:real-args, 2:arraybuffer, 3:type]
         if (args[0] === "XD_BLOB" && args.length === 4) {
@@ -2577,7 +2586,7 @@ exports.handleSocket = function (origin, socket) {
   });
   log("slave listening for requests on socket: " + socket.id);
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16}],17:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":18,"./util":15}],16:[function(require,module,exports) {
 var xhook = require("../vendor/xhook");
 
 var config = require("./config");
@@ -2734,7 +2743,7 @@ exports.initialise = function () {
     return window.attachEvent("onmessage", handle);
   }
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16,"./slave":28}],29:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":18,"./util":15,"./slave":31}],32:[function(require,module,exports) {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var xhook = require("../vendor/xhook");
@@ -2931,7 +2940,7 @@ var handleRequest = function handleRequest(request, socket) {
   }
   send();
 };
-},{"../vendor/xhook":4,"./config":19,"./util":16,"./socket":17}],18:[function(require,module,exports) {
+},{"../vendor/xhook":4,"./config":18,"./util":15,"./socket":16}],17:[function(require,module,exports) {
 var config = require("./config");
 
 var _require = require("./util"),
@@ -2996,7 +3005,7 @@ exports.initialise = function () {
     });
   });
 };
-},{"./config":19,"./util":16,"./master":29,"./slave":28}],3:[function(require,module,exports) {
+},{"./config":18,"./util":15,"./master":32,"./slave":31}],3:[function(require,module,exports) {
 "use strict";
 
 //feature detect
@@ -3022,7 +3031,7 @@ script.initialise();
 var initialise = require("./lib/config");
 //config is also the primary intialise function
 module.exports = initialise;
-},{"./lib/util":16,"./lib/socket":17,"./lib/script":18,"./lib/config":19}],1:[function(require,module,exports) {
+},{"./lib/util":15,"./lib/socket":16,"./lib/script":17,"./lib/config":18}],1:[function(require,module,exports) {
 if (!Array.from) {
   Array.from = require("array.from").getPolyfill();
 }
@@ -3030,5 +3039,5 @@ var xhook = require("./vendor/xhook");
 window.xhook = xhook;
 var xdomain = require("./index");
 window.xdomain = xdomain;
-},{"array.from":5,"./vendor/xhook":4,"./index":3}]},{},[1])
+},{"array.from":7,"./vendor/xhook":4,"./index":3}]},{},[1])
 //# sourceMappingURL=xdomain.map
