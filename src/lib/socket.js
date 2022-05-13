@@ -112,6 +112,7 @@ exports.initialise = () => {
     if (!(d instanceof Array)) {
       return;
     }
+    d = d.slice();
     //return unless lead by an xdomain id
     const id = d.shift();
     if (!/^xdomain-/.test(id)) {
