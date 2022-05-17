@@ -113,10 +113,10 @@ exports.initialise = () => {
       return;
     }
     //return unless lead by an xdomain id
-    const id = d.shift();
-    if (!/^xdomain-/.test(id)) {
+    if (!/^xdomain-/.test(d[0])) {
       return;
     }
+    const id = d.shift();
     //finally, create/get socket
     let socket = sockets[id];
     //closed
